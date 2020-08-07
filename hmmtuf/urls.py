@@ -17,10 +17,9 @@ from django.contrib import admin
 from django.urls import path
 from django.urls import include
 
-#import hmmtuf_home
-
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('hmmtuf_home.urls')),
+    path('load_file/', include('file_loader.urls')),
     #path(r'^$',TemplateView.as_view(template_name='homepage.html')),
 ]
