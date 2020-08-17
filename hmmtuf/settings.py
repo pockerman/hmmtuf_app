@@ -9,12 +9,15 @@ https://docs.djangoproject.com/en/3.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.1/ref/settings/
 """
-
+import os
 from pathlib import Path
+from . celery_settings import BROKER_URL
+from . celery_settings import CELERY_ACCEPT_CONTENT
+from . celery_settings import CELERY_TASK_SERIALIZER
+from . celery_settings import CELERY_TIMEZONE
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve(strict=True).parent.parent
-
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.1/howto/deployment/checklist/
@@ -39,6 +42,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'hmmtuf_home',
     'file_loader',
+    'hmmtuf_compute',
 ]
 
 MIDDLEWARE = [
@@ -120,3 +124,15 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 
 STATIC_URL = '/static/'
+
+# path to where to store the region files
+REGIONS_FILES_ROOT = '/home/alex/qi3/hmmtuf/regions/' #os.path.join(BASE_DIR, 'regions/')
+REGIONS_FILES_URL = '/home/alex/qi3/hmmtuf/regions/' #'regions/'
+
+# path to where to store the HMM files
+HMM_FILES_ROOT = '/home/alex/qi3/hmmtuf/hmm_files/'
+HMM_FILES_URL = '/home/alex/qi3/hmmtuf/hmm_files/'
+
+# path to where to store the computed Viterbi paths
+VITERBI_PATHS_FILES_ROOT = '/home/alex/qi3/hmmtuf/viterbi_paths/'
+VITERBI_PATHS_FILES_URL = '/home/alex/qi3/hmmtuf/viterbi_paths/'
