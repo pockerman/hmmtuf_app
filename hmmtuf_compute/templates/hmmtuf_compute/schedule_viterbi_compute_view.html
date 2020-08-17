@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>HMMtuf-Compute Viterbi Path</title>
+</head>
+<body>
+<h4>Select an HMM and a region file to compute the Viterbi path</h4>
+
+{% if error_empty_hmm_list %}
+    <p>ERROR: {{ error_empty_hmm_list }}</p>
+{% endif %}
+
+{% if error_missing_file %}
+    <p>ERROR: {{ error_missing_file }}</p>
+{% endif %}
+
+<form method="post" enctype="multipart/form-data" target="_blank">
+    {% csrf_token %}
+    <p>Region file</p>
+    <select id="id_region" name="region">
+        {% for region_name in region_names %}
+            <option value="{{ region_name }}">{{ region_name }}</option>
+        {% endfor %}
+    </select>
+    <p>HMM file</p>
+    <select id="id_hmm" name="hmm">
+        {% for hmm_name in hmm_names %}
+            <option value="{{ hmm_name }}">{{ hmm_name }}</option>
+        {% endfor %}
+    </select>
+    <br/>
+    <p>Number of sequences</p>
+    <input type="text" name="n_sequences"><br/>
+
+    <p>Chromosome</p>
+    <input type="text" name="chromosome"><br/>
+
+    <p>Sequence size</p>
+    <input type="text" name="sequence_size">
+
+    <p>Viterbi path filename</p>
+    <input type="text" name="viterbi_path_filename">
+
+    <p>Window Type</p>
+    <select id="id_window_type" name="window_type">
+        {% for window_name in window_names %}
+            <option value="{{ window_name }}">{{ window_name }}</option>
+        {% endfor %}
+    </select>
+    <br/>
+
+    <p>Create TUF-DEL-TUF islands</p>
+    <select id="id_tuf_del_tuf" name="id_tuf_del_tuf">
+        {% for window_name in window_names %}
+            <option value="{{ window_name }}">{{ window_name }}</option>
+        {% endfor %}
+    </select>
+    <br/>
+
+    <button type="submit">Compute</button>
+</form>
+</body>
+</html>

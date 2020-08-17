@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>HMMtuf-View Viterbi Path</title>
+</head>
+<body>
+<h4>View Viterbi path</h4>
+<p>Computation  status: {{ task_status }}</p>
+
+{% if show_get_results_button %}
+<a href="/compute/view_viterbi_path/{{ task_id }}">Get Results</a>
+{% else %}
+<p>HMM filename: {{ hmm_filename }}</p>
+<p>Region filename: {{ region_filename }}</p>
+<p>Region mixed windows: {{ n_mixed_windows }}</p>
+<p>Region window type: {{ window_type }}</p>
+<p>Sequence size: {{ seq_size }}</p>
+<p>Number of sequences: {{ extracted_sequences }}</p>
+<p>Nuber of gaps: {{ number_of_gaps }}</p>
+<p>HMM Model</p>
+<img src="{{ hmm_path_img }}" width="700"/>
+
+<p>Windows labels</p>
+<img src="{{ viterbi_label_plot_filename }}" width="500"/>
+{% endif %}
+</body>
+</html>
