@@ -11,10 +11,10 @@ https://docs.djangoproject.com/en/3.1/ref/settings/
 """
 import os
 from pathlib import Path
-from . celery_settings import BROKER_URL
-from . celery_settings import CELERY_ACCEPT_CONTENT
-from . celery_settings import CELERY_TASK_SERIALIZER
-from . celery_settings import CELERY_TIMEZONE
+#from . celery_settings import BROKER_URL
+#from . celery_settings import CELERY_ACCEPT_CONTENT
+#from . celery_settings import CELERY_TASK_SERIALIZER
+#from . celery_settings import CELERY_TIMEZONE
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve(strict=True).parent.parent
@@ -60,7 +60,7 @@ ROOT_URLCONF = 'hmmtuf.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': ['%s/templates/' %(BASE_DIR)],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
