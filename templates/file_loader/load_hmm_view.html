@@ -1,10 +1,6 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>HMMtuf-Load HMM Model</title>
-</head>
-<body>
+{% extends "base.html" %}
+{% block title %}HMMtuf-Load HMM Model{% endblock title %}
+{%block inner_body %}
 <h4>Upload JSON file describing an HMM</h4>
 
 {% if error_missing_name %}
@@ -27,10 +23,4 @@
     <input type="text" id="hmm_name_id" name="hmm_name"><br/>
     <button type="submit">Upload</button>
 </form>
-
-{% if uploaded_file_url %}
-    <p>File uploaded at: <a href="{{ uploaded_file_url }}">{{ uploaded_file_url }}</a></p>
-{% endif %}
-
-</body>
-</html>
+{% endblock inner_body %}

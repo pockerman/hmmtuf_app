@@ -1,10 +1,7 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>HMMtuf-Compute Viterbi Path</title>
-</head>
-<body>
+{% extends "base.html" %}
+{% block title %}HMMtuf-Compute Viterbi Path{% endblock title %}
+{%block inner_body %}
+{% if load_region %}
 <h4>Select an HMM and a region file to compute the Viterbi path</h4>
 
 {% if error_empty_hmm_list %}
@@ -60,5 +57,5 @@
 
     <button type="submit">Compute</button>
 </form>
-</body>
-</html>
+{% endif %}
+{% endblock inner_body %}

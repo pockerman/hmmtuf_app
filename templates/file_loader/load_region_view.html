@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}HMMtuf-Upload region file{% endblock title %}
+{%block inner_body %}
+<h4>Upload .txt file describing a chromosome region</h4>
+
+{% if error_missing_name %}
+    <p>ERROR: {{ error_missing_name }}</p>
+{% endif %}
+
+{% if error_name_exist %}
+    <p>ERROR: {{ error_name_exist }}</p>
+{% endif %}
+
+{% if error_missing_file %}
+    <p>ERROR: {{ error_missing_file }}</p>
+{% endif %}
+
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <p>Region file</p>
+    <input type="file" name="region_file"><br/>
+    <p>Region name</p>
+    <input type="text" name="region_name"><br/>
+    <button type="submit">Upload</button>
+</form>
+{% endblock inner_body %}

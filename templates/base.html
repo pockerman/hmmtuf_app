@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}Default title{% endblock title %}</title>
+</head>
+<body>
+<!-- Navigation for app -->
+{% block navigation %}
+<div>
+    <a href="/load_file/load_hmm">Load HMM</a></div><br/>
+    <a href="/load_file/load_region">Load Region</a><br/>
+    <a href="/compute/hmm_viterbi">Compute Viterbi Path</a><br/>
+</div>
+{% endblock navigation %}
+{%block inner_body %}
+{% endblock inner_body %}
+</body>
+</html>
