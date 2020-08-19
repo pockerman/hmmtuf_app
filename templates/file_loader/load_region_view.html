@@ -15,12 +15,18 @@
     <p>ERROR: {{ error_missing_file }}</p>
 {% endif %}
 
+{% if error_missing_chromosome_name %}
+    <p>ERROR: {{ error_missing_chromosome_name }}</p>
+{% endif %}
+
 <form method="post" enctype="multipart/form-data">
     {% csrf_token %}
     <p>Region file</p>
     <input type="file" name="region_file"><br/>
     <p>Region name</p>
     <input type="text" name="region_name"><br/>
+    <p>Chromosome name</p>
+    <input type="text" name="chr_name"><br/>
     <button type="submit">Upload</button>
 </form>
 {% endblock inner_body %}

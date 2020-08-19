@@ -9,7 +9,7 @@ from hmmtuf.settings import REGIONS_FILES_ROOT
 from hmmtuf.settings import REGIONS_FILES_URL
 from hmmtuf.settings import HMM_FILES_ROOT
 from hmmtuf.settings import HMM_FILES_URL
-from .forms import ErrorHandler, OK
+from .forms import ErrorHandler, RegionLoadForm, OK
 from .models import HMMModel, RegionModel
 
 __all__ = ['load_hmm_json_view', 'load_region_view']
@@ -41,22 +41,22 @@ def load_hmm_json_view(request):
                                      template_html='file_loader/load_hmm_view.html')
 
         if error_handler.check(request=request) is not OK:
-             return error_handler.response()
+             return error_handler.response
 
         # check if the HMM model with such a name exists
         # if yes then we return an error
         try:
-            model = HMMModel.objects.get(name=error_handler.get_name())
+            model = HMMModel.objects.get(name=error_handler.name)
         except ObjectDoesNotExist:
 
             # the object does not exist we can save the file
-            file_loaded = error_handler.get_file_loaded()
+            file_loaded = error_handler.file_loaded
             fs = FileSystemStorage(HMM_FILES_ROOT)
             filename = fs.save(file_loaded.name, file_loaded)
 
             hmm_inst = HMMModel()
             hmm_inst.filename = file_loaded.name
-            hmm_inst.name = error_handler.get_name()
+            hmm_inst.name = error_handler.name
             hmm_inst.extension = 'json'
             hmm_inst.save()
 
@@ -77,29 +77,36 @@ def load_region_view(request):
 
     if request.method == 'POST':
 
-        error_handler = ErrorHandler(filename="region_file", item_name="region_name",
-                                     error_sponse_msg={"error_missing_file": "Missing Region filename",
+        #import pdb
+        #pdb.set_trace()
+
+        error_handler = RegionLoadForm(filename="region_file", item_name="region_name",
+                                       error_sponse_msg={"error_missing_file": "Missing Region filename",
                                                        "error_missing_name": "Missing Region name"},
-                                     template_html='file_loader/load_region_view.html')
+                                       template_html='file_loader/load_region_view.html')
 
         if error_handler.check(request=request) is not OK:
-            return error_handler.response()
+            return error_handler.response
 
             # check if the HMM model with such a name exists
             # if yes then we return an error
         try:
-            model = RegionModel.objects.get(name=error_handler.get_name())
+            model = RegionModel.objects.get(name=error_handler.name)
         except ObjectDoesNotExist:
 
             # the object does not exist we can save the file
-            file_loaded = error_handler.get_file_loaded()
+            file_loaded = error_handler.file_loaded
             fs = FileSystemStorage(REGIONS_FILES_ROOT)
             filename = fs.save(file_loaded.name, file_loaded)
 
+            print("File loadede name: ", file_loaded.name)
+
             region_inst = RegionModel()
-            region_inst.filename = file_loaded.name
-            region_inst.name = error_handler.get_name()
+            #region_inst.filename = file_loaded.name
+            #region_inst.file_region = REGIONS_FILES_ROOT + file_loaded.name
+            region_inst.name = error_handler.name
             region_inst.extension = 'txt'
+            region_inst.chromosome = error_handler.chromosome
             region_inst.save()
 
             return redirect('success_load_view_region', region_name=file_loaded.name)
