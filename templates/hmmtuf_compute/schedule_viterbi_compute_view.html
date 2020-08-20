@@ -1,17 +1,15 @@
 {% extends "base.html" %}
 {% block title %}HMMtuf-Compute Viterbi Path{% endblock title %}
 {%block inner_body %}
-{% if load_region %}
-<h4>Select an HMM and a region file to compute the Viterbi path</h4>
+
+
 
 {% if error_empty_hmm_list %}
     <p>ERROR: {{ error_empty_hmm_list }}</p>
-{% endif %}
-
-{% if error_missing_file %}
-    <p>ERROR: {{ error_missing_file }}</p>
-{% endif %}
-
+{% elif error_empty_region_list %}
+    <p>ERROR: {{ error_empty_region_list }}</p>
+{% else %}
+<h4>Select an HMM and a region file to compute the Viterbi path</h4>
 <form method="post" enctype="multipart/form-data" target="_blank">
     {% csrf_token %}
     <p>Region file</p>

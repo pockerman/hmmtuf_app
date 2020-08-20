@@ -1,19 +1,20 @@
-from file_loader.models import HMMModel
+from file_loader.models import HMMModel, RegionModel
 from hmmtuf.settings import HMM_FILES_ROOT
 from hmmtuf.settings import HMM_FILES_URL
 
 def wrap_data_for_viterbi_calculation(request, viterbi_path_files_root):
 
-
-
-
-    # if the method is post create a Computation
-    # give a link to the user to view the result
     hmm_name = request.POST.get("hmm", '')
 
     hmm_model = HMMModel.objects.get(name=hmm_name)
-    hmm_filename = hmm_model.filename
+    hmm_filename = hmm_model.file_hmm.name
+
+    #print("HMM filename: ", hmm_filename)
+
     region_name = request.POST.get("region", '')
+    region = RegionModel.objects.get(name=region_name)
+    region_filename = region.file_region.name
+
     window_type = request.POST.get('window_type', '')
     chromosome = request.POST.get('chromosome', '')
     viterbi_path_filename = request.POST.get('viterbi_path_filename', '')
@@ -35,8 +36,8 @@ def wrap_data_for_viterbi_calculation(request, viterbi_path_files_root):
               'chromosome': chromosome,
               'window_type': window_type,
               'viterbi_path_filename': viterbi_path_files_root + viterbi_path_filename,
-              'region_filename': '/home/alex/qi3/hidden_markov_modeling/data/region_0_REGION_1_CHR_1_MEAN_CUTOFF.txt',
-              'hmm_filename': HMM_FILES_ROOT + hmm_filename, #HMM_Model_9.json',
+              'region_filename': region_filename,
+              'hmm_filename': hmm_filename,
               'sequence_size': sequence_size,
               'n_sequences': n_sequences,
               'path_img': viterbi_path_files_root}

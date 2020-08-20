@@ -4,7 +4,9 @@
 <h4>View Viterbi path</h4>
 <p>Computation  status: {{ task_status }}</p>
 
-{% if show_get_results_button %}
+{% if error_task_failed %}
+<p>ERROR: Task {{ task_id }} failed</p>
+{% elif show_get_results_button %}
 <a href="/compute/view_viterbi_path/{{ task_id }}">Get Results</a>
 {% else %}
 <p>HMM filename: {{ hmm_filename }}</p>

@@ -57,8 +57,6 @@ class ErrorHandler(object):
         return OK
 
 
-
-
 class RegionLoadForm(ErrorHandler):
 
     def __init__(self, filename, item_name, error_sponse_msg, template_html):

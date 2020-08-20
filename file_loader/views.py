@@ -55,7 +55,7 @@ def load_hmm_json_view(request):
             filename = fs.save(file_loaded.name, file_loaded)
 
             hmm_inst = HMMModel()
-            hmm_inst.filename = file_loaded.name
+            hmm_inst.file_hmm = HMM_FILES_ROOT + file_loaded.name
             hmm_inst.name = error_handler.name
             hmm_inst.extension = 'json'
             hmm_inst.save()
@@ -77,9 +77,6 @@ def load_region_view(request):
 
     if request.method == 'POST':
 
-        #import pdb
-        #pdb.set_trace()
-
         error_handler = RegionLoadForm(filename="region_file", item_name="region_name",
                                        error_sponse_msg={"error_missing_file": "Missing Region filename",
                                                        "error_missing_name": "Missing Region name"},
@@ -99,11 +96,9 @@ def load_region_view(request):
             fs = FileSystemStorage(REGIONS_FILES_ROOT)
             filename = fs.save(file_loaded.name, file_loaded)
 
-            print("File loadede name: ", file_loaded.name)
-
             region_inst = RegionModel()
-            #region_inst.filename = file_loaded.name
-            #region_inst.file_region = REGIONS_FILES_ROOT + file_loaded.name
+
+            region_inst.file_region = REGIONS_FILES_ROOT + file_loaded.name
             region_inst.name = error_handler.name
             region_inst.extension = 'txt'
             region_inst.chromosome = error_handler.chromosome

@@ -1,62 +1,106 @@
-import time
+
+from enum import Enum
 from django.db import models
-from multiprocessing import Process, Manager
 from json import JSONEncoder
 
 # Create your models here.
 
-from hmmtuf_home.utils import INFO
 
-from . import utils
-from . import region
-from . import helpers
 from .tasks import compute_viterbi_path_task
+
+DEFAULT_ERROR_EXPLANATION = "No error occurred"
+
+class ComputationResultEnum(Enum):
+    PENDING = 0
+    FAILURE = 1
+    SUCCESS = 2
+
+
+class ComputationType(Enum):
+    VITERBI = 0
 
 
 class ComputationEncoder(JSONEncoder):
     def default(self, o):
         return o.__dict__
 
+
 class Computation(models.Model):
 
-    hmm_name = None
-    region_name = None
-    computation_name = None
-    id = None
-    error = None
-    error_msg = None
-    finished = False
-    started = False
-    output = None
+    RESULT_OPTIONS = ((ComputationResultEnum.PENDING.name, ComputationResultEnum.PENDING.name),
+                      (ComputationResultEnum.SUCCESS.name, ComputationResultEnum.SUCCESS.name),
+                      (ComputationResultEnum.FAILURE.name, ComputationResultEnum.FAILURE.name),
+                      )
+
+    # the task id of the computation
+    task_id = models.CharField(max_length=300, primary_key=True)
+    result = models.CharField(max_length=50, choices=RESULT_OPTIONS)
+    error_explanation = models.CharField(max_length=500, default=DEFAULT_ERROR_EXPLANATION)
+    computation_type = models.CharField(max_length=100)
+
+    class Meta:
+        abstract = True
+
+
+class ViterbiComputation(Computation):
+
+    # the resulting viterbi path file
+    file_viterbi_path = models.FileField()
+
+    # the region name used for the computation
+    region_filename = models.CharField(max_length=500)
+
+    # the hmm model used for the computation
+    hmm_filename = models.CharField(max_length=500)
+
+    # chromosome
+    chromosome = models.CharField(max_length=10)
+
+    # sequence size
+    seq_size = models.IntegerField()
+
+    class Meta(Computation.Meta):
+        db_table = 'viterbi_computation'
 
     @staticmethod
-    def compute(computation_type, data):
+    def build_from_map(map, save):
+        computation = ViterbiComputation()
+        computation.task_id = map["task_id"]
+        computation.result = map["result"]
+        computation.error_explanation = map["error_explanation"]
+        computation.computation_type = map["computation_type"]
+        computation.file_viterbi_path = map["viterbi_path_filename"]
+        computation.region_filename = map["region_filename"]
+        computation.hmm_filename = map["hmm_filename"]
+        computation.chromosome = map["chromosome"]
+        computation.seq_size = map["seq_size"]
 
-        if computation_type == utils.ComputationEnum.VITERBI:
+        if save:
+            computation.save()
+        return computation
 
-            print("Data passed: ", data)
-            hmm_name = data['hmm_name']
-            region_name = data['region_name']
-            chromosome = data['chromosome']
-            window_type = str(data['window_type'])
-            viterbi_path_filename = data['viterbi_path_filename']
-            region_filename = data['region_filename']
-            hmm_filename = data['hmm_filename']
-            sequence_size = data['sequence_size']
-            n_sequences = data['n_sequences']
+    @staticmethod
+    def compute(data):
 
-            # create the computation in the data base
-            computation = Computation()
-            computation.hmm_name = hmm_name
-            computation.region_name = region_name
+        hmm_name = data['hmm_name']
+        chromosome = data['chromosome']
+        window_type = str(data['window_type'])
+        viterbi_path_filename = data['viterbi_path_filename']
+        region_filename = data['region_filename']
+        hmm_filename = data['hmm_filename']
+        sequence_size = data['sequence_size']
+        n_sequences = data['n_sequences']
 
-            return compute_viterbi_path_task.delay(hmm_name=hmm_name,
-                                 chromosome=chromosome, window_type=window_type,
-                                 viterbi_path_filename=viterbi_path_filename,
-                                 region_filename=region_filename,
-                                 hmm_filename=hmm_filename,
-                                 sequence_size=sequence_size, n_sequences=n_sequences,
-                                 path_img=data['path_img'])
+        # schedule the computation
+        return compute_viterbi_path_task.delay(hmm_name=hmm_name,
+                                                chromosome=chromosome, window_type=window_type,
+                                                viterbi_path_filename=viterbi_path_filename,
+                                                region_filename=region_filename,
+                                                hmm_filename=hmm_filename,
+                                                sequence_size=sequence_size, n_sequences=n_sequences,
+                                                path_img=data['path_img'])
+
+
 
 
 

@@ -5,7 +5,6 @@ import os
 from celery.decorators import task
 from celery.utils.log import get_task_logger
 
-
 from hmmtuf_home.utils import INFO, ERROR
 
 from . import utils
@@ -23,13 +22,18 @@ def compute_viterbi_path_task(hmm_name, chromosome,
 
     logger.info("Computing Viterbi path")
 
+    from .models import ComputationResultEnum, DEFAULT_ERROR_EXPLANATION, ComputationType
+
     task_id = compute_viterbi_path_task.request.id
     task_id = task_id.replace('-', '_')
 
     result = {"hmm_filename": hmm_filename,
-              "region_filename": region_filename}
-
-    print("{0} Window type {1}".format(INFO, type(window_type)))
+              "region_filename": region_filename,
+              "task_id": task_id,
+              "result": ComputationResultEnum.PENDING.name,
+              "error_explanation": DEFAULT_ERROR_EXPLANATION,
+              "computation_type": ComputationType.VITERBI.name,
+               "chromosome": chromosome}
 
     if window_type == helpers.WindowType.BOTH.name:
         result["window_type"] = 'BOTH'
@@ -44,14 +48,18 @@ def compute_viterbi_path_task(hmm_name, chromosome,
     hmm_model = utils.build_hmm(hmm_file=hmm_filename)
 
     if hmm_model is None:
-        raise ValueError("Could not build HMM model")
+        result["result"] = ComputationResultEnum.FAILURE.name
+        result["error_explanation"] = "Could not build HMM model"
+        return result
 
     hmm_path_img = path_img + str(task_id)
 
     try:
         os.mkdir(hmm_path_img)
     except OSError:
-        print("{0} directory {1} could not be created".format(ERROR, hmm_path_img))
+        result["result"] = ComputationResultEnum.FAILURE.name
+        result["error_explanation"] = "Could not create dir: {0}".format(hmm_path_img)
+        return result
     else:
         print("{0} Successfully created the directory {1}".format(INFO, hmm_path_img))
 
@@ -89,9 +97,8 @@ def compute_viterbi_path_task(hmm_name, chromosome,
                                                                 window_type=window_type,
                                                                 n_seqs=n_seqs,
                                                                 exclude_gaps=False)
-
-    #print("{0} Extracted sequences: {1}".format(INFO, len(sequence)))
     result["extracted_sequences"] = len(sequence)
+    result["seq_size"] = len(sequence)
 
     viterbi_path, observations, \
     sequence_viterbi_state = utils.create_viterbi_path(sequence=sequence, hmm_model=hmm_model,
@@ -100,14 +107,11 @@ def compute_viterbi_path_task(hmm_name, chromosome,
     tuf_delete_tuf = utils.filter_viterbi_path(path=viterbi_path[1][1:], wstate='TUF',
                                                limit_state='Deletion', min_subsequence=1)
 
-    #print("{0} Length of TUF+DELETION+TUF state: ".format(INFO, len(tuf_delete_tuf)))
-
     segments = utils.get_start_end_segment(tuf_delete_tuf, sequence)
 
     # filename = "/home/alex/qi3/hidden_markov_modeling/stories/" + viterbi_paths
     # filename = filename + "tuf_delete_tuf_" + computation.region_name
     # utils.save_segments(segments=segments, chromosome=chromosome, filename=filename)
-    #print("{0} Finished building Viterbi".format(INFO))
 
     wga_obs = []
     no_wga_obs = []
@@ -135,4 +139,11 @@ def compute_viterbi_path_task(hmm_name, chromosome,
                                   show_plt=False, save_file=True, save_filename=label_plot_filename)
 
     result["viterbi_label_plot_filename"] = label_plot_filename
+    result["result"] = ComputationResultEnum.SUCCESS.name
+
+    print("==============================")
+    print("Result in task is: ")
+    print(result)
+    print("==============================")
+
     return result

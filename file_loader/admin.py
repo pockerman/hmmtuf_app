@@ -6,7 +6,7 @@ from .models import RegionModel
 
 
 class HMMModelAdmin(admin.ModelAdmin):
-    fields = ['name', 'extension']
+    fields = ['name', 'file_hmm', 'extension']
     list_display = ('name', 'extension')
 
 

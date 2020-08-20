@@ -32,7 +32,7 @@ class FilesModel(models.Model):
 
 class HMMModel(FilesModel):
 
-    file_hmm = models.FileField(upload_to=upload_hmm_file, default=None)
+    file_hmm = models.FileField(upload_to=upload_hmm_file)
 
     class Meta(FilesModel.Meta):
         db_table = 'hmm_model'
@@ -46,8 +46,8 @@ class HMMModel(FilesModel):
 
 class RegionModel(FilesModel):
 
-    file_region = models.FileField(upload_to=upload_region_file, default=None)
-    chromosome = models.CharField(max_length=10, default=None)
+    file_region = models.FileField(upload_to=upload_region_file)
+    chromosome = models.CharField(max_length=10)
 
     class Meta(FilesModel.Meta):
         db_table = 'region_model'
