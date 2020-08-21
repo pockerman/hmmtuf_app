@@ -2,40 +2,68 @@
 {% block title %}HMMtuf-Compute Viterbi Path{% endblock title %}
 {%block inner_body %}
 
-
-
-{% if error_empty_hmm_list %}
-    <p>ERROR: {{ error_empty_hmm_list }}</p>
-{% elif error_empty_region_list %}
-    <p>ERROR: {{ error_empty_region_list }}</p>
-{% else %}
-<h4>Select an HMM and a region file to compute the Viterbi path</h4>
+<br/>
+<div class="row">
+    <div class="col-lg-8 mb-4">
+    {% if error_empty_hmm_list %}
+        <p>ERROR: {{ error_empty_hmm_list }}</p>
+    {% elif error_empty_region_list %}
+        <p>ERROR: {{ error_empty_region_list }}</p>
+    {% else %}
+    <h4>Schedule Viterbi path computation</h4>
+    <hr/>
 <form method="post" enctype="multipart/form-data" target="_blank">
     {% csrf_token %}
-    <p>Region file</p>
-    <select id="id_region" name="region">
-        {% for region_name in region_names %}
-            <option value="{{ region_name }}">{{ region_name }}</option>
-        {% endfor %}
-    </select>
-    <p>HMM file</p>
-    <select id="id_hmm" name="hmm">
-        {% for hmm_name in hmm_names %}
-            <option value="{{ hmm_name }}">{{ hmm_name }}</option>
-        {% endfor %}
-    </select>
+
+    <div class="control-group form-group">
+        <div class="controls">
+            <label>Region file:</label><br/>
+            <select id="id_region" name="region">
+                {% for region_name in region_names %}
+                    <option value="{{ region_name }}">{{ region_name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+    <div class="control-group form-group">
+        <div class="controls">
+            <label>HMM file:</label><br/>
+            <select id="id_hmm" name="hmm">
+                {% for hmm_name in hmm_names %}
+                    <option value="{{ hmm_name }}">{{ hmm_name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
     <br/>
-    <p>Number of sequences</p>
-    <input type="text" name="n_sequences"><br/>
 
-    <p>Chromosome</p>
-    <input type="text" name="chromosome"><br/>
+    <div class="control-group form-group">
+        <div class="controls">
+            <label>Number of sequences:</label>
+            <input type="text" class="form-control" name="n_sequences"><br/>
+        </div>
+    </div>
 
-    <p>Sequence size</p>
-    <input type="text" name="sequence_size">
+    <div class="control-group form-group">
+        <div class="controls">
+            <label>Chromosome:</label>
+            <input type="text" class="form-control" name="chromosome"><br/>
+        </div>
+    </div>
 
-    <p>Viterbi path filename</p>
-    <input type="text" name="viterbi_path_filename">
+    <div class="control-group form-group">
+        <div class="controls">
+            <label>Sequence size:</label>
+            <input type="text" class="form-control" name="sequence_size">
+        </div>
+    </div>
+
+    <div class="control-group form-group">
+        <div class="controls">
+            <label>Viterbi path filename:</label>
+            <input type="text" class="form-control" name="viterbi_path_filename">
+        </div>
+    </div>
 
     <p>Window Type</p>
     <select id="id_window_type" name="window_type">
@@ -45,15 +73,17 @@
     </select>
     <br/>
 
-    <p>Create TUF-DEL-TUF islands</p>
+    <!--<p>Create TUF-DEL-TUF islands</p>
     <select id="id_tuf_del_tuf" name="id_tuf_del_tuf">
         {% for window_name in window_names %}
             <option value="{{ window_name }}">{{ window_name }}</option>
         {% endfor %}
-    </select>
+    </select>-->
     <br/>
 
-    <button type="submit">Compute</button>
+    <button type="submit" class="btn btn-primary">Upload</button>
 </form>
+</div>
+</div>
 {% endif %}
 {% endblock inner_body %}
