@@ -32,3 +32,6 @@ if settings.DEBUG:
     urlpatterns += static(settings.REGIONS_FILES_URL, document_root=settings.REGIONS_FILES_ROOT)
     urlpatterns += static(settings.VITERBI_PATHS_FILES_URL,
                           document_root=settings.VITERBI_PATHS_FILES_ROOT)
+
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+

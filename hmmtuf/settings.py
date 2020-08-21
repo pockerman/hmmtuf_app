@@ -73,6 +73,8 @@ TEMPLATES = [
     },
 ]
 
+
+
 WSGI_APPLICATION = 'hmmtuf.wsgi.application'
 
 
@@ -124,10 +126,13 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 
 STATIC_URL = '/static/'
+DEV_STATIC_FILES = '%s/static/' % BASE_DIR
+STATICFILES_DIRS = [DEV_STATIC_FILES, ]
+
 
 # path to where to store the region files
-REGIONS_FILES_ROOT = '/home/alex/qi3/hmmtuf/regions/' #os.path.join(BASE_DIR, 'regions/')
-REGIONS_FILES_URL = '/home/alex/qi3/hmmtuf/regions/' #'regions/'
+REGIONS_FILES_ROOT = '/home/alex/qi3/hmmtuf/regions/'
+REGIONS_FILES_URL = '/home/alex/qi3/hmmtuf/regions/'
 
 # path to where to store the HMM files
 HMM_FILES_ROOT = '/home/alex/qi3/hmmtuf/hmm_files/'
