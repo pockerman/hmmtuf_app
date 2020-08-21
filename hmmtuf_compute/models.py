@@ -76,7 +76,8 @@ class ViterbiComputation(Computation):
         computation.seq_size = map["seq_size"]
 
         if save:
-            computation.save()
+            if ViterbiComputation.objects.filter(task_id=map["task_id"]) is None:
+                computation.save()
         return computation
 
     @staticmethod
@@ -98,7 +99,8 @@ class ViterbiComputation(Computation):
                                                 region_filename=region_filename,
                                                 hmm_filename=hmm_filename,
                                                 sequence_size=sequence_size, n_sequences=n_sequences,
-                                                path_img=data['path_img'])
+                                                path_img=data['path_img'],
+                                                viterbi_path_files_root=data['viterbi_path_files_root'])
 
 
 

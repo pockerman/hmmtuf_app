@@ -17,7 +17,7 @@ def wrap_data_for_viterbi_calculation(request, viterbi_path_files_root):
 
     window_type = request.POST.get('window_type', '')
     chromosome = request.POST.get('chromosome', '')
-    viterbi_path_filename = request.POST.get('viterbi_path_filename', '')
+    viterbi_path_filename = 'viterbi_path.txt'  #request.POST.get('viterbi_path_filename', '')
     sequence_size = request.POST.get('sequence_size', None)
     n_sequences = request.POST.get('n_sequences', '')
 
@@ -35,7 +35,8 @@ def wrap_data_for_viterbi_calculation(request, viterbi_path_files_root):
               'region_name': region_name,
               'chromosome': chromosome,
               'window_type': window_type,
-              'viterbi_path_filename': viterbi_path_files_root + viterbi_path_filename,
+              'viterbi_path_files_root': viterbi_path_files_root,
+              'viterbi_path_filename':  viterbi_path_filename,
               'region_filename': region_filename,
               'hmm_filename': hmm_filename,
               'sequence_size': sequence_size,

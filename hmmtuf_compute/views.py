@@ -88,15 +88,28 @@ def view_viterbi_path(request, task_id):
         return HttpResponse(template.render(context, request))
     elif task.status == 'SUCCESS':
         result = task.get()
-        print("Result is: ", result)
         models.ViterbiComputation.build_from_map(result, save=True)
 
         context.update(result)
         return HttpResponse(template.render(context, request))
     elif task.status == 'FAILURE':
-        result = task.get()
-        models.ViterbiComputation.build_from_map(result, save=True)
-        context.update({'error_task_failed': True,
+
+        result = task.get(propagate=False)
+        print(result)
+
+        map = {}
+
+        map["task_id"] = task.id
+        map["result"] = models.ComputationResultEnum.FAILURE.name
+        map["error_explanation"] = str(result)
+        map["computation_type"] = 'INVALID'
+        map["viterbi_path_filename"] = 'INVALID'
+        map["region_filename"] = 'INVALID'
+        map["hmm_filename"] = 'INVALID'
+        map["chromosome"] = 'INVALID'
+        map["seq_size"]= 0
+        models.ViterbiComputation.build_from_map(map, save=True)
+        context.update({'error_task_failed': True, "error_message": str(result),
                         'task_id': task_id})
         return HttpResponse(template.render(context, request))
 
