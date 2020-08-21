@@ -1,13 +1,33 @@
 {% extends "base.html" %}
 {% block title %}HMMtuf-View Viterbi Path{% endblock title %}
 {%block inner_body %}
-<h4>View Viterbi path</h4>
-<p>Computation  status: {{ task_status }}</p>
 
-{% if error_task_failed %}
-<p>ERROR: Task {{ task_id }} failed</p>
-{% elif show_get_results_button %}
-<a href="/compute/view_viterbi_path/{{ task_id }}">Get Results</a>
+<br/>
+
+
+
+
+{% if show_get_results_button %}
+
+<div class="row">
+    <div class="col-lg-8 mb-4">
+            <h4>Viterbi path calculation task submitted</h4>
+            <h5>Task id: {{ task_id }}</h5>
+            <h5>Computation  status: {{ task_status }}</h5>
+
+        <a href="/compute/view_viterbi_path/{{ task_id }}" class="btn btn-primary">Get Results</a>
+    </div>
+
+</div>
+{% elif  error_task_failed %}
+<div class="row">
+    <div class="col-lg-8 mb-4">
+        <h4>Viterbi path calculation task FAILED</h4>
+        <h5>Task id: {{ task_id }}</h5>
+        <h5>ERROR: Task {{ task_id }} failed</h5>
+        <h5>MESSAGE: {{ error_message }}</h5>
+    </div>
+</div>
 {% else %}
 <p>HMM filename: {{ hmm_filename }}</p>
 <p>Region filename: {{ region_filename }}</p>
@@ -21,5 +41,6 @@
 
 <p>Windows labels</p>
 <img src="{{ viterbi_label_plot_filename }}" width="500"/>
+</div>
 {% endif %}
 {% endblock inner_body %}
