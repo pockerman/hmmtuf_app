@@ -95,7 +95,6 @@ def view_viterbi_path(request, task_id):
     elif task.status == 'FAILURE':
 
         result = task.get(propagate=False)
-        print(result)
 
         map = {}
 
@@ -107,7 +106,7 @@ def view_viterbi_path(request, task_id):
         map["region_filename"] = 'INVALID'
         map["hmm_filename"] = 'INVALID'
         map["chromosome"] = 'INVALID'
-        map["seq_size"]= 0
+        map["seq_size"] = 0
         models.ViterbiComputation.build_from_map(map, save=True)
         context.update({'error_task_failed': True, "error_message": str(result),
                         'task_id': task_id})

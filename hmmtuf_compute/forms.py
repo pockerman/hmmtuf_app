@@ -17,7 +17,7 @@ def wrap_data_for_viterbi_calculation(request, viterbi_path_files_root):
 
     window_type = request.POST.get('window_type', '')
     chromosome = request.POST.get('chromosome', '')
-    viterbi_path_filename = 'viterbi_path.txt'  #request.POST.get('viterbi_path_filename', '')
+    viterbi_path_filename = 'viterbi_path.txt'  
     sequence_size = request.POST.get('sequence_size', None)
     n_sequences = request.POST.get('n_sequences', '')
 
