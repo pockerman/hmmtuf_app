@@ -15,6 +15,13 @@ from . import helpers
 from . import forms
 
 
+def learn_d3(request):
+    template = loader.get_template('hmmtuf_compute/learn_d3.html')
+    context={}
+    return HttpResponse(template.render(context, request))
+
+
+
 def schedule_computation_view(request):
     """
     schedules a computation. This is done by asking the user
@@ -24,8 +31,6 @@ def schedule_computation_view(request):
 
     if request.method == 'POST':
 
-        #import pdb
-        #pdb.set_trace()
         kwargs = forms.wrap_data_for_viterbi_calculation(request=request,
                                                          viterbi_path_files_root=VITERBI_PATHS_FILES_ROOT)
 
