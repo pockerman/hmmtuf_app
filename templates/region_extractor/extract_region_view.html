@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% block title %}HMMtuf-Extract Region{% endblock title %}
+{%block inner_body %}
+
+<br/>
+<div class="row">
+    <div class="col-lg-8 mb-4">
+    {% if error_empty_hmm_list %}
+        <p>ERROR: {{ error_empty_hmm_list }}</p>
+    {% elif error_empty_region_list %}
+        <p>ERROR: {{ error_empty_region_list }}</p>
+    {% else %}
+    <h4>Extract Region</h4>
+    <hr/>
+<form method="post" enctype="multipart/form-data" target="_blank">
+    {% csrf_token %}
+
+
+    <div class="control-group form-group">
+        <div class="controls">
+            <label>HMM file:</label><br/>
+            <select id="id_hmm" name="hmm">
+                {% for hmm_name in hmm_names %}
+                    <option value="{{ hmm_name }}">{{ hmm_name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+    <br/>
+
+    <div class="control-group form-group">
+        <div class="controls">
+            <label>Reference sequence file:</label>
+            <input type="text" class="form-control" name="ref_file"><br/>
+        </div>
+    </div>
+
+    <div class="control-group form-group">
+        <div class="controls">
+            <label>WGA sequence file:</label>
+            <input type="text" class="form-control" name="wga_ref_seq_file"><br/>
+        </div>
+    </div>
+
+    <div class="control-group form-group">
+        <div class="controls">
+            <label>No-WGA sequence file:</label>
+            <input type="text" class="form-control" name="nwga_ref_seq_file"><br/>
+        </div>
+    </div>
+
+    <div class="control-group form-group">
+        <div class="controls">
+            <label>Region start:</label>
+            <input type="text" class="form-control" name="region_start"><br/>
+        </div>
+    </div>
+
+    <div class="control-group form-group">
+        <div class="controls">
+            <label>Region end:</label>
+            <input type="text" class="form-control" name="region_end"><br/>
+        </div>
+    </div>
+
+    <div class="control-group form-group">
+        <div class="controls">
+            <label>Window size:</label>
+            <input type="text" class="form-control" name="window_size"><br/>
+        </div>
+    </div>
+
+    <div class="control-group form-group">
+        <div class="controls">
+            <label>Chromosome:</label>
+            <input type="text" class="form-control" name="chromosome"><br/>
+        </div>
+    </div>
+
+    <div class="control-group form-group">
+        <div class="controls">
+            <label>Outlier removal</label><br/>
+            <select name="outlier_remove">
+                {% for name in outlier_remove_names %}
+                    <option value="{{ name }}">{{ name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+
+
+    <br/>
+
+    <!--<p>Create TUF-DEL-TUF islands</p>
+    <select id="id_tuf_del_tuf" name="id_tuf_del_tuf">
+        {% for window_name in window_names %}
+            <option value="{{ window_name }}">{{ window_name }}</option>
+        {% endfor %}
+    </select>-->
+    <br/>
+
+    <button type="submit" class="btn btn-primary">Upload</button>
+</form>
+</div>
+</div>
+{% endif %}
+{% endblock inner_body %}
