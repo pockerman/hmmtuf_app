@@ -34,7 +34,6 @@ def compute_viterbi_path_task(hmm_name, chromosome,
               "computation_type": ComputationType.VITERBI.name,
               "chromosome": chromosome}
 
-
     logger.info("Computing Viterbi path")
 
     if window_type == helpers.WindowType.BOTH.name:
@@ -96,24 +95,26 @@ def compute_viterbi_path_task(hmm_name, chromosome,
     print("{0} Number of sequences: {1}".format(INFO, n_seqs))
 
     sequence = reg.get_region_as_rd_mean_sequences_with_windows(size=seq_size,
-                                                                    window_type=window_type,
-                                                                    n_seqs=n_seqs,
-                                                                    exclude_gaps=False)
+                                                                window_type=window_type,
+                                                                n_seqs=n_seqs,
+                                                                exclude_gaps=False)
+
     result["extracted_sequences"] = len(sequence)
     result["seq_size"] = len(sequence)
 
     viterbi_path, observations, \
     sequence_viterbi_state = utils.create_viterbi_path(sequence=sequence, hmm_model=hmm_model,
                                                            chr=chromosome, filename=viterbi_path_filename)
-        # extract the tuf + Deletion + tuf
-    tuf_delete_tuf = utils.filter_viterbi_path(path=viterbi_path[1][1:], wstate='TUF',
-                                                   limit_state='Deletion', min_subsequence=1)
+    # extract the tuf + Deletion + tuf
+    tuf_delete_tuf = utils.filter_viterbi_path(path=viterbi_path[1][1:],
+                                               wstate='TUF',
+                                               limit_state='Deletion', min_subsequence=1)
 
     segments = utils.get_start_end_segment(tuf_delete_tuf, sequence)
 
-        # filename = "/home/alex/qi3/hidden_markov_modeling/stories/" + viterbi_paths
-        # filename = filename + "tuf_delete_tuf_" + computation.region_name
-        # utils.save_segments(segments=segments, chromosome=chromosome, filename=filename)
+    # filename = "/home/alex/qi3/hidden_markov_modeling/stories/" + viterbi_paths
+    # filename = filename + "tuf_delete_tuf_" + computation.region_name
+    # utils.save_segments(segments=segments, chromosome=chromosome, filename=filename)
 
     wga_obs = []
     no_wga_obs = []
@@ -130,7 +131,7 @@ def compute_viterbi_path_task(hmm_name, chromosome,
     hmm_states_to_labels = {"Duplication": 0, "Normal-I": 1, "Normal-II": 2,
                                 "Deletion": 3, "Single-Deletion": 4, "TUF": 5, "TUFDUP": 6}
 
-    label_plot_filename = path_img + str(task_id) + '/' + 'viterbi_scatter.png'
+    label_plot_filename = path_img + str(task_id) + '/' + 'viterbi_scatter.csv'
     color_comp_assoc_hmm, hmm_states_to_labels, hmm_labels = \
         utils.plot_hmm_states_to_labels(hmm_states_to_labels=hmm_states_to_labels,
                                       observations=observations,

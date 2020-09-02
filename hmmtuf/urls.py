@@ -25,7 +25,7 @@ urlpatterns = [
     path('', include('hmmtuf_home.urls')),
     path('load_file/', include('file_loader.urls')),
     path('compute/', include('hmmtuf_compute.urls')),
-    #path(r'^$',TemplateView.as_view(template_name='homepage.html')),
+    path('region_extractor/', include('region_extractor.urls')),
 ]
 
 if settings.DEBUG:

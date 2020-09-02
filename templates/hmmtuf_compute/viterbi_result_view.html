@@ -1,6 +1,8 @@
 {% extends "base.html" %}
 {% block title %}HMMtuf-View Viterbi Path{% endblock title %}
 {%block inner_body %}
+{% load static %}
+
 
 <br/>
 
@@ -49,10 +51,12 @@
     <img src="{{ hmm_path_img }}" width="700"/>
 </div>
 
+<!--hide me-->
 <div class="row">
     <h3>Windows labels</h3>
     <hr/>
-    <img src="{{ viterbi_label_plot_filename }}" width="500"/>
+    <!--<img src="{{ viterbi_label_plot_filename }}" width="500"/>-->
+    <svg id="canvas" width="800" height="500"></svg>
 </div>
 
 <br/>
@@ -80,6 +84,10 @@ igv.createBrowser(igvDiv, options)
                 .then(function (browser) {
                     console.log("Created IGV browser");
                 })
+</script>
+
+<script>
+    var svg = d3.select("#canvas");
 </script>
 {% endif %}
 {% endblock inner_body %}

@@ -9,13 +9,11 @@ def wrap_data_for_viterbi_calculation(request, viterbi_path_files_root):
     hmm_model = HMMModel.objects.get(name=hmm_name)
     hmm_filename = hmm_model.file_hmm.name
 
-    #print("HMM filename: ", hmm_filename)
-
     region_name = request.POST.get("region", '')
     region = RegionModel.objects.get(name=region_name)
     region_filename = region.file_region.name
 
-    window_type = request.POST.get('window_type', '')
+    window_type = 'BOTH' #request.POST.get('window_type', '')
     chromosome = request.POST.get('chromosome', '')
     viterbi_path_filename = 'viterbi_path.txt'
     sequence_size = request.POST.get('sequence_size', None)
