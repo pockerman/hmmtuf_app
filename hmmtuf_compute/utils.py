@@ -9,7 +9,6 @@ import numpy as np
 from pomegranate import *
 
 import matplotlib.pyplot as plt
-from sklearn import mixture
 from scipy.stats import kde
 
 
@@ -720,24 +719,33 @@ def plot_hmm_states_to_labels(hmm_states_to_labels, observations,
         else:
             color_comp_assoc_hmm[color] = [label, 1]
 
-    #fig = plt.figure()
-    #ax = fig.add_axes([xlim[0], xlim[1], ylim[0], ylim[1]])
-    for color in color_comp_assoc_hmm:
+    with open(save_filename, 'w', newline="\n") as f:
+        writer = csv.writer(f, delimiter=',')
+        writer.writerow(['nwga', 'wga', 'state', 'color'])
+        counter = 0
+        for color in color_comp_assoc_hmm:
+            label = color_comp_assoc_hmm[color][0]
 
-        label = color_comp_assoc_hmm[color][0]
+            if counter == 1:
+                break
 
-        for state in hmm_states_to_labels:
-            if hmm_states_to_labels[state] == label:
-                plt.scatter(state_obs[state]['nwga'],
-                            state_obs[state]['wga'],
-                            color=[color], label=state)
-                #ax.scatter(state_obs[state]['nwga'], state_obs[state]['wga'], color=[color], label=state)
+            for state in hmm_states_to_labels:
 
+                if counter == 1:
+                    break
+
+                if hmm_states_to_labels[state] == label:
+                    nwga = state_obs[state]['nwga']
+                    wga = state_obs[state]['wga']
+
+                    for item1, item2 in zip(nwga, wga):
+                        writer.writerow([item1, item2, state, color])
+
+                    counter += 1
+
+
+    """
     plt.scatter(no_wga_obs, wga_obs, color=colors)
-    #ax.scatter(no_wga_obs, wga_obs, color=colors)
-    #ax.set_title(title)
-    #ax.set_xlabel("NO-WGA")
-    #ax.set_ylabel("NO-WGA")
     plt.xlabel("NO-WGA")
     plt.ylabel("WGA")
     plt.title(title)
@@ -749,10 +757,10 @@ def plot_hmm_states_to_labels(hmm_states_to_labels, observations,
     if show_plt:
         plt.show()
     elif save_file:
-        plt.savefig(save_filename, bbox_inches='tight', dpi=85, transparent=True) #bbox_inches='tight', dpi=700)
-        #fig.savefig(save_filename) #, bbox_inches='tight', dpi=72)
-        #plt.show()
+        plt.savefig(save_filename, bbox_inches='tight', dpi=85, transparent=True)
+
     plt.close()
+    """
 
     return color_comp_assoc_hmm, hmm_states_to_labels, hmm_labels
 
