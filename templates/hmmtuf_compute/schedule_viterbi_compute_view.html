@@ -25,6 +25,8 @@
             </select>
         </div>
     </div>
+    <br/>
+
     <div class="control-group form-group">
         <div class="controls">
             <label>HMM file:</label><br/>
@@ -51,12 +53,12 @@
         </div>
     </div>
 
-    <div class="control-group form-group">
+    <!--<div class="control-group form-group">
         <div class="controls">
             <label>Sequence size:</label>
             <input type="text" class="form-control" name="sequence_size">
         </div>
-    </div>
+    </div>-->
 
     <!--<div class="control-group form-group">
         <div class="controls">
@@ -70,8 +72,8 @@
         {% for window_name in window_names %}
             <option value="{{ window_name }}">{{ window_name }}</option>
         {% endfor %}
-    </select>-->
-    <br/>
+    </select>
+    <br/>-->
 
     <!--<p>Create TUF-DEL-TUF islands</p>
     <select id="id_tuf_del_tuf" name="id_tuf_del_tuf">
@@ -81,7 +83,7 @@
     </select>-->
     <br/>
 
-    <button type="submit" class="btn btn-primary">Upload</button>
+    <button type="submit" class="btn btn-primary">Compute</button>
 </form>
 </div>
 </div>

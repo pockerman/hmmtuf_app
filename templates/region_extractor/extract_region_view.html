@@ -15,17 +15,6 @@
 <form method="post" enctype="multipart/form-data" target="_blank">
     {% csrf_token %}
 
-
-    <div class="control-group form-group">
-        <div class="controls">
-            <label>HMM file:</label><br/>
-            <select id="id_hmm" name="hmm">
-                {% for hmm_name in hmm_names %}
-                    <option value="{{ hmm_name }}">{{ hmm_name }}</option>
-                {% endfor %}
-            </select>
-        </div>
-    </div>
     <br/>
 
     <div class="control-group form-group">
@@ -87,19 +76,57 @@
             </select>
         </div>
     </div>
+    <br/>
 
+    <div class="control-group form-group">
+        <div class="controls">
+            <label>Max depth (default is 1000):</label>
+            <input type="text" class="form-control" name="max_depth"><br/>
+        </div>
+    </div>
+
+    <div class="control-group form-group">
+        <div class="controls">
+            <label>Ignore orphans (default is false):</label><br/>
+            <select name="ignore_orphans">
+                <option value="false"> false </option>
+                <option value="true"> true </option>
+            </select>
+        </div>
+    </div>
+
+    <br/>
+    <div class="control-group form-group">
+        <div class="controls">
+            <label>Truncate (default is false):</label><br/>
+            <select name="truncate">
+                <option value="false"> false </option>
+                <option value="true"> true </option>
+            </select>
+        </div>
+    </div>
+    <br/>
+
+    <div class="control-group form-group">
+        <div class="controls">
+            <label>Quality threshold (default is false):</label>
+            <input type="text" class="form-control" name="quality_threshold"><br/>
+        </div>
+    </div>
+
+    <div class="control-group form-group">
+        <div class="controls">
+            <label>Add indels (default is true):</label><br/>
+            <select name="add_indels">
+                <option value="false"> false </option>
+                <option value="true"> true </option>
+            </select>
+        </div>
+    </div>
 
     <br/>
 
-    <!--<p>Create TUF-DEL-TUF islands</p>
-    <select id="id_tuf_del_tuf" name="id_tuf_del_tuf">
-        {% for window_name in window_names %}
-            <option value="{{ window_name }}">{{ window_name }}</option>
-        {% endfor %}
-    </select>-->
-    <br/>
-
-    <button type="submit" class="btn btn-primary">Upload</button>
+    <button type="submit" class="btn btn-primary">Extract</button>
 </form>
 </div>
 </div>
