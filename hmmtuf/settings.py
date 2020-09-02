@@ -9,6 +9,7 @@ https://docs.djangoproject.com/en/3.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.1/ref/settings/
 """
+
 import os
 from pathlib import Path
 #from . celery_settings import BROKER_URL
@@ -132,13 +133,13 @@ STATICFILES_DIRS = [DEV_STATIC_FILES, ]
 
 
 # path to where to store the region files
-REGIONS_FILES_ROOT = '%s/regions/' % BASE_DIR #'/home/alex/qi3/hmmtuf/regions/'
-REGIONS_FILES_URL = '%s/regions/' % BASE_DIR  #'/home/alex/qi3/hmmtuf/regions/'
+REGIONS_FILES_ROOT = '%s/regions/' % BASE_DIR
+REGIONS_FILES_URL = '%s/regions/' % BASE_DIR
 
 # path to where to store the HMM files
-HMM_FILES_ROOT = '%s/hmm_files/' % BASE_DIR #'/home/alex/qi3/hmmtuf/hmm_files/'
-HMM_FILES_URL = '%s/hmm_files/' % BASE_DIR #'/home/alex/qi3/hmmtuf/hmm_files/'
+HMM_FILES_ROOT = '%s/hmm_files/' % BASE_DIR
+HMM_FILES_URL = '%s/hmm_files/' % BASE_DIR
 
 # path to where to store the computed Viterbi paths
-VITERBI_PATHS_FILES_ROOT = '%s/viterbi_paths/' % BASE_DIR #'/home/alex/qi3/hmmtuf/viterbi_paths/'
-VITERBI_PATHS_FILES_URL = '%s/viterbi_paths/' % BASE_DIR #'/home/alex/qi3/hmmtuf/viterbi_paths/'
+VITERBI_PATHS_FILES_ROOT = '%s/viterbi_paths/' % BASE_DIR
+VITERBI_PATHS_FILES_URL = '%s/viterbi_paths/' % BASE_DIR

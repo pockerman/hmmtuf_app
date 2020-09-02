@@ -19,22 +19,34 @@
 
     <div class="control-group form-group">
         <div class="controls">
-            <label>Reference sequence file:</label>
-            <input type="text" class="form-control" name="ref_file"><br/>
+            <label>Reference sequence file:</label><br/>
+            <select name="ref_file">
+                {% for name in reference_files %}
+                    <option value="{{ name }}">{{ name }}</option>
+                {% endfor %}
+            </select>
         </div>
     </div>
 
     <div class="control-group form-group">
         <div class="controls">
-            <label>WGA sequence file:</label>
-            <input type="text" class="form-control" name="wga_ref_seq_file"><br/>
+            <label>WGA sequence file:</label><br/>
+            <select name="wga_ref_seq_file">
+                {% for name in wga_files %}
+                    <option value="{{ name }}">{{ name }}</option>
+                {% endfor %}
+            </select>
         </div>
     </div>
 
     <div class="control-group form-group">
         <div class="controls">
-            <label>No-WGA sequence file:</label>
-            <input type="text" class="form-control" name="nwga_ref_seq_file"><br/>
+            <label>No-WGA sequence file:</label><br/>
+            <select name="nwga_ref_seq_file">
+                {% for name in nwga_files %}
+                    <option value="{{ name }}">{{ name }}</option>
+                {% endfor %}
+            </select>
         </div>
     </div>
 
