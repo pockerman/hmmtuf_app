@@ -5,17 +5,23 @@
 <br/>
 <div class="row">
     <div class="col-lg-8 mb-4">
-    {% if error_empty_hmm_list %}
-        <p>ERROR: {{ error_empty_hmm_list }}</p>
-    {% elif error_empty_region_list %}
-        <p>ERROR: {{ error_empty_region_list }}</p>
-    {% else %}
+    {% if has_errors %}
+        <p>ERROR: {{ errors }}</p>
+    {% endif %}
+
     <h4>Extract Region</h4>
     <hr/>
-<form method="post" enctype="multipart/form-data" target="_blank">
+<form method="post" enctype="multipart/form-data">
     {% csrf_token %}
 
     <br/>
+
+    <div class="control-group form-group">
+        <div class="controls">
+            <label>Region name:</label>
+            <input type="text" class="form-control" name="region_name"><br/>
+        </div>
+    </div>
 
     <div class="control-group form-group">
         <div class="controls">
@@ -121,7 +127,7 @@
 
     <div class="control-group form-group">
         <div class="controls">
-            <label>Quality threshold (default is false):</label>
+            <label>Quality threshold (default is 20):</label>
             <input type="text" class="form-control" name="quality_threshold"><br/>
         </div>
     </div>
@@ -142,5 +148,4 @@
 </form>
 </div>
 </div>
-{% endif %}
 {% endblock inner_body %}
