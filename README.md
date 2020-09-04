@@ -5,6 +5,13 @@
 - <a href="https://pomegranate.readthedocs.io/en/latest/">pomegranate</a>
 - <a href="https://www.sqlite.org/index.html">SQLite</a>
 
+#### Note
+
+You also need to install one of the backends supported by Celery. For more
+information see <a href="https://docs.celeryproject.org/en/stable/getting-started/introduction.html#installation">here</a>.
+
+
+
 ## Setup the project locally
 
 1. ```cd``` to the top-level directory of the project i.e. where the ```manage.py``` file is located
