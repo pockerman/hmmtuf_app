@@ -6,11 +6,10 @@ from django.core.exceptions import ObjectDoesNotExist
 
 from django.core.files.storage import FileSystemStorage
 from hmmtuf.settings import REGIONS_FILES_ROOT
-from hmmtuf.settings import REGIONS_FILES_URL
 from hmmtuf.settings import HMM_FILES_ROOT
-from hmmtuf.settings import HMM_FILES_URL
+
 from .forms import ErrorHandler, RegionLoadForm, OK
-from .models import HMMModel, RegionModel
+from hmmtuf_home.models import HMMModel, RegionModel
 
 __all__ = ['load_hmm_json_view', 'load_region_view']
 

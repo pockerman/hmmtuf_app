@@ -1,4 +1,6 @@
 from django.db import models
+
+"""
 from hmmtuf.settings import REGIONS_FILES_ROOT
 from hmmtuf.settings import HMM_FILES_ROOT
 
@@ -58,4 +60,4 @@ class RegionModel(FilesModel):
     def __str__(self):
         return "%s %s" % (self.name, self.file_region)
 
-
+"""

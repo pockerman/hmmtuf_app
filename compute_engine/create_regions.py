@@ -3,13 +3,13 @@ import logging
 import time
 import sys
 
-from helpers import read_configuration_file
-from helpers import set_up_logger
-from helpers import WindowType
-from helpers import INFO, WARNING
-from helpers import timefn
-from region import Region
-from exceptions import Error
+#from helpers import read_configuration_file
+#from helpers import set_up_logger
+from .windows import WindowType
+from .utils import INFO, WARNING
+from .utils import timefn
+from .region import Region
+from .exceptions import Error
 
 
 @timefn
@@ -196,12 +196,14 @@ def save_regions(regions, configuration):
 @timefn
 def main(configuration):
 
+    """
     print("{0} Set up logger".format(INFO))
     sys.stdout.flush()
     set_up_logger(configuration=configuration)
     logging.info("Checking if logger is sane...")
     print("{0} Done...".format(INFO))
     sys.stdout.flush()
+    """
 
     regions = make_window_regions(configuration=configuration)
 
@@ -223,6 +225,9 @@ def main(configuration):
 
 
 if __name__ == '__main__':
+    raise ValueError("You should not call this as main script")
+
+    """
     print("{0} Start clustering...".format(INFO))
     total_start = time.perf_counter()
     description = "Check the README file for "
@@ -243,3 +248,4 @@ if __name__ == '__main__':
     print("{0} Finished clustering. "
           "Total execution time {1} secs".format(INFO, total_end - total_start))
     sys.stdout.flush()
+    """

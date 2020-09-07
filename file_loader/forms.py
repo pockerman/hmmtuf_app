@@ -2,7 +2,7 @@
 from django.http import HttpResponse
 from django.template import loader
 
-OK = True
+from compute_engine.utils import OK
 
 
 class ErrorHandler(object):
@@ -38,7 +38,7 @@ class ErrorHandler(object):
         if file_loaded is None:
             template = loader.get_template(self._template_html)
             self._response = HttpResponse(template.render({"error_missing_file":
-                                                               self._error_sponse_msg["error_missing_file"]}, request))
+                                                            self._error_sponse_msg["error_missing_file"]}, request))
 
         if self._response is not None:
             return not OK

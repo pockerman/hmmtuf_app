@@ -6,8 +6,8 @@ from django.shortcuts import redirect
 from django.core.exceptions import ObjectDoesNotExist
 
 from hmmtuf.settings import BASE_DIR
-from hmmtuf_home.utils import read_json
-from file_loader.models import RegionModel
+from compute_engine.utils import read_json
+from hmmtuf_home.models import RegionModel
 
 from .utils import extract_file_names
 from .forms import ExtractRegionForm
@@ -42,7 +42,6 @@ def extract_region_view(request):
         #import pdb
         #pdb.set_trace()
         result = ExtractRegionForm.extract(form)
-
 
         if result is not True:
             context.update({"has_errors": True, "errors": result})

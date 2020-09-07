@@ -5,11 +5,11 @@ import os
 from celery.decorators import task
 from celery.utils.log import get_task_logger
 
-from hmmtuf_home.utils import INFO, ERROR
+from compute_engine.utils import INFO
 
-from . import utils
-from . import region
-from . import helpers
+from compute_engine import viterbi_calculation_helpers
+from compute_engine.windows import WindowType
+from compute_engine.region import Region
 
 logger = get_task_logger(__name__)
 
@@ -36,17 +36,17 @@ def compute_viterbi_path_task(hmm_name, chromosome,
 
     logger.info("Computing Viterbi path")
 
-    if window_type == helpers.WindowType.BOTH.name:
+    if window_type == WindowType.BOTH.name:
             result["window_type"] = 'BOTH'
-    elif window_type == helpers.WindowType.WGA.name:
+    elif window_type == WindowType.WGA.name:
             result["window_type"] = 'WGA'
-    elif window_type == helpers.WindowType.NO_WGA.name:
+    elif window_type == WindowType.NO_WGA.name:
             result["window_type"] = 'NO_WGA'
     else:
         print("{0} Window type {1}".format(INFO, window_type))
 
         # build the hmm model from the file
-    hmm_model = utils.build_hmm(hmm_file=hmm_filename)
+    hmm_model = viterbi_calculation_helpers.build_hmm(hmm_file=hmm_filename)
 
     if hmm_model is None:
         result["result"] = ComputationResultEnum.FAILURE.name
@@ -65,18 +65,18 @@ def compute_viterbi_path_task(hmm_name, chromosome,
             print("{0} Successfully created the directory {1}".format(INFO, hmm_path_img))
 
     hmm_path_img = hmm_path_img + '/' + hmm_name + '.png'
-    utils.save_hmm_image(hmm_model=hmm_model, path=hmm_path_img)
+    viterbi_calculation_helpers.save_hmm_image(hmm_model=hmm_model, path=hmm_path_img)
 
     result['hmm_path_img'] = hmm_path_img
 
-    reg = region.Region.load(filename=region_filename)
+    reg = Region.load(filename=region_filename)
     reg.get_mixed_windows()
 
     print("{0} Region windows: {1}".format(INFO, reg.get_n_mixed_windows()))
 
     result["n_mixed_windows"] = reg.get_n_mixed_windows()
 
-    window_type = helpers.WindowType.from_string(window_type)
+    window_type = WindowType.from_string(window_type)
 
     n_seqs = n_sequences
     result["n_seqs"] = n_seqs
@@ -103,14 +103,14 @@ def compute_viterbi_path_task(hmm_name, chromosome,
     result["seq_size"] = len(sequence)
 
     viterbi_path, observations, \
-    sequence_viterbi_state = utils.create_viterbi_path(sequence=sequence, hmm_model=hmm_model,
-                                                           chr=chromosome, filename=viterbi_path_filename)
+    sequence_viterbi_state = viterbi_calculation_helpers.create_viterbi_path(sequence=sequence, hmm_model=hmm_model,
+                                                                             chr=chromosome, filename=viterbi_path_filename)
     # extract the tuf + Deletion + tuf
-    tuf_delete_tuf = utils.filter_viterbi_path(path=viterbi_path[1][1:],
-                                               wstate='TUF',
-                                               limit_state='Deletion', min_subsequence=1)
+    tuf_delete_tuf = viterbi_calculation_helpers.filter_viterbi_path(path=viterbi_path[1][1:],
+                                                                     wstate='TUF',
+                                                                     limit_state='Deletion', min_subsequence=1)
 
-    segments = utils.get_start_end_segment(tuf_delete_tuf, sequence)
+    segments = viterbi_calculation_helpers.get_start_end_segment(tuf_delete_tuf, sequence)
 
     # filename = "/home/alex/qi3/hidden_markov_modeling/stories/" + viterbi_paths
     # filename = filename + "tuf_delete_tuf_" + computation.region_name
@@ -133,13 +133,13 @@ def compute_viterbi_path_task(hmm_name, chromosome,
 
     label_plot_filename = path_img + str(task_id) + '/' + 'viterbi_scatter.csv'
     color_comp_assoc_hmm, hmm_states_to_labels, hmm_labels = \
-        utils.plot_hmm_states_to_labels(hmm_states_to_labels=hmm_states_to_labels,
-                                      observations=observations,
-                                      sequence_viterbi_state=sequence_viterbi_state,
-                                      no_wga_obs=no_wga_obs, wga_obs=wga_obs,
-                                      title="Region: [1-10]x10^6",
-                                      xlim=(0.0, 150.), ylim=(0.0, 150.0),
-                                      show_plt=False, save_file=True, save_filename=label_plot_filename)
+        viterbi_calculation_helpers.plot_hmm_states_to_labels(hmm_states_to_labels=hmm_states_to_labels,
+                                                              observations=observations,
+                                                              sequence_viterbi_state=sequence_viterbi_state,
+                                                              no_wga_obs=no_wga_obs, wga_obs=wga_obs,
+                                                              title="Region: [1-10]x10^6",
+                                                              xlim=(0.0, 150.), ylim=(0.0, 150.0),
+                                                              show_plt=False, save_file=True, save_filename=label_plot_filename)
 
     result["viterbi_label_plot_filename"] = label_plot_filename
     result["result"] = ComputationResultEnum.SUCCESS.name

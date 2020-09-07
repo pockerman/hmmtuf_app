@@ -30,3 +30,23 @@ def extract_file_names(configuration):
             nwga_files_names.extend(files[f])
 
     return reference_files_names, wga_files_names, nwga_files_names
+
+
+def set_up_logger(configuration):
+    # set up the logger
+    logger_file = configuration.get("logger_file", None)
+
+    # always force logging
+    if logger_file is None:
+        logger_file = "tuf.log"
+
+    logging_level = configuration.get("logger_level", None)
+
+    if logging_level is None or logging_level == "INFO":
+        logging_level = logging.INFO
+    elif logging_level == "DEBUG":
+        logging_level = logging.DEBUG
+    elif logging_level == "ERROR":
+        logging_level = logging.ERROR
+
+    logging.basicConfig(filename=logger_file, level=logging_level)

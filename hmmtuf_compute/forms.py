@@ -1,6 +1,5 @@
-from file_loader.models import HMMModel, RegionModel
-from hmmtuf.settings import HMM_FILES_ROOT
-from hmmtuf.settings import HMM_FILES_URL
+from hmmtuf_home.models import HMMModel, RegionModel
+
 
 def wrap_data_for_viterbi_calculation(request, viterbi_path_files_root):
 

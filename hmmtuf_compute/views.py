@@ -1,17 +1,15 @@
 from django.shortcuts import render
 from django.http import HttpResponse
-
 from django.template import loader
 from django.shortcuts import redirect
+
 from hmmtuf.settings import VITERBI_PATHS_FILES_ROOT
-from hmmtuf.settings import VITERBI_PATHS_FILES_URL
 from hmmtuf.celery import celery_app
-from file_loader.models import HMMModel, RegionModel
+from hmmtuf_home.models import HMMModel, RegionModel
+from compute_engine.windows import WindowType
 
 # Create your views here.
 from . import models
-from . import utils
-from . import helpers
 from . import forms
 
 
@@ -19,7 +17,6 @@ def learn_d3(request):
     template = loader.get_template('hmmtuf_compute/learn_d3.html')
     context={}
     return HttpResponse(template.render(context, request))
-
 
 
 def schedule_computation_view(request):
@@ -65,7 +62,7 @@ def schedule_computation_view(request):
 
     context = {"region_names": region_names,
                "hmm_names": hmm_names,
-               'window_names': helpers.WindowType.get_window_types(), }
+               'window_names': WindowType.get_window_types(), }
     template = loader.get_template('hmmtuf_compute/schedule_viterbi_compute_view.html')
     return HttpResponse(template.render(context, request))
 
