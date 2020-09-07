@@ -4,9 +4,9 @@
 
 
 <br/>
-<div class="row">
-    <div class="col-lg-8 mb-4">
-        <h4>Upload JSON file describing an HMM</h4>
+<div class="row p-5">
+    <div class="col ">
+        <h4 class="text-center">Upload JSON file describing an HMM.</h4>
         <hr/>
 
         {% if error_missing_name %}
@@ -25,17 +25,18 @@
             {% csrf_token %}
             <div class="control-group form-group">
                 <div class="controls">
-                    <label>HMM file:</label><br/>
-                    <input type="file" id="hmm_filename_id" name="hmm_filename"><br/>
+                    <label>HMM file:</label>
+                    <input class="form-control-file border" type="file" id="hmm_filename_id"  name="hmm_filename">
                 </div>
+                
             </div>
             <div class="control-group form-group">
                 <div class="controls">
                     <label>HMM name:</label>
-                    <input type="text" class="form-control" id="hmm_name_id" name="hmm_name"><br/>
+                    <input type="text" class="form-control" id="hmm_name_id" placeholder="Enter HMM name" name="hmm_name">
                 </div>
             </div>
-            <button type="submit" class="btn btn-primary">Upload</button>
+            <button type="submit" class="btn btn-primary float-right">Upload</button>
         </form>
     </div>
 </div>

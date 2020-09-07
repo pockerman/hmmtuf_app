@@ -4,16 +4,34 @@
  * Copyright 2013-2020 Start Bootstrap
  * Licensed under MIT (https://github.com/StartBootstrap/startbootstrap-logomodern-business-nav/blob/master/LICENSE)
  */
+
+ *,
+ *:before,
+ *:after {
+   -webkit-box-sizing: border-box;
+   -moz-box-sizing: border-box;
+   box-sizing: border-box;
+ }
+
+
+
 body {
   padding-top: 56px;
   width: auto;
   height: auto;
 }
 
+label{
+  margin-bottom: 0%;
+  font-weight: bolder;
+}
+
 .content{
-  background-color: lightgray;
+  /* background-color: lightgray; */
   width: 90%;
   height: 100%;
+  border: 2px solid white;
+  box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
 }
 
 .carousel-item {
