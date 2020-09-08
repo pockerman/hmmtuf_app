@@ -63,10 +63,25 @@ class RegionLoadForm(ErrorHandler):
         super(RegionLoadForm, self).__init__(filename=filename, item_name=item_name,
                                              error_sponse_msg=error_sponse_msg, template_html=template_html)
         self._chromosome = None
+        self._ref_seq_region = None
+        self._wga_seq_region = None
+        self._no_wga_seq_region = None
 
     @property
     def chromosome(self):
         return self._chromosome
+
+    @property
+    def ref_seq_region(self):
+        return self._ref_seq_region
+
+    @property
+    def wga_seq_region(self):
+        return self._wga_seq_region
+
+    @property
+    def no_wga_seq_region(self):
+        return self._no_wga_seq_region
 
     def check(self, request):
 
@@ -84,6 +99,10 @@ class RegionLoadForm(ErrorHandler):
             return not OK
 
         self._chromosome = chromosome
+        self._ref_seq_region = request.POST.get('ref_seq_region', '')
+        self._wga_seq_region = request.POST.get('wga_seq_region', '')
+        self._no_wga_seq_region = request.POST.get('no_wga_seq_region', '')
+
         return OK
 
 

@@ -9,7 +9,7 @@ from hmmtuf.settings import BASE_DIR
 from compute_engine.utils import read_json
 from hmmtuf_home.models import RegionModel
 
-from .utils import extract_file_names
+from compute_engine.utils import extract_file_names
 from .forms import ExtractRegionForm
 from .tasks import extract_region_task
 

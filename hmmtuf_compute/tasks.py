@@ -7,6 +7,7 @@ from celery.utils.log import get_task_logger
 
 from compute_engine.utils import INFO
 
+from compute_engine import hmm_loader
 from compute_engine import viterbi_calculation_helpers
 from compute_engine.windows import WindowType
 from compute_engine.region import Region
@@ -18,7 +19,9 @@ logger = get_task_logger(__name__)
 def compute_viterbi_path_task(hmm_name, chromosome,
                               window_type, viterbi_path_filename,
                               region_filename, hmm_filename,
-                              sequence_size, n_sequences, path_img, viterbi_path_files_root):
+                              sequence_size, n_sequences,
+                              path_img, viterbi_path_files_root, ref_seq_file,
+                              wga_seq_file, no_wag_seq_file):
 
 
     from .models import ComputationResultEnum, DEFAULT_ERROR_EXPLANATION, ComputationType
@@ -32,7 +35,10 @@ def compute_viterbi_path_task(hmm_name, chromosome,
               "result": ComputationResultEnum.PENDING.name,
               "error_explanation": DEFAULT_ERROR_EXPLANATION,
               "computation_type": ComputationType.VITERBI.name,
-              "chromosome": chromosome}
+              "chromosome": chromosome,
+              "ref_seq_file": ref_seq_file,
+              "wga_seq_file": wga_seq_file,
+              "no_wag_seq_file": no_wag_seq_file}
 
     logger.info("Computing Viterbi path")
 
@@ -45,8 +51,8 @@ def compute_viterbi_path_task(hmm_name, chromosome,
     else:
         print("{0} Window type {1}".format(INFO, window_type))
 
-        # build the hmm model from the file
-    hmm_model = viterbi_calculation_helpers.build_hmm(hmm_file=hmm_filename)
+    # build the hmm model from the file
+    hmm_model = hmm_loader.build_hmm(hmm_file=hmm_filename)
 
     if hmm_model is None:
         result["result"] = ComputationResultEnum.FAILURE.name
@@ -65,7 +71,7 @@ def compute_viterbi_path_task(hmm_name, chromosome,
             print("{0} Successfully created the directory {1}".format(INFO, hmm_path_img))
 
     hmm_path_img = hmm_path_img + '/' + hmm_name + '.png'
-    viterbi_calculation_helpers.save_hmm_image(hmm_model=hmm_model, path=hmm_path_img)
+    hmm_loader.save_hmm_image(hmm_model=hmm_model, path=hmm_path_img)
 
     result['hmm_path_img'] = hmm_path_img
 
@@ -120,6 +126,7 @@ def compute_viterbi_path_task(hmm_name, chromosome,
     no_wga_obs = []
     no_gaps_obs = []
 
+    number_of_gaps = 0
     for obs in observations:
 
         # do not account for gaps
@@ -127,6 +134,9 @@ def compute_viterbi_path_task(hmm_name, chromosome,
             wga_obs.append(obs[0])
             no_wga_obs.append(obs[1])
             no_gaps_obs.append((obs[1], obs[0]))
+        else:
+            number_of_gaps += 1
+
 
     hmm_states_to_labels = {"Duplication": 0, "Normal-I": 1, "Normal-II": 2,
                                 "Deletion": 3, "Single-Deletion": 4, "TUF": 5, "TUFDUP": 6}
@@ -143,6 +153,7 @@ def compute_viterbi_path_task(hmm_name, chromosome,
 
     result["viterbi_label_plot_filename"] = label_plot_filename
     result["result"] = ComputationResultEnum.SUCCESS.name
+    result["number_of_gaps"] = number_of_gaps
 
     return result
 

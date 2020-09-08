@@ -12,10 +12,14 @@ def wrap_data_for_viterbi_calculation(request, viterbi_path_files_root):
     region = RegionModel.objects.get(name=region_name)
     region_filename = region.file_region.name
 
-    window_type = 'BOTH' #request.POST.get('window_type', '')
+    ref_seq_file = region.ref_seq_file
+    wga_seq_file = region.wga_seq_file
+    no_wag_seq_file = region.no_wga_seq_file
+
+    window_type = 'BOTH'
     chromosome = request.POST.get('chromosome', '')
     viterbi_path_filename = 'viterbi_path.txt'
-    sequence_size = request.POST.get('sequence_size', None)
+    sequence_size = request.POST.get('sequence_size', '')
     n_sequences = request.POST.get('n_sequences', '')
 
     if n_sequences == '':
@@ -38,5 +42,9 @@ def wrap_data_for_viterbi_calculation(request, viterbi_path_files_root):
               'hmm_filename': hmm_filename,
               'sequence_size': sequence_size,
               'n_sequences': n_sequences,
-              'path_img': viterbi_path_files_root}
+              'path_img': viterbi_path_files_root,
+              'ref_seq_file': ref_seq_file,
+              'wga_seq_file': wga_seq_file,
+              'no_wag_seq_file': no_wag_seq_file}
+
     return kwargs

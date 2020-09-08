@@ -15,9 +15,6 @@ class FilesModel(models.Model):
 
     id = models.AutoField(primary_key=True)
 
-    # name of the file that describes the model
-    #filename = models.CharField(max_length=100)
-
     # a user defined name to distinguish
     name = models.CharField(max_length=100)
 
@@ -49,6 +46,9 @@ class RegionModel(FilesModel):
 
     file_region = models.FileField(upload_to=upload_region_file)
     chromosome = models.CharField(max_length=10)
+    ref_seq_file = models.CharField(max_length=1000)
+    wga_seq_file = models.CharField(max_length=1000)
+    no_wga_seq_file = models.CharField(max_length=1000)
 
     class Meta(FilesModel.Meta):
         db_table = 'region_model'

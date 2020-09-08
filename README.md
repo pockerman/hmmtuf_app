@@ -18,7 +18,12 @@ information see <a href="https://docs.celeryproject.org/en/stable/getting-starte
 2. Issue: ```python manage.py makemigrations```
 3. Issue: ```python manage.py migrate```
 
-The last two commands will setup the needed DB tables. You can now launch the development server
+The last two commands will setup the needed DB tables. You can now launch the development server.
+
+Alternatively, you can apply migrations only for a specific application:
+
+2. ```python manage.py makemigrations app_name```
+3. ```python manage.py migrate app_name```
 
 ```
 python manage.py runserver
@@ -49,3 +54,5 @@ development
 - Drop all model tables
 
 ```python manage.py migrate zero``` 
+
+## Monitoring Celery

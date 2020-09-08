@@ -2,11 +2,13 @@ from django.shortcuts import render
 from django.http import HttpResponse
 from django.template import loader
 from django.shortcuts import redirect
+from django.core.exceptions import ObjectDoesNotExist
 
 from hmmtuf.settings import VITERBI_PATHS_FILES_ROOT
 from hmmtuf.celery import celery_app
 from hmmtuf_home.models import HMMModel, RegionModel
 from compute_engine.windows import WindowType
+from compute_engine.utils import INVALID_STR, INFO
 
 # Create your views here.
 from . import models
@@ -40,7 +42,8 @@ def schedule_computation_view(request):
     hmms = HMMModel.objects.all()
 
     if len(hmms) == 0:
-        context = {"error_empty_hmm_list": "HMM models have not been created. Create HMM models",}
+        link = ''
+        context = {"error_empty_hmm_list": "HMM models have not been created."}
         template = loader.get_template('hmmtuf_compute/schedule_viterbi_compute_view.html')
         return HttpResponse(template.render(context, request))
 
@@ -52,7 +55,7 @@ def schedule_computation_view(request):
     regions = RegionModel.objects.all()
 
     if len(regions) == 0:
-        context = {"error_empty_region_list": "Regions have not been created. Upload a region file", }
+        context = {"error_empty_region_list": "Regions have not been created.", }
         template = loader.get_template('hmmtuf_compute/schedule_viterbi_compute_view.html')
         return HttpResponse(template.render(context, request))
 
@@ -63,56 +66,87 @@ def schedule_computation_view(request):
     context = {"region_names": region_names,
                "hmm_names": hmm_names,
                'window_names': WindowType.get_window_types(), }
+
     template = loader.get_template('hmmtuf_compute/schedule_viterbi_compute_view.html')
     return HttpResponse(template.render(context, request))
 
 
 def view_viterbi_path(request, task_id):
 
-    # check if the computation is ready
-    # if yes collect the results
-    # otherwise return the html
-    task = celery_app.AsyncResult(task_id)
+
+    # if the task exists do not ask celery. This means
+    # that either the task failed or succeed
+
+    #import pdb
+    #pdb.set_trace()
     template = loader.get_template('hmmtuf_compute/viterbi_result_view.html')
-    context = {'task_status': task.status}
+    try:
 
-    if task.status == 'PENDING':
-        show_get_results_button = True
-        #result, viterbi_calculation = task.get()
+        print("{0} trying to get task: {1}".format(INFO, task_id))
+        task = models.ViterbiComputation.objects.get(task_id=task_id)
 
-        #if models.ViterbiComputation.filter(task_id=task.id) is not None:
-        #    pass
-        #else:
-        #    viterbi_calculation.save()
+        if task.result == 'FAILURE':
+            context = {'error_task_failed': True, "error_message": task.error_explanation,
+                            'task_id': task_id, "computation": task}
+            return HttpResponse(template.render(context, request))
+        else:
 
-        context.update({'show_get_results_button': show_get_results_button,
-                        'task_id': task_id})
-        return HttpResponse(template.render(context, request))
-    elif task.status == 'SUCCESS':
-        result = task.get()
-        models.ViterbiComputation.build_from_map(result, save=True)
+            context = {'task_status': task.result, "computation": task}
+            return HttpResponse(template.render(context, request))
+    except ObjectDoesNotExist:
 
-        context.update(result)
-        return HttpResponse(template.render(context, request))
-    elif task.status == 'FAILURE':
+        print("{0}  task: {1} didn't exist".format(INFO, task_id))
+        #import pdb
+        #pdb.set_trace()
+        # try to ask celery
 
-        result = task.get(propagate=False)
+        # check if the computation is ready
+        # if yes collect the results
+        # otherwise return the html
+        task = celery_app.AsyncResult(task_id)
 
-        map = {}
+        context = {'task_status': task.status}
 
-        map["task_id"] = task.id
-        map["result"] = models.ComputationResultEnum.FAILURE.name
-        map["error_explanation"] = str(result)
-        map["computation_type"] = 'INVALID'
-        map["viterbi_path_filename"] = 'INVALID'
-        map["region_filename"] = 'INVALID'
-        map["hmm_filename"] = 'INVALID'
-        map["chromosome"] = 'INVALID'
-        map["seq_size"] = 0
-        models.ViterbiComputation.build_from_map(map, save=True)
-        context.update({'error_task_failed': True, "error_message": str(result),
-                        'task_id': task_id})
-        return HttpResponse(template.render(context, request))
+        if task.status == 'PENDING':
+            show_get_results_button = True
 
-    return HttpResponse(template.render(context, request))
+            context.update({'show_get_results_button': show_get_results_button,
+                            'task_id': task_id})
+            return HttpResponse(template.render(context, request))
+        elif task.status == 'SUCCESS':
+            result = task.get()
+
+            computation = models.ViterbiComputation.build_from_map(result, save=True)
+            context.update({"computation": computation})
+
+            return HttpResponse(template.render(context, request))
+        elif task.status == 'FAILURE':
+
+            result = task.get(propagate=False)
+
+            map = {}
+
+            map["task_id"] = task.id
+            map["result"] = models.ComputationResultEnum.FAILURE.name
+            map["error_explanation"] = str(result)
+            map["computation_type"] = models.ComputationType.VITERBI.name
+            map["viterbi_path_filename"] = INVALID_STR
+            map["region_filename"] = INVALID_STR
+            map["hmm_filename"] = INVALID_STR
+            map["chromosome"] = INVALID_STR
+            map["seq_size"] = 0
+            map["ref_seq_file"] = INVALID_STR
+            map["wga_seq_file"] = INVALID_STR
+            map["no_wag_seq_file"] = INVALID_STR
+            map["number_of_gaps"] = 0
+            map["hmm_path_img"] = None
+            map["extracted_sequences"] = 0
+            map["n_mixed_windows"] = 0
+            map["window_type"] = INVALID_STR
+
+            computation = models.ViterbiComputation.build_from_map(map, save=True)
+            context.update({'error_task_failed': True, "error_message": str(result),
+                            'task_id': task_id, "computation": computation})
+            return HttpResponse(template.render(context, request))
+
 
