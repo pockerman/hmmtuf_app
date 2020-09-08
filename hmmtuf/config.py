@@ -9,6 +9,7 @@ REMOTE = True
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
+SKIP_TASK_SCHEDULING = True
 BROKER_URL = BROKER_URL
 
 if REMOTE == True:
