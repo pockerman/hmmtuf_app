@@ -42,6 +42,11 @@ def sequence_view(request, ref_seq, wga_seq, no_wga_seq):
 
     print(path)
 
-    return HttpResponse(template.render({'ref_seq_file': ref_seq, 'load_region':True}, request))
+    return HttpResponse(template.render({'ref_seq_file': path + ref_seq,
+                                         'ref_seq_file_index': path + ref_seq + '.fai',
+                                         'wga_seq': path + wga_seq,
+                                         'wga_seq_index': path + wga_seq + '.bai',
+                                         'no_wga_seq': path + no_wga_seq,
+                                         'no_wga_seq': path + no_wga_seq + '.bai'}, request))
 
 
