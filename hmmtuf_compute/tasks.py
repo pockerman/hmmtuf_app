@@ -137,9 +137,12 @@ def compute_viterbi_path_task(hmm_name, chromosome,
         else:
             number_of_gaps += 1
 
-
-    hmm_states_to_labels = {"Duplication": 0, "Normal-I": 1, "Normal-II": 2,
-                                "Deletion": 3, "Single-Deletion": 4, "TUF": 5, "TUFDUP": 6}
+    hmm_states_to_labels = {"Duplication": 0,
+                            "Normal-I": 1,
+                            "Normal-II": 2,
+                            "Deletion": 3,
+                            "Single-Deletion": 4,
+                            "TUF": 5, "TUFDUP": 6}
 
     label_plot_filename = path_img + str(task_id) + '/' + 'viterbi_scatter.csv'
     color_comp_assoc_hmm, hmm_states_to_labels, hmm_labels = \

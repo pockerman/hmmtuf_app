@@ -73,16 +73,13 @@ def schedule_computation_view(request):
 
 def view_viterbi_path(request, task_id):
 
-
-    # if the task exists do not ask celery. This means
-    # that either the task failed or succeed
-
-    #import pdb
-    #pdb.set_trace()
     template = loader.get_template('hmmtuf_compute/viterbi_result_view.html')
     try:
 
         print("{0} trying to get task: {1}".format(INFO, task_id))
+
+        # if the task exists do not ask celery. This means
+        # that either the task failed or succeed
         task = models.ViterbiComputation.objects.get(task_id=task_id)
 
         if task.result == 'FAILURE':

@@ -71,4 +71,18 @@ def extract_file_names(configuration):
     return reference_files_names, wga_files_names, nwga_files_names
 
 
+def extract_path(configuration, ref_file):
+    reference_files_names = []
+    ref_files = configuration["sequence_files"]["reference_files"]
+
+    for i in range(len(ref_files)):
+        files = configuration["sequence_files"]["reference_files"][i]
+
+        for f in files:
+            if ref_file in files[f]:
+                return f
+
+    return None
+
+
 
