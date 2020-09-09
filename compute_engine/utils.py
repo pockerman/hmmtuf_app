@@ -42,46 +42,33 @@ def read_json(filename):
 def extract_file_names(configuration):
 
     reference_files_names = []
-    ref_files = configuration["sequence_files"]["reference_files"]
-
-    for i in range(len(ref_files)):
-        files = configuration["sequence_files"]["reference_files"][i]
-
-        for f in files:
-            reference_files_names.extend(files[f])
-
     wga_files_names = []
-    wga_files = configuration["sequence_files"]["wga_files"]
-
-    for i in range(len(wga_files)):
-        files = configuration["sequence_files"]["wga_files"][i]
-
-        for f in files:
-            wga_files_names.extend(files[f])
-
     nwga_files_names = []
-    nwga_files = configuration["sequence_files"]["no_wga_files"]
+    files = configuration["sequence_files"]["files"]
 
-    for i in range(len(nwga_files)):
-        files = configuration["sequence_files"]["no_wga_files"][i]
+    for idx in range(len(files)):
+        map = files[idx]
+        ref_files = map["ref_files"]
+        reference_files_names.extend(ref_files)
 
-        for f in files:
-            nwga_files_names.extend(files[f])
+        wga_files = map["wga_files"]
+        wga_files_names.extend(wga_files)
+
+        nwga_files = map["no_wga_files"]
+        nwga_files_names.extend(nwga_files)
 
     return reference_files_names, wga_files_names, nwga_files_names
 
 
 def extract_path(configuration, ref_file):
-    reference_files_names = []
-    ref_files = configuration["sequence_files"]["reference_files"]
+    files = configuration["sequence_files"]["files"]
 
-    for i in range(len(ref_files)):
-        files = configuration["sequence_files"]["reference_files"][i]
+    for idx in range(len(files)):
+        map = files[idx]
+        ref_files = map["ref_files"]
 
-        for f in files:
-            if ref_file in files[f]:
-                return f
-
+        if ref_file in ref_files:
+            return map["path"]
     return None
 
 
