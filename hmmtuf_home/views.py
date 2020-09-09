@@ -27,21 +27,25 @@ def sequence_view_request_view(request):
         ref_seq = request.POST.get('ref_seq_region', None)
         wga_seq = request.POST.get('wga_seq_region', None)
         no_wga_seq = request.POST.get('no_wga_seq_region', None)
-        return redirect('sequence_view', ref_seq=ref_seq,
-                        wga_seq=wga_seq, no_wga_seq=no_wga_seq)
+        return redirect('sequence_view', ref_seq="one",
+                        wga_seq="twp", no_wga_seq="three")
     return HttpResponse(template.render(context, request))
 
 
 def sequence_view(request, ref_seq, wga_seq, no_wga_seq):
+    
     template = loader.get_template('hmmtuf_home/sequence_view.html')
     configuration = read_json(filename="%s/config.json" % BASE_DIR)
     path = extract_path(configuration=configuration, ref_file=ref_seq)
+    
+    wga_seq = "/scratch/spectre/a/ag568/m605_verysensitive_trim_sorted.bam"
+    no_wga_seq = "/scratch/spectre/a/ag568/m585_verysensitive_trim_sorted.bam"
 
-    return HttpResponse(template.render({'ref_seq_file': path + ref_seq,
-                                         'ref_seq_file_index': path + ref_seq + '.fai',
-                                         'wga_seq': path + wga_seq,
-                                         'wga_seq_index': path + wga_seq + '.bai',
-                                         'no_wga_seq': path + no_wga_seq,
-                                         'no_wga_seq': path + no_wga_seq + '.bai'}, request))
+    return HttpResponse(template.render({'ref_seq_file': "now",
+                                         'ref_seq_file_index': "now" + '.fai',
+                                         'wga_seq': wga_seq,
+                                         'wga_seq_index': wga_seq + '.bai',
+                                         'no_wga_seq': no_wga_seq,
+                                         'no_wga_seq': no_wga_seq + '.bai'}, request))
 
 

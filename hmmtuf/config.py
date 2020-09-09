@@ -5,7 +5,7 @@ from .celery_settings import CELERY_TASK_SERIALIZER
 from .celery_settings import CELERY_RESULT_SERIALIZER
 from .celery_settings import CELERY_TIMEZONE
 
-REMOTE = False
+REMOTE = True
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True

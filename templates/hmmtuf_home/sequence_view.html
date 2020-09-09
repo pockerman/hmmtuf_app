@@ -14,16 +14,26 @@ var options =
         {
             locus: '1:500,000-5,000,000',
             flanking: 1000,
-            genome: "hg38",
+            genome: 'hg38',
             tracks: [
+            
                 {
-                    "name": "M605",
-                    "url": "{{ wga_seq }}",
-                    "indexURL": "{{ wga_seq_index }}",
-                    "format": "fna"
+
+                    name: 'M585',
+                    url: "/scratch/spectre/a/ag568/m585_verysensitive_trim_sorted.bam",
+                    indexed: true,
+                    format: "bam",
+                    type: "alignment",
                 },
+            
                 {
+                    name: "M605",
+                    url: "/scratch/spectre/a/ag568/m605_verysensitive_trim_sorted.bam",
+                    indexed: true,
+                    format: "bam",
+                    type: "alignment",
                 }
+                
             ]
         };
 
