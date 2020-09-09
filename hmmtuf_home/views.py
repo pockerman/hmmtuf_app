@@ -25,8 +25,8 @@ def sequence_view_request_view(request):
 
     if request.method == 'POST':
         ref_seq = request.POST.get('ref_seq_region', None)
-        wga_seq = request.POST.get('ref_seq_region', None)
-        no_wga_seq = request.POST.get('ref_seq_region', None)
+        wga_seq = request.POST.get('wga_seq_region', None)
+        no_wga_seq = request.POST.get('no_wga_seq_region', None)
         return redirect('sequence_view', ref_seq=ref_seq,
                         wga_seq=wga_seq, no_wga_seq=no_wga_seq)
     return HttpResponse(template.render(context, request))
@@ -34,13 +34,8 @@ def sequence_view_request_view(request):
 
 def sequence_view(request, ref_seq, wga_seq, no_wga_seq):
     template = loader.get_template('hmmtuf_home/sequence_view.html')
-
-    #import pdb
-    #pdb.set_trace()
     configuration = read_json(filename="%s/config.json" % BASE_DIR)
     path = extract_path(configuration=configuration, ref_file=ref_seq)
-
-    print(path)
 
     return HttpResponse(template.render({'ref_seq_file': path + ref_seq,
                                          'ref_seq_file_index': path + ref_seq + '.fai',
