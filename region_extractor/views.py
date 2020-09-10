@@ -53,6 +53,7 @@ def extract_region_view(request):
             context.update({"has_errors": True, "errors": result})
             return HttpResponse(template.render(context, request))
 
+
         try:
             model = RegionModel.objects.get(name=form.region_name)
             context.update({"has_errors": True, "errors": "Region with name: {0} already exists".format(form.region_name)})
@@ -82,62 +83,10 @@ def extract_region_view(request):
                                                     "quality_threshold": form.quality_threshold,
                                                     "add_indels": form.add_indels}
 
-                task = ExtractRegionComputation.compute(data=configuration)
-                task_id = task.id
-                task_id.replace('-', '_')
-
+                task_id = ExtractRegionComputation.compute(data=configuration)
+                
                 # return the id for the computation
                 return redirect('extract_region_success_view', task_id=task_id)
-            else:
-                import uuid
-                from compute_engine.job import Job, JobType
-                from hmmtuf import process_manager
-
-                configuration = {'processing': {"type": "serial"}}
-
-                configuration["window_size"] = form.window_size
-                configuration["chromosome"] = form.chromosome
-                configuration["remove_windows_with_gaps"] = form.remove_gap_windows
-                configuration["mark_for_gap_windows"] = form.mark_for_gap_windows
-                configuration["regions"] = {"start": [form.region_start],
-                                            "end": [form.region_end]}
-
-                configuration["reference_file"] = {"filename": form.ref_file}
-                configuration["no_wga_file"] = {"filename": form.nwga_ref_seq_file}
-                configuration["wga_file"] = {"filename": form.wga_ref_seq_file}
-                configuration["region_name"] = form.region_name
-                configuration["region_path"] = REGIONS_FILES_ROOT
-
-                configuration["sam_read_config"] = {"max_depth": form.max_depth,
-                                                    "ignore_orphans": form.ignore_orphans,
-                                                    "truncate": form.truncate,
-                                                    "quality_threshold": form.quality_threshold,
-                                                    "add_indels": form.add_indels}
-
-                extract_region(configuration=configuration)
-
-                """
-                if process_manager is None:
-                    raise Exception("Process Manager is None")
-
-                computation = ExtractRegionComputation()
-                computation.computation_type = JobType.EXTRACT_REGION.name
-                computation.task_id = uuid.uuid1()
-
-                configuration = {'processing': {}}
-                configuration['processing']['type'] = 'serial'
-
-                configuration["window_size"] = result["window_size"]
-                computation["chromosome"] = result["chromosome"]
-                extract_region(configuration=computation)
-
-                # create a Job and submit it
-                #job = Job(idx=computation.task_id, input=result,
-                #          worker=extract_region, model=computation)
-                #process_manager.add_job(job=job)
-                """
-
-                return redirect('extract_region_success_view', task_id=0)
 
     return HttpResponse(template.render(context, request))
 

@@ -16,7 +16,7 @@ class ExtractRegionComputation(Computation):
 
         if USE_CELERY:
             # schedule the computation
-            return extract_region_task.delay(region_name=data["region_name"],
+            task = extract_region_task.delay(region_name=data["region_name"],
                                              chromosome=data["chromosome"],
                                              region_start=data["regions"]["start"],
                                              region_end=data["regions"]["end"],
@@ -33,3 +33,8 @@ class ExtractRegionComputation(Computation):
                                              truncate=data["sam_read_config"]["truncate"],
                                              quality_threshold=data["sam_read_config"]["quality_threshold"],
                                              add_indels=data["sam_read_config"]["add_indels"])
+            return task.id.replace('-', '_')
+        else:
+            from compute_engine.create_regions import main
+            main(configuration=data)
+            return 0
