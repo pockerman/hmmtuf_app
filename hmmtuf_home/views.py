@@ -4,7 +4,8 @@ from django.template import loader
 from django.shortcuts import redirect
 
 from hmmtuf.settings import BASE_DIR
-from compute_engine.utils import OK, read_json, extract_file_names
+from compute_engine.utils import  read_json, extract_file_names
+from compute_engine import OK
 from compute_engine.utils import extract_path
 
 # Create your views here.
@@ -38,14 +39,12 @@ def sequence_view(request, ref_seq, wga_seq, no_wga_seq):
     configuration = read_json(filename="%s/config.json" % BASE_DIR)
     path = extract_path(configuration=configuration, ref_file=ref_seq)
     
-    wga_seq = "/scratch/spectre/a/ag568/m605_verysensitive_trim_sorted.bam"
-    no_wga_seq = "/scratch/spectre/a/ag568/m585_verysensitive_trim_sorted.bam"
+    wga_seq = "/home/alex/qi3/hmmtuf/igv_tracks/m605_verysensitive_trim_sorted.bam.tdf"
+    no_wga_seq = "/home/alex/qi3/hmmtuf/igv_tracks/m585_verysensitive_trim_sorted.bam.tdf"
 
     return HttpResponse(template.render({'ref_seq_file': "now",
                                          'ref_seq_file_index': "now" + '.fai',
                                          'wga_seq': wga_seq,
-                                         'wga_seq_index': wga_seq + '.bai',
-                                         'no_wga_seq': no_wga_seq,
-                                         'no_wga_seq': no_wga_seq + '.bai'}, request))
+                                         'no_wga_seq': no_wga_seq}, request))
 
 

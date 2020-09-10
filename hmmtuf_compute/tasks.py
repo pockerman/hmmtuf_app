@@ -5,8 +5,7 @@ import os
 from celery.decorators import task
 from celery.utils.log import get_task_logger
 
-from compute_engine.utils import INFO
-
+from compute_engine import INFO
 from compute_engine import hmm_loader
 from compute_engine import viterbi_calculation_helpers
 from compute_engine.windows import WindowType

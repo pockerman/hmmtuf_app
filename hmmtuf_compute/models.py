@@ -4,34 +4,19 @@ from json import JSONEncoder
 from django.db import models
 from django.core.exceptions import ObjectDoesNotExist
 
+from hmmtuf_home.models import Computation
 
-# Create your models here.
-
-from compute_engine.utils import DEFAULT_ERROR_EXPLANATION, INFO
+from compute_engine import INFO
 from compute_engine.windows import WindowType
 from .tasks import compute_viterbi_path_task
 
 
-class ComputationResultEnum(Enum):
-    PENDING = 0
-    FAILURE = 1
-    SUCCESS = 2
-
-
-class ComputationType(Enum):
-    VITERBI = 0
-
-
-class ComputationEncoder(JSONEncoder):
-    def default(self, o):
-        return o.__dict__
-
-
+"""
 class Computation(models.Model):
 
-    RESULT_OPTIONS = ((ComputationResultEnum.PENDING.name, ComputationResultEnum.PENDING.name),
-                      (ComputationResultEnum.SUCCESS.name, ComputationResultEnum.SUCCESS.name),
-                      (ComputationResultEnum.FAILURE.name, ComputationResultEnum.FAILURE.name),
+    RESULT_OPTIONS = ((JobResultEnum.PENDING.name, JobResultEnum.PENDING.name),
+                      (JobResultEnum.SUCCESS.name, JobResultEnum.SUCCESS.name),
+                      (JobResultEnum.FAILURE.name, JobResultEnum.FAILURE.name),
                       )
 
     # the task id of the computation
@@ -42,6 +27,7 @@ class Computation(models.Model):
 
     class Meta:
         abstract = True
+"""
 
 
 class ViterbiComputation(Computation):
@@ -84,7 +70,6 @@ class ViterbiComputation(Computation):
 
     # type of the window
     window_type = models.CharField(max_length=20, default=WindowType.BOTH.name)
-
 
     class Meta(Computation.Meta):
         db_table = 'viterbi_computation'

@@ -8,7 +8,8 @@ from hmmtuf.settings import VITERBI_PATHS_FILES_ROOT
 from hmmtuf.celery import celery_app
 from hmmtuf_home.models import HMMModel, RegionModel
 from compute_engine.windows import WindowType
-from compute_engine.utils import INVALID_STR, INFO
+from compute_engine import INVALID_STR, INFO
+from compute_engine.job import JobType, JobResultEnum
 
 # Create your views here.
 from . import models
@@ -124,9 +125,9 @@ def view_viterbi_path(request, task_id):
             map = {}
 
             map["task_id"] = task.id
-            map["result"] = models.ComputationResultEnum.FAILURE.name
+            map["result"] = JobResultEnum.FAILURE.name
             map["error_explanation"] = str(result)
-            map["computation_type"] = models.ComputationType.VITERBI.name
+            map["computation_type"] = JobType.VITERBI.name
             map["viterbi_path_filename"] = INVALID_STR
             map["region_filename"] = INVALID_STR
             map["hmm_filename"] = INVALID_STR

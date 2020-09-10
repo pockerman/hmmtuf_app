@@ -2,7 +2,7 @@
 from django.http import HttpResponse
 from django.template import loader
 
-from compute_engine.utils import OK
+from compute_engine import OK
 
 
 class ErrorHandler(object):

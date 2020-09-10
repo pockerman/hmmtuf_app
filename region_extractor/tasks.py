@@ -4,32 +4,74 @@ from celery.utils.log import get_task_logger
 #from .create_regions import main
 from hmmtuf_home.models import RegionModel
 
-from compute_engine.create_regions import main
+
+from compute_engine.create_regions import main as extract_region
+from compute_engine.job import JobType, JobResultEnum
+from compute_engine import DEFAULT_ERROR_EXPLANATION
 
 
 logger = get_task_logger(__name__)
 
 
 @task(name="extract_region_task")
-def extract_region_task(region_name, chromosome, region_start,
-                        region_end, processing):
+def extract_region_task(region_name, chromosome,
+                        region_start, region_end,
+                        region_path, mark_for_gap_windows,
+                        remove_windows_with_gaps,
+                        window_size, processing,
+                        reference_file, no_wga_file,
+                        wga_file, max_depth,
+                        ignore_orphans, truncate,
+                        quality_threshold, add_indels):
+
+    from .models import ExtractRegionComputation
 
     task_id = extract_region_task.request.id
     task_id = task_id.replace('-', '_')
 
-    #main(configuration=args)
+    db_task = ExtractRegionComputation()
+    db_task.task_id = task_id
+    db_task.computation_type = JobType.EXTRACT_REGION.name
+    db_task.error_explanation = DEFAULT_ERROR_EXPLANATION
+    db_task.result = JobResultEnum.PENDING.name
+    db_task.save()
 
-    print("Saving region with name ", region_name)
+    try:
 
-    configuration = {'processing': 'processing',
-                       'chromosome': chromosome,
-                       'region_start': region_start,
-                       'region_end': region_end}
-    main(configuration=configuration)
+        configuration = {'processing': {"type": processing}}
 
-    region_model = RegionModel()
-    region_model.file_region = "my_region.txt"
-    region_model.name = region_name
-    region_model.chromosome = chromosome
-    region_model.save()
+        configuration["window_size"] = window_size
+        configuration["chromosome"] = chromosome
+        configuration["remove_windows_with_gaps"] = remove_windows_with_gaps
+        configuration["mark_for_gap_windows"] = mark_for_gap_windows
+        configuration["regions"] = {"start": [region_start],
+                                    "end": [region_end]}
+
+        configuration["reference_file"] = {"filename": reference_file}
+        configuration["no_wga_file"] = {"filename": no_wga_file}
+        configuration["wga_file"] = {"filename": wga_file}
+        configuration["region_name"] = region_name
+        configuration["region_path"] = region_path
+
+        configuration["sam_read_config"] = {"max_depth": max_depth,
+                                            "ignore_orphans": ignore_orphans,
+                                            "truncate": truncate,
+                                            "quality_threshold": quality_threshold,
+                                            "add_indels": add_indels}
+
+        extract_region(configuration=configuration)
+
+        region_model = RegionModel()
+        region_model.file_region = "my_region.txt"
+        region_model.name = region_name
+        region_model.chromosome = chromosome
+        region_model.save()
+
+        db_task.result=JobResultEnum.SUCCESS.name
+        db_task.save()
+    except Exception as e:
+        db_task.error_explanation = str(e)
+        db_task.result = JobResultEnum.FAILURE.name
+        db_task.save()
+
 

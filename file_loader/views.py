@@ -9,8 +9,8 @@ from hmmtuf.settings import REGIONS_FILES_ROOT
 from hmmtuf.settings import HMM_FILES_ROOT
 from hmmtuf.settings import BASE_DIR
 from hmmtuf_home.models import HMMModel, RegionModel
-from compute_engine.utils import OK, read_json, extract_file_names
-
+from compute_engine.utils import read_json, extract_file_names
+from compute_engine import OK
 from .forms import ErrorHandler, RegionLoadForm
 
 

@@ -12,15 +12,12 @@ https://docs.djangoproject.com/en/3.1/ref/settings/
 
 import os
 from pathlib import Path
-from compute_engine.utils import INFO
 from .config import BASE_DIR
 from .config import DEBUG
+from .config import USE_CELERY
 from .config import DATABASES
 
-
-print("{0} BASE_DIR: {1}".format(INFO, BASE_DIR))
-print("{0} DEBUG: {1}".format(INFO, DEBUG))
-
+#process_manager = None
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 #BASE_DIR = Path(__file__).resolve(strict=True).parent.parent
 

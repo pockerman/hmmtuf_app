@@ -5,15 +5,7 @@ from enum import Enum
 import logging
 import time
 
-INFO = "INFO:"
-ERROR = "ERROR:"
-DEBUG = "DEBUG:"
-WARNING = "WARNING:"
-OK = True
-DUMMY_ID = -1
-DEFAULT_ERROR_EXPLANATION = "No error occurred"
-INVALID_STR = 'INVALID'
-
+from .constants import INFO
 
 def timefn(fn):
     @wraps(fn)
