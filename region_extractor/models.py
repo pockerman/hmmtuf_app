@@ -3,6 +3,7 @@ from django.db import models
 from hmmtuf.config import USE_CELERY
 from hmmtuf_home.models import Computation
 from .tasks import extract_region_task
+from .tasks import serial_task
 
 # Create your models here.
 
@@ -35,6 +36,10 @@ class ExtractRegionComputation(Computation):
                                              add_indels=data["sam_read_config"]["add_indels"])
             return task.id.replace('-', '_')
         else:
-            from compute_engine.create_regions import main
-            main(configuration=data)
-            return 0
+
+            #import pdb
+            #pdb.set_trace()
+            task_id = serial_task(configuration=data)
+            return task_id.replace('-', '_')
+
+

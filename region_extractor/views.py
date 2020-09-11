@@ -60,7 +60,7 @@ def extract_region_view(request):
             return HttpResponse(template.render(context, request))
         except ObjectDoesNotExist:
 
-            if USE_CELERY:
+            #if USE_CELERY:
 
                 configuration = {'processing': {"type": "serial"}}
 
@@ -84,7 +84,7 @@ def extract_region_view(request):
                                                     "add_indels": form.add_indels}
 
                 task_id = ExtractRegionComputation.compute(data=configuration)
-                
+
                 # return the id for the computation
                 return redirect('extract_region_success_view', task_id=task_id)
 

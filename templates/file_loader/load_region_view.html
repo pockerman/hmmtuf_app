@@ -8,20 +8,8 @@
         <h4>Upload .txt file describing a chromosome region</h4>
         <hr/>
 
-        {% if error_missing_name %}
-            <p>ERROR: {{ error_missing_name }}</p>
-        {% endif %}
-
-        {% if error_name_exist %}
-            <p>ERROR: {{ error_name_exist }}</p>
-        {% endif %}
-
-        {% if error_missing_file %}
-            <p>ERROR: {{ error_missing_file }}</p>
-        {% endif %}
-
-        {% if error_missing_chromosome_name %}
-            <p>ERROR: {{ error_missing_chromosome_name }}</p>
+        {% if error_found %}
+            <p>ERROR: {{ error_found }}</p>
         {% endif %}
 
         <form method="post" enctype="multipart/form-data">
@@ -76,6 +64,20 @@
                 <div class="controls">
                     <label>Chromosome name:</label>
                     <input type="text" class="form-control" name="chr_name"><br/>
+                </div>
+            </div>
+
+            <div class="control-group form-group">
+                <div class="controls">
+                    <label>Region start index:</label>
+                    <input type="number" class="form-control" name="region_start_idx"><br/>
+                </div>
+            </div>
+
+            <div class="control-group form-group">
+                <div class="controls">
+                    <label>Region end index:</label>
+                    <input type="number" class="form-control" name="region_end_idx"><br/>
                 </div>
             </div>
 

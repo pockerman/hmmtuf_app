@@ -72,7 +72,15 @@ class Region(object):
                         try:
                             val = float(val)
                         except:
-                            pass
+
+                            if TREAT_ERRORS_AS_WARNINGS:
+
+                                print("{0} Could not float parse value {1} "
+                                      "for name {2} and WGA window id {3}".format(WARNING, val, name, wid))
+                                val = 0.0
+                            else:
+                                raise ValueError("Could not float parse value {0} "
+                                      "for name {3} and WGA window id {2}".format(val, name, wid))
 
                     samdata[name] = val
 
@@ -102,7 +110,14 @@ class Region(object):
                         try:
                             val = float(val)
                         except:
-                            pass
+                            if TREAT_ERRORS_AS_WARNINGS:
+
+                                print("{0} Could not float parse value {1} "
+                                      "for name {2} and NO-WGA window id {3}".format(WARNING, val, name, wid))
+                                val = 0.0
+                            else:
+                                raise ValueError("Could not float parse value {0} "
+                                      "for name {1} and NO-WGA window id {2}".format(val, name, wid))
 
                     samdata[name] = val
 

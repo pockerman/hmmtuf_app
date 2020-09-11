@@ -5,22 +5,20 @@
 <br/>
 <div class="row">
     <div class="col-lg-8 mb-4">
-    {% if error_empty_hmm_list %}
-        <p>ERROR: {{ error_empty_hmm_list }} <a href="/load_file/load_hmm">Create HMM models</a></p>
-    {% elif error_empty_region_list %}
-        <p>ERROR: {{ error_empty_region_list }} <a href="/load_file/load_region">Upload a region file</a></a></p>
-    {% else %}
-    <h4>Schedule Viterbi path computation</h4>
+    {% if error_found %}
+        <p>ERROR: {{ error_found }}</p>
+    {% endif %}
+    <h4>Schedule multiple Viterbi path computation</h4>
     <hr/>
-<form method="post" enctype="multipart/form-data" target="_blank">
+<form method="post" enctype="multipart/form-data">
     {% csrf_token %}
 
     <div class="control-group form-group">
         <div class="controls">
             <label>Region file:</label><br/>
-            <select id="id_region" name="region">
-                {% for region_name in region_names %}
-                    <option value="{{ region_name }}">{{ region_name }}</option>
+            <select id="id_region" name="reference_files_names">
+                {% for name in reference_files_names %}
+                    <option value="{{ name }}">{{ name }}</option>
                 {% endfor %}
             </select>
         </div>
@@ -38,13 +36,6 @@
         </div>
     </div>
     <br/>
-
-    <div class="control-group form-group">
-        <div class="controls">
-            <label>Number of sequences:</label>
-            <input type="number" class="form-control" name="n_sequences"><br/>
-        </div>
-    </div>
 
     <div class="control-group form-group">
         <div class="controls">
@@ -87,5 +78,4 @@
 </form>
 </div>
 </div>
-{% endif %}
 {% endblock inner_body %}

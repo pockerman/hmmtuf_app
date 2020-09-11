@@ -365,7 +365,7 @@ def save_segments(segments, chromosome, filename):
             writer.writerow(row)
 
 
-def create_viterbi_path(sequence, hmm_model, chr, filename):
+def create_viterbi_path(sequence, hmm_model, chr, filename, append_or_write):
 
     observations = []
     for i in range(len(sequence)):
@@ -383,7 +383,7 @@ def create_viterbi_path(sequence, hmm_model, chr, filename):
         print("Viterbi path length: ", len(viterbi_path[1]))
 
         counter = 0
-        with open(filename, 'w') as f:
+        with open(filename, append_or_write) as f:
             f.write(str(len(viterbi_path[1]) - 1) + "\n")
             for item in range(len(sequence)):
 

@@ -1,16 +1,48 @@
+import uuid
 from celery.decorators import task
 from celery.utils.log import get_task_logger
 
-#from .create_regions import main
 from hmmtuf_home.models import RegionModel
 
-
+from compute_engine.job import Job
 from compute_engine.create_regions import main as extract_region
 from compute_engine.job import JobType, JobResultEnum
 from compute_engine import DEFAULT_ERROR_EXPLANATION
 
 
 logger = get_task_logger(__name__)
+
+
+def serial_task(configuration):
+
+    from .models import ExtractRegionComputation
+
+    db_task = ExtractRegionComputation()
+    db_task.task_id = str(uuid.uuid4())
+    db_task.computation_type = JobType.EXTRACT_REGION.name
+    db_task.error_explanation = DEFAULT_ERROR_EXPLANATION
+    db_task.result = JobResultEnum.PENDING.name
+    db_task.save()
+
+    try:
+
+        job = Job(idx=None, input=configuration, worker=extract_region, model=db_task)
+        job.execute()
+
+        region_model = RegionModel()
+        region_model.file_region = configuration["region_name"] + ".txt"
+        region_model.name = configuration["region_name"]
+        region_model.chromosome = configuration["chromosome"]
+        region_model.save()
+
+        db_task.result = JobResultEnum.SUCCESS.name
+        db_task.save()
+    except Exception as e:
+        db_task.error_explanation = str(e)
+        db_task.result = JobResultEnum.FAILURE.name
+        db_task.save()
+
+    return db_task.task_id
 
 
 @task(name="extract_region_task")
@@ -67,7 +99,7 @@ def extract_region_task(region_name, chromosome,
         region_model.chromosome = chromosome
         region_model.save()
 
-        db_task.result=JobResultEnum.SUCCESS.name
+        db_task.result = JobResultEnum.SUCCESS.name
         db_task.save()
     except Exception as e:
         db_task.error_explanation = str(e)

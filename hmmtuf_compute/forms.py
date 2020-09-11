@@ -1,4 +1,75 @@
+from django.http import HttpResponse
+from django.template import loader
+
+from compute_engine.utils import read_json, extract_file_names, extract_path
+from compute_engine import OK
+
 from hmmtuf_home.models import HMMModel, RegionModel
+
+
+class MultipleViterbiComputeForm(object):
+
+    def __init__(self, template_html, configuration, context):
+        self._response = None
+        self._chromosome = None
+        self._ref_sequence_file = None
+        self._hmm_name = None
+        self._template_html = template_html
+        self._context = context
+        self._configuration = configuration
+        self._path = None
+
+    @property
+    def response(self):
+        return self._response
+
+    def as_map(self):
+        return {"chromosome": self._chromosome,
+                "hmm_name": self._hmm_name,
+                "ref_seq_file": self._ref_sequence_file,
+                "path": self._path}
+
+    def check(self, request):
+
+        self._ref_sequence_file = request.POST.get("reference_files_names", "")
+        if self._ref_sequence_file == "":
+            template = loader.get_template(self._template_html)
+            self._context.update({"error_found": "No reference sequnce file specified"})
+            self._response = HttpResponse(template.render(self._context, request))
+            return not OK
+
+        # do we have regions for this
+        self._hmm_name = request.POST.get("hmm", "")
+        if self._hmm_name == "":
+            return not OK
+
+        self._chromosome = request.POST.get("chromosome", "")
+        if self._chromosome == "":
+            template = loader.get_template(self._template_html)
+            self._context.update({"error_found": "No  chromosome specified"})
+            self._response = HttpResponse(template.render(self._context, request))
+            return not OK
+
+        # do we have region files for this
+        # reference file and chromosome
+
+        self._path = extract_path(configuration=self._configuration,
+                            ref_file=self._ref_sequence_file)
+
+        file_ = self._path + self._ref_sequence_file
+        objects = RegionModel.objects.filter(ref_seq_file=file_,
+                                             chromosome=self._chromosome)
+
+        print(objects)
+
+        if len(objects) == 0:
+            template = loader.get_template(self._template_html)
+            self._context.update({"error_found": "No regions for sequence {0}\
+             and chromosome {1}".format(self._ref_sequence_file, self._chromosome)})
+            self._response = HttpResponse(template.render(self._context, request))
+            return not OK
+
+        return OK
 
 
 def wrap_data_for_viterbi_calculation(request, viterbi_path_files_root):
