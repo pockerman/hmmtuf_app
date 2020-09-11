@@ -1,0 +1,1 @@
+VITERBI_PATH_FILENAME = 'viterbi_path.csv'

@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}HMMtuf-View Viterbi Path{% endblock title %}
+{% block title %}HMMtuf-Multi View Viterbi Path{% endblock title %}
 {%block inner_body %}
 {% load static %}
 
@@ -14,7 +14,7 @@
             <h5>Task id: {{ task_id }}</h5>
             <h5>Computation  status: {{ task_status }}</h5>
 
-        <a href="/compute/view_viterbi_path/{{ task_id }}" class="btn btn-primary">Get Results</a>
+        <a href="/compute/view_multi_viterbi_path/{{ task_id }}" class="btn btn-primary">Get Results</a>
     </div>
 
 </div>

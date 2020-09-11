@@ -5,12 +5,7 @@ from enum import Enum
 import logging
 import time
 
-INFO = "INFO:"
-ERROR = "ERROR:"
-DEBUG = "DEBUG:"
-WARNING = "WARNING:"
-OK = True
-DUMMY_ID = -1
+from .constants import INFO
 
 def timefn(fn):
     @wraps(fn)
@@ -34,6 +29,39 @@ def read_json(filename):
     with open(filename) as json_file:
         json_input = json.load(json_file)
         return json_input
+
+
+def extract_file_names(configuration):
+
+    reference_files_names = []
+    wga_files_names = []
+    nwga_files_names = []
+    files = configuration["sequence_files"]["files"]
+
+    for idx in range(len(files)):
+        map = files[idx]
+        ref_files = map["ref_files"]
+        reference_files_names.extend(ref_files)
+
+        wga_files = map["wga_files"]
+        wga_files_names.extend(wga_files)
+
+        nwga_files = map["no_wga_files"]
+        nwga_files_names.extend(nwga_files)
+
+    return reference_files_names, wga_files_names, nwga_files_names
+
+
+def extract_path(configuration, ref_file):
+    files = configuration["sequence_files"]["files"]
+
+    for idx in range(len(files)):
+        map = files[idx]
+        ref_files = map["ref_files"]
+
+        if ref_file in ref_files:
+            return map["path"]
+    return None
 
 
 

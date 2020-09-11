@@ -4,6 +4,7 @@ from django.contrib import admin
 
 # Register your models here.
 from .models import ViterbiComputation
+from .models import MultiViterbiComputation
 
 
 class ViterbiComputationAdmin(admin.ModelAdmin):
@@ -11,5 +12,11 @@ class ViterbiComputationAdmin(admin.ModelAdmin):
     list_display = ('task_id', 'result', 'error_explanation')
 
 
+class MultiViterbiComputationAdmin(admin.ModelAdmin):
+    fields = ['task_id', 'region_filename', 'hmm_filename', 'result', 'error_explanation']
+    list_display = ('task_id', 'result', 'error_explanation')
+
+
 admin.site.register(ViterbiComputation, ViterbiComputationAdmin)
+admin.site.register(MultiViterbiComputation, MultiViterbiComputationAdmin)
 

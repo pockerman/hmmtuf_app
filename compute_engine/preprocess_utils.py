@@ -9,7 +9,7 @@ import copy
 
 
 from . windows import WindowType
-from . utils import INFO
+from . constants import INFO
 from . exceptions import Error
 
 VALID_DISTS = ['normal', 'uniform',

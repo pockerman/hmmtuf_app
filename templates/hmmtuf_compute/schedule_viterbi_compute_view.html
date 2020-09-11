@@ -6,9 +6,9 @@
 <div class="row">
     <div class="col-lg-8 mb-4">
     {% if error_empty_hmm_list %}
-        <p>ERROR: {{ error_empty_hmm_list }}</p>
+        <p>ERROR: {{ error_empty_hmm_list }} <a href="/load_file/load_hmm">Create HMM models</a></p>
     {% elif error_empty_region_list %}
-        <p>ERROR: {{ error_empty_region_list }}</p>
+        <p>ERROR: {{ error_empty_region_list }} <a href="/load_file/load_region">Upload a region file</a></a></p>
     {% else %}
     <h4>Schedule Viterbi path computation</h4>
     <hr/>
@@ -42,7 +42,7 @@
     <div class="control-group form-group">
         <div class="controls">
             <label>Number of sequences:</label>
-            <input type="text" class="form-control" name="n_sequences"><br/>
+            <input type="number" class="form-control" name="n_sequences"><br/>
         </div>
     </div>
 

@@ -98,6 +98,23 @@
 
     <div class="control-group form-group">
         <div class="controls">
+            <label>Remove gaps (default is true):</label><br/>
+            <select name="remove_gaps">
+                <option value="true"> true </option>
+                <option value="false"> false </option>
+            </select>
+        </div>
+    </div>
+
+    <div class="control-group form-group">
+        <div class="controls">
+            <label>Gap indicator (default is -999.5 only used when remove gaps is false):</label>
+            <input type="text" class="form-control" name="gap_indicator" value="-999.5"><br/>
+        </div>
+    </div>
+
+    <div class="control-group form-group">
+        <div class="controls">
             <label>Max depth (default is 1000):</label>
             <input type="text" class="form-control" name="max_depth"><br/>
         </div>

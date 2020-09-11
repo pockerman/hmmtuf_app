@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}HMMtuf-Compute Viterbi Path{% endblock title %}
+{%block inner_body %}
+
+<br/>
+<div class="row">
+    <div class="col-lg-8 mb-4">
+
+{% if no_models_error_msg %}
+        <p>ERROR: {{ no_models_error_msg }}</p>
+{% else %}
+    {% if error_found %}
+        <p>ERROR: {{ error_found }}</p>
+    {% endif %}
+    <h4>Schedule multiple Viterbi path computation</h4>
+    <hr/>
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <div class="control-group form-group">
+        <div class="controls">
+            <label>Region file:</label><br/>
+            <select id="id_region" name="reference_files_names">
+                {% for name in reference_files_names %}
+                    <option value="{{ name }}">{{ name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+    <br/>
+
+    <div class="control-group form-group">
+        <div class="controls">
+            <label>HMM file:</label><br/>
+            <select id="id_hmm" name="hmm">
+                {% for hmm_name in hmm_names %}
+                    <option value="{{ hmm_name }}">{{ hmm_name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+    <br/>
+
+    <div class="control-group form-group">
+        <div class="controls">
+            <label>Chromosome:</label>
+            <input type="text" class="form-control" name="chromosome"><br/>
+        </div>
+    </div>
+    <br/>
+
+    <button type="submit" class="btn btn-primary">Compute</button>
+</form>
+</div>
+    {% endif %}
+</div>
+{% endblock inner_body %}
