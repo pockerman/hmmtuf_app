@@ -4,6 +4,8 @@ from django.template import loader
 from compute_engine.utils import read_json, extract_file_names, extract_path
 from compute_engine import OK
 
+from hmmtuf import VITERBI_PATH_FILENAME
+from hmmtuf.settings import VITERBI_PATHS_FILES_ROOT
 from hmmtuf_home.models import HMMModel, RegionModel
 
 
@@ -52,15 +54,12 @@ class MultipleViterbiComputeForm(object):
 
         # do we have region files for this
         # reference file and chromosome
-
         self._path = extract_path(configuration=self._configuration,
-                            ref_file=self._ref_sequence_file)
+                                  ref_file=self._ref_sequence_file)
 
         file_ = self._path + self._ref_sequence_file
         objects = RegionModel.objects.filter(ref_seq_file=file_,
                                              chromosome=self._chromosome)
-
-        print(objects)
 
         if len(objects) == 0:
             template = loader.get_template(self._template_html)
@@ -72,10 +71,10 @@ class MultipleViterbiComputeForm(object):
         return OK
 
 
-def wrap_data_for_viterbi_calculation(request, viterbi_path_files_root):
+def wrap_data_for_viterbi_calculation(request):
 
+    # find the HMM
     hmm_name = request.POST.get("hmm", '')
-
     hmm_model = HMMModel.objects.get(name=hmm_name)
     hmm_filename = hmm_model.file_hmm.name
 
@@ -89,7 +88,6 @@ def wrap_data_for_viterbi_calculation(request, viterbi_path_files_root):
 
     window_type = 'BOTH'
     chromosome = request.POST.get('chromosome', '')
-    viterbi_path_filename = 'viterbi_path.txt'
     sequence_size = request.POST.get('sequence_size', '')
     n_sequences = request.POST.get('n_sequences', '')
 
@@ -107,13 +105,13 @@ def wrap_data_for_viterbi_calculation(request, viterbi_path_files_root):
               'region_name': region_name,
               'chromosome': chromosome,
               'window_type': window_type,
-              'viterbi_path_files_root': viterbi_path_files_root,
-              'viterbi_path_filename':  viterbi_path_filename,
+              'viterbi_path_files_root': VITERBI_PATHS_FILES_ROOT,
+              'viterbi_path_filename':  VITERBI_PATH_FILENAME,
               'region_filename': region_filename,
               'hmm_filename': hmm_filename,
               'sequence_size': sequence_size,
               'n_sequences': n_sequences,
-              'path_img': viterbi_path_files_root,
+              'path_img': VITERBI_PATHS_FILES_ROOT,
               'ref_seq_file': ref_seq_file,
               'wga_seq_file': wga_seq_file,
               'no_wag_seq_file': no_wag_seq_file}

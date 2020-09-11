@@ -27,6 +27,9 @@ def learn_d3(request):
 
 
 def schedule_hmm_multi_viterbi_view(request):
+    """
+    Schedule a multi-region Viterbi computation.
+    """
 
     configuration = read_json(filename="%s/config.json" % BASE_DIR)
     reference_files_names, wga_files_names, \
@@ -36,7 +39,7 @@ def schedule_hmm_multi_viterbi_view(request):
     hmms = HMMModel.objects.all()
 
     if len(hmms) == 0:
-        context = {"error_empty_hmm_list": "HMM models have not been created."}
+        context = {"no_models_error_msg": "HMM models have not been created."}
         template = loader.get_template('hmmtuf_compute/schedule_hmm_multi_viterbi_view.html')
         return HttpResponse(template.render(context, request))
 
@@ -58,7 +61,7 @@ def schedule_hmm_multi_viterbi_view(request):
             return form.response
 
         kwargs = form.as_map()
-        kwargs['viterbi_path_filename'] = VITERBI_PATH_FILENAME #'viterbi_path.txt'
+        kwargs['viterbi_path_filename'] = VITERBI_PATH_FILENAME
         task_id = models.MultiViterbiComputation.compute(data=kwargs)
 
         # return the id for the computation
@@ -70,6 +73,10 @@ def schedule_hmm_multi_viterbi_view(request):
 
 def view_multi_viterbi_path(request, task_id):
 
+    """
+    View the Viterbi path of a multi-region compuation
+    """
+
     template = loader.get_template('hmmtuf_compute/multi_viterbi_path_view.html')
     try:
 
@@ -80,14 +87,14 @@ def view_multi_viterbi_path(request, task_id):
         task = models.MultiViterbiComputation.objects.get(task_id=task_id)
 
         if task.result == 'FAILURE':
-            context = {'error_task_failed': True, "error_message": task.error_explanation,
-                       'task_id': task_id, "computation": task}
+            context = {'error_task_failed': True,
+                       "error_message": task.error_explanation,
+                       'task_id': task_id,
+                       "computation": task}
             return HttpResponse(template.render(context, request))
         elif task.result == JobResultEnum.PENDING.name:
 
-            show_get_results_button = True
-
-            context = {'show_get_results_button': show_get_results_button,
+            context = {'show_get_results_button': True,
                        'task_id': task_id,
                        'task_status': JobResultEnum.PENDING.name}
             return HttpResponse(template.render(context, request))
@@ -109,9 +116,8 @@ def view_multi_viterbi_path(request, task_id):
         context = {'task_status': task.status}
 
         if task.status == 'PENDING':
-            show_get_results_button = True
 
-            context.update({'show_get_results_button': show_get_results_button,
+            context.update({'show_get_results_button': True,
                             'task_id': task_id})
             return HttpResponse(template.render(context, request))
         elif task.status == 'SUCCESS':
@@ -125,8 +131,7 @@ def view_multi_viterbi_path(request, task_id):
 
             result = task.get(propagate=False)
 
-            map = {}
-
+            map = dict()
             map["task_id"] = task.id
             map["result"] = JobResultEnum.FAILURE.name
             map["error_explanation"] = str(result)
@@ -153,16 +158,12 @@ def view_multi_viterbi_path(request, task_id):
 
 def schedule_hmm_viterbi_computation_view(request):
     """
-    schedules a computation. This is done by asking the user
-    to specify a region name and an HMM name to compute the computation.
-    This function wraps the POST/GET requests
+    Schedules a region Viterbi computation.
     """
 
     if request.method == 'POST':
 
-        kwargs = forms.wrap_data_for_viterbi_calculation(request=request,
-                                                         viterbi_path_files_root=VITERBI_PATHS_FILES_ROOT)
-
+        kwargs = forms.wrap_data_for_viterbi_calculation(request=request)
         task_id = models.ViterbiComputation.compute(data=kwargs)
 
         # return the id for the computation
@@ -213,11 +214,11 @@ def view_viterbi_path(request, task_id):
         task = models.ViterbiComputation.objects.get(task_id=task_id)
 
         if task.result == 'FAILURE':
-            context = {'error_task_failed': True, "error_message": task.error_explanation,
-                            'task_id': task_id, "computation": task}
+            context = {'error_task_failed': True,
+                       "error_message": task.error_explanation,
+                        'task_id': task_id, "computation": task}
             return HttpResponse(template.render(context, request))
         else:
-
             context = {'task_status': task.result, "computation": task}
             return HttpResponse(template.render(context, request))
     except ObjectDoesNotExist:
@@ -229,13 +230,11 @@ def view_viterbi_path(request, task_id):
         # if yes collect the results
         # otherwise return the html
         task = celery_app.AsyncResult(task_id)
-
         context = {'task_status': task.status}
 
         if task.status == 'PENDING':
-            show_get_results_button = True
 
-            context.update({'show_get_results_button': show_get_results_button,
+            context.update({'show_get_results_button': True,
                             'task_id': task_id})
             return HttpResponse(template.render(context, request))
         elif task.status == 'SUCCESS':
@@ -249,7 +248,7 @@ def view_viterbi_path(request, task_id):
 
             result = task.get(propagate=False)
 
-            map = {}
+            map = dict()
 
             map["task_id"] = task.id
             map["result"] = JobResultEnum.FAILURE.name
@@ -270,7 +269,8 @@ def view_viterbi_path(request, task_id):
             map["window_type"] = INVALID_STR
 
             computation = models.ViterbiComputation.build_from_map(map, save=True)
-            context.update({'error_task_failed': True, "error_message": str(result),
+            context.update({'error_task_failed': True,
+                            "error_message": str(result),
                             'task_id': task_id, "computation": computation})
             return HttpResponse(template.render(context, request))
 
