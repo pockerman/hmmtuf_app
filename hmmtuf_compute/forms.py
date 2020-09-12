@@ -20,6 +20,7 @@ class MultipleViterbiComputeForm(object):
         self._context = context
         self._configuration = configuration
         self._path = None
+        self._group_tip = None
 
     @property
     def response(self):
@@ -29,14 +30,15 @@ class MultipleViterbiComputeForm(object):
         return {"chromosome": self._chromosome,
                 "hmm_name": self._hmm_name,
                 "ref_seq_file": self._ref_sequence_file,
-                "path": self._path}
+                "path": self._path,
+                "group_tip": self._group_tip}
 
     def check(self, request):
 
         self._ref_sequence_file = request.POST.get("reference_files_names", "")
         if self._ref_sequence_file == "":
             template = loader.get_template(self._template_html)
-            self._context.update({"error_found": "No reference sequnce file specified"})
+            self._context.update({"error_found": "No reference sequence file specified"})
             self._response = HttpResponse(template.render(self._context, request))
             return not OK
 
@@ -57,14 +59,17 @@ class MultipleViterbiComputeForm(object):
         self._path = extract_path(configuration=self._configuration,
                                   ref_file=self._ref_sequence_file)
 
-        file_ = self._path + self._ref_sequence_file
-        objects = RegionModel.objects.filter(ref_seq_file=file_,
+        self._group_tip = request.POST.get("group_tip")
+
+        #file_ = self._path + self._ref_sequence_file
+        objects = RegionModel.objects.filter(group_tip__tip=self._group_tip,
                                              chromosome=self._chromosome)
 
         if len(objects) == 0:
             template = loader.get_template(self._template_html)
-            self._context.update({"error_found": "No regions for sequence {0}\
-             and chromosome {1}".format(self._ref_sequence_file, self._chromosome)})
+            self._context.update({"error_found": True,
+                                  "no_seq_chromosome": "No regions for chromosome {0}\
+             and group {1}".format(self._chromosome, self._group_tip )})
             self._response = HttpResponse(template.render(self._context, request))
             return not OK
 

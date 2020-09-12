@@ -78,6 +78,18 @@ class HMMModel(FilesModel):
         return inst
 
 
+class RegionGroupTipModel(models.Model):
+
+    # tip used to group region models
+    tip = models.CharField(max_length=100)
+
+    class Meta:
+        db_table = 'region_group_tipe'
+
+    def __str__(self):
+        return "%s" % self.tip
+
+
 class RegionModel(FilesModel):
 
     file_region = models.FileField(upload_to=upload_region_file)
@@ -87,6 +99,7 @@ class RegionModel(FilesModel):
     no_wga_seq_file = models.CharField(max_length=1000)
     start_idx = models.IntegerField()
     end_idx = models.IntegerField()
+    group_tip = models.ForeignKey(RegionGroupTipModel, on_delete=models.CASCADE)
 
     class Meta(FilesModel.Meta):
         db_table = 'region_model'

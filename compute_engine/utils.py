@@ -64,4 +64,13 @@ def extract_path(configuration, ref_file):
     return None
 
 
+def get_sequence_name(configuration, seq):
+    return configuration["sequences_names"][seq]
+
+
+def get_tdf_file(configuration, seq):
+    return configuration["tdf_files"][seq]
+
+
+
 

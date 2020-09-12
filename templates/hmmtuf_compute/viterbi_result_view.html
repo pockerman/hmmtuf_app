@@ -3,7 +3,6 @@
 {%block inner_body %}
 {% load static %}
 
-
 <br/>
 
 {% if show_get_results_button %}
@@ -28,62 +27,161 @@
     </div>
 </div>
 {% else %}
+
+<div class="row">
+    <div class="col-lg-12" id="igv-browser">
+    </div>
+</div>
+<br/>
 <div class="row">
 
     <h3>Task data</h3>
     <hr/>
-    <div class="col-lg-12 float-left">
-    <ul>
-        <li>HMM filename: {{ computation.hmm_filename }} </li>
-        <li>Region filename: {{ computation.region_filename }}</li>
-        <li>Region mixed windows: {{ computation.n_mixed_windows }}</li>
-        <li>Region window type: {{ computation.window_type }}</li>
-        <li>Sequence size: {{ computation.seq_size }}</li>
-        <li>Number of sequences: {{ computation.extracted_sequences }}</li>
-        <li>Number of gaps: {{ computation.number_of_gaps }}</li>
-    </ul>
+    <div id="task_data" class="col-lg-12 float-left" style="display:none;">
+        <ul>
+            <li>HMM filename: {{ computation.hmm_filename }} </li>
+            <li>Region filename: {{ computation.region_filename }}</li>
+            <li>Region window type: {{ computation.window_type }}</li>
+            <li>Sequence size: {{ computation.seq_size }}</li>
+            <li>Number of sequences: {{ computation.extracted_sequences }}</li>
+            <li>Number of gaps: {{ computation.number_of_gaps }}</li>
+        </ul>
+    </div>
+    <div class="col-lg-12">
+        <button type="button" class="btn btn-primary" onclick="hideShowDiv('task_data')">Show Task Data</button>
     </div>
 </div>
 
 <div class="row">
     <h3>HMM Model</h3>
     <hr/>
-    <img src="{{ computation.hmm_path_img }}" width="700"/>
+    <div id="hmm_div" class="col-lg-12" style="display:none;">
+        <img src="{{ computation.hmm_path_img }}" width="700"/>
+    </div>
+    <div class="col-lg-12">
+        <button id="show_hmm_model_button" type="button" class="btn btn-primary" onclick="hideShowDiv('hmm_div')">Show HMM Model</button>
+    </div>
 </div>
+
+<script>
+function hideShowDiv(idStr) {
+      var x = document.getElementById(idStr);
+      if (x.style.display === "none") {
+        x.style.display = "block";
+        var button = document.getElementById("show_hmm_model_button").value="Hide HMM Model";
+        button.value="Hide HMM Model";
+        //console.log("Button value:")
+        console.log(button.value);
+      }
+      else {
+        x.style.display = "none";
+        var button = document.getElementById("show_hmm_model_button").value="Show HMM Model";
+        button.value="Show HMM Model";
+        console.log(button.value);
+      }
+}
+</script>
 
 <!--hide me-->
 <div class="row">
     <h3>Windows labels</h3>
     <hr/>
-    <!--<img src="{{ viterbi_label_plot_filename }}" width="500"/>-->
-    <svg id="canvas" width="800" height="500"></svg>
+
+    <div id="hmm_labels_div" class="col-lg-12" style="display:none;">
+        <svg id="canvas" width="800" height="500"></svg>
+    </div>
+
+    <div class="col-lg-12">
+        <button type="button" class="btn btn-primary" onclick="hideShowDiv('hmm_labels_div')">Show Windows Labels</button>
+    </div>
 </div>
+{{no_wga_tdf_file}}
 
 <br/>
-
-<div class="col-lg-12" id="igv-browser">
-</div>
+{{wga_tdf_file}}
 <script src="https://cdn.jsdelivr.net/npm/igv@2.6.2/dist/igv.min.js"></script>
-<script>
-var igvDiv = document.getElementById("igv-browser");
+<script type="text/javascript">
+document.addEventListener("DOMContentLoaded", function () {
+
 var options =
         {
-            genome: "hg38",
-            locus: "chr8:127,736,588-127,739,371",
+            locus: '1:500,000-5,000,000',
+            flanking: 1000,
+            genome: 'hg38',
             tracks: [
                 {
-                    "name": "HG00103",
-                    "url": "https://s3.amazonaws.com/1000genomes/data/HG00103/alignment/HG00103.alt_bwamem_GRCh38DH.20150718.GBR.low_coverage.cram",
-                    "indexURL": "https://s3.amazonaws.com/1000genomes/data/HG00103/alignment/HG00103.alt_bwamem_GRCh38DH.20150718.GBR.low_coverage.cram.crai",
-                    "format": "cram"
-                }
+                    name: '{{no_wga_seq_name}}',
+                    url: '/static/igv_tracks/{{no_wga_tdf_file}}',
+                    indexed: false,
+                    min:0,
+                    max:60
+                },
+                {
+                    name: '{{wga_seq_name}}',
+                    url: '/static/igv_tracks/{{wga_tdf_file}}',
+                    indexed: false,
+                    min:0,
+                    max:60
+                },
+                {
+                    name: 'TUF',
+                    url: '{% static "igv_tracks/tuf.bed" %}',
+                    indexed: false
+                    /*indexURL: '{% static "igv_tracks/tuf.bed.gz.tbi" %}',
+                    displayMode: "SQUISHED",
+                    height: 30*/
+               },
+                {
+                    name: 'Normal',
+                    url: '{% static "igv_tracks/normal.bed.gz" %}',
+                    indexURL: '{% static "igv_tracks/normal.bed.gz.tbi" %}',
+                    displayMode: "SQUISHED",
+                    height: 30
+               },
+               /*{
+                    name: 'Deletion',
+                    url: '{% static "igv_tracks/deletion.bed.gz" %}',
+                    indexURL: '{% static "igv_tracks/deletion.bed.gz.tbi" %}',
+                    displayMode: "SQUISHED",
+                    height: 30
+               },
+
+                {
+                    name: 'Duplication',
+                    url: '{% static "igv_tracks/duplication.bed.gz" %}',
+                    indexURL: '{% static "igv_tracks/duplication.bed.gz.tbi" %}',
+                    displayMode: "SQUISHED",
+                    height: 30
+               },
+                {
+                    name: 'GAP',
+                    url: '{% static "igv_tracks/gap.bed.gz" %}',
+                    indexURL: '{% static "igv_tracks/gap.bed.gz.tbi" %}',
+                    displayMode: "SQUISHED",
+                    height: 30
+               },
+                {
+                    name: 'Repeats',
+                    url: '{% static "igv_tracks/rep.bed.gz" %}',
+                    indexURL: '{% static "igv_tracks/rep.bed.gz.tbi" %}',
+                    displayMode: "SQUISHED",
+                    height: 30
+               },
+                {
+                    name: 'GQUAD',
+                    url: '{% static "igv_tracks/quad.bed.gz" %}',
+                    indexURL: '{% static "igv_tracks/quad.bed.gz.tbi" %}',
+                    displayMode: "SQUISHED",
+                    height: 30
+               }*/
             ]
         };
-
-igv.createBrowser(igvDiv, options)
+        var igvDiv = document.getElementById("igv-browser");
+        igv.createBrowser(igvDiv, options)
                 .then(function (browser) {
                     console.log("Created IGV browser");
                 })
+});
 </script>
 
 <script>

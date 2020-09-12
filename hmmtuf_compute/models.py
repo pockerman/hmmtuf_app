@@ -58,9 +58,6 @@ class ViterbiComputation(Computation):
     @staticmethod
     def build_from_map(map, save):
 
-        print("{0} build_from_map computation: {1}".format(INFO, map["task_id"]))
-
-
         try:
             computation = ViterbiComputation.objects.get(task_id=map["task_id"])
             return computation
@@ -98,21 +95,21 @@ class ViterbiComputation(Computation):
         window_type = str(data['window_type'])
         region_filename = data['region_filename']
         hmm_filename = data['hmm_filename']
-        sequence_size = data['sequence_size']
-        n_sequences = data['n_sequences']
+        #sequence_size = data['sequence_size']
+        #n_sequences = data['n_sequences']
         ref_seq_file = data["ref_seq_file"]
         wga_seq_file = data["wga_seq_file"]
         no_wag_seq_file = data["no_wag_seq_file"]
 
+        print(data)
+
         # schedule the computation
         task = compute_viterbi_path_task.delay(hmm_name=hmm_name,
                                                chromosome=chromosome, window_type=window_type,
-                                                viterbi_path_filename=VITERBI_PATH_FILENAME,
                                                 region_filename=region_filename,
                                                 hmm_filename=hmm_filename,
-                                                sequence_size=sequence_size, n_sequences=n_sequences,
-                                                path_img=data['path_img'],
-                                                viterbi_path_files_root=data['viterbi_path_files_root'],
+                                                sequence_size=None,
+                                                n_sequences=1,
                                                 ref_seq_file=ref_seq_file,
                                                 no_wag_seq_file=no_wag_seq_file,
                                                 wga_seq_file=wga_seq_file)
@@ -123,6 +120,21 @@ class MultiViterbiComputation(Computation):
 
     # the resulting viterbi path file
     file_viterbi_path = models.FileField()
+
+    # chromosome
+    chromosome = models.CharField(max_length=10)
+
+    # the hmm model used for the computation
+    hmm_filename = models.CharField(max_length=500)
+
+    # the reference sequence filename
+    ref_seq_filename = models.CharField(max_length=1000)
+
+    # number of regions used
+    n_regions = models.IntegerField()
+
+    # the hmm model image
+    hmm_path_img = models.FileField(null=True)
 
     class Meta(Computation.Meta):
         db_table = 'multi_viterbi_computation'
@@ -140,22 +152,12 @@ class MultiViterbiComputation(Computation):
             computation.result = map["result"]
             computation.error_explanation = map["error_explanation"]
             computation.computation_type = map["computation_type"]
-
-            """
-            computation.file_viterbi_path = map["viterbi_path_filename"]
-            computation.region_filename = map["region_filename"]
             computation.hmm_filename = map["hmm_filename"]
-            computation.chromosome = map["chromosome"]
-            computation.seq_size = map["seq_size"]
             computation.ref_seq_filename = map["ref_seq_file"]
-            computation.wga_seq_filename = map["wga_seq_file"]
-            computation.no_wag_seq_filename = map["no_wag_seq_file"]
-            computation.number_of_gaps = map["number_of_gaps"]
+            computation.chromosome = map["chromosome"]
+            computation.n_regions = map["n_regions"]
+            computation.file_viterbi_path = map["file_viterbi_path"]
             computation.hmm_path_img = map["hmm_path_img"]
-            computation.extracted_sequences = map["extracted_sequences"]
-            computation.n_mixed_windows = map["n_mixed_windows"]
-            computation.window_type = map["window_type"]
-            """
 
             if save:
                 computation.save()
@@ -169,22 +171,20 @@ class MultiViterbiComputation(Computation):
         chromosome = data['chromosome']
         window_type = 'BOTH'
         viterbi_path_filename = data['viterbi_path_filename']
-        sequence_size = None #data['sequence_size']
-        n_sequences = 1 #data['n_sequences']
         ref_seq_file = data["ref_seq_file"]
-        wga_seq_file = None#data["wga_seq_file"]
-        no_wag_seq_file = None#data["no_wag_seq_file"]
+        wga_seq_file = None
+        no_wag_seq_file = None
 
         # schedule the computation
-
         task = compute_mutliple_viterbi_path_task.delay(hmm_name=hmm_name,
                                                        chromosome=chromosome,
                                                        window_type=window_type,
                                                        viterbi_path_filename=viterbi_path_filename,
-                                                       path=data['path'],
+                                                       group_tip=data['group_tip'],
                                                        ref_seq_file=ref_seq_file,
                                                        no_wag_seq_file=no_wag_seq_file,
                                                        wga_seq_file=wga_seq_file)
+
 
         return task.id
 
