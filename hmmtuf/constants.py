@@ -1,2 +1,3 @@
 VITERBI_PATH_FILENAME = 'viterbi_path.csv'
 INVALID_TASK_ID = 'INF'
+INVALID_ITEM = None

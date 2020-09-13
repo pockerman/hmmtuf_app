@@ -13,7 +13,7 @@ class ViterbiComputationAdmin(admin.ModelAdmin):
 
 
 class MultiViterbiComputationAdmin(admin.ModelAdmin):
-    fields = ['task_id', 'region_filename', 'hmm_filename', 'result', 'error_explanation']
+    fields = ['task_id', 'hmm_filename', 'result', 'error_explanation', 'wga_seq_filename', 'no_wag_seq_filename']
     list_display = ('task_id', 'result', 'error_explanation')
 
 

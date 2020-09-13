@@ -63,6 +63,21 @@
     </div>
 </div>
 
+<!--hide me-->
+<div class="row">
+    <h3>Windows labels</h3>
+    <hr/>
+
+    <div id="hmm_labels_div" class="col-lg-12" style="display:none;">
+        <svg id="canvas" width="800" height="500"></svg>
+    </div>
+
+    <div class="col-lg-12">
+        <button type="button" class="btn btn-primary" onclick="hideShowDiv('hmm_labels_div')">Show Windows Labels</button>
+    </div>
+</div>
+<br/>
+
 <script>
 function hideShowDiv(idStr) {
       var x = document.getElementById(idStr);
@@ -82,23 +97,6 @@ function hideShowDiv(idStr) {
 }
 </script>
 
-<!--hide me-->
-<div class="row">
-    <h3>Windows labels</h3>
-    <hr/>
-
-    <div id="hmm_labels_div" class="col-lg-12" style="display:none;">
-        <svg id="canvas" width="800" height="500"></svg>
-    </div>
-
-    <div class="col-lg-12">
-        <button type="button" class="btn btn-primary" onclick="hideShowDiv('hmm_labels_div')">Show Windows Labels</button>
-    </div>
-</div>
-{{no_wga_tdf_file}}
-
-<br/>
-{{wga_tdf_file}}
 <script src="https://cdn.jsdelivr.net/npm/igv@2.6.2/dist/igv.min.js"></script>
 <script type="text/javascript">
 document.addEventListener("DOMContentLoaded", function () {

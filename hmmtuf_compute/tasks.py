@@ -12,6 +12,7 @@ from compute_engine import viterbi_calculation_helpers
 from compute_engine.windows import WindowType
 from compute_engine.region import Region
 
+from hmmtuf import INVALID_ITEM
 from hmmtuf.settings import HMM_FILES_ROOT, VITERBI_PATHS_FILES_ROOT
 from hmmtuf.settings import DEV_STATIC_FILES
 from hmmtuf.helpers import make_viterbi_path
@@ -24,7 +25,7 @@ logger = get_task_logger(__name__)
 def compute_mutliple_viterbi_path_task(hmm_name, chromosome,
                                        window_type, viterbi_path_filename,
                                        group_tip,
-                                       ref_seq_file=None, wga_seq_file=None, no_wag_seq_file=None):
+                                       ref_seq_file, wga_seq_file, no_wga_seq_file):
 
     logger.info("Computing Multi Viterbi path")
     from .models import MultiViterbiComputation
@@ -36,6 +37,20 @@ def compute_mutliple_viterbi_path_task(hmm_name, chromosome,
     regions = RegionModel.objects.filter(group_tip__tip=group_tip,
                                          chromosome=chromosome)
 
+    result = {"task_id": task_id,
+              "result": JobResultEnum.PENDING.name,
+              "error_explanation": DEFAULT_ERROR_EXPLANATION,
+              "computation_type": JobType.MULTI_VITERBI.name,
+              "chromosome": chromosome,
+              "ref_seq_filename": ref_seq_file,
+              "wga_seq_filename": wga_seq_file,
+              "no_wga_seq_filename": no_wga_seq_file,
+              "hmm_filename": hmm_name,
+              "file_viterbi_path": viterbi_path_filename,
+              "n_regions": len(regions),
+              "window_type": 'BOTH',
+              'hmm_path_img': INVALID_ITEM}
+
     # create a computation instance
     computation = MultiViterbiComputation()
     computation.task_id = task_id
@@ -46,20 +61,10 @@ def compute_mutliple_viterbi_path_task(hmm_name, chromosome,
     computation.chromosome = chromosome
     computation.hmm_filename = hmm_name
     computation.n_regions = len(regions)
+    computation.ref_seq_filename = ref_seq_file
+    computation.wga_seq_filename = wga_seq_file
+    computation.no_wag_seq_filename = no_wga_seq_file
     computation.save()
-
-    result = {"task_id": task_id,
-              "result": JobResultEnum.PENDING.name,
-              "error_explanation": DEFAULT_ERROR_EXPLANATION,
-              "computation_type": JobType.MULTI_VITERBI.name,
-              "chromosome": chromosome,
-              "ref_seq_file": ref_seq_file,
-              "wga_seq_file": wga_seq_file,
-              "no_wag_seq_file": no_wag_seq_file,
-              "hmm_filename": hmm_name,
-              "file_viterbi_path": viterbi_path_filename,
-              "n_regions": computation.n_regions,
-              "window_type": 'BOTH'}
 
     window_type = WindowType.from_string(window_type)
     db_hmm_model = HMMModel.objects.get(name=hmm_name)
@@ -164,6 +169,8 @@ def compute_viterbi_path_task(hmm_name, chromosome,
     computation.window_type = window_type
     computation.number_of_gaps = 0
     computation.seq_size = 0
+    computation.n_mixed_windows = 0
+    computation.extracted_sequences = 1
     computation.save()
 
     result = {"hmm_filename": hmm_name,
@@ -176,7 +183,12 @@ def compute_viterbi_path_task(hmm_name, chromosome,
               "ref_seq_filename": ref_seq_file,
               "wga_seq_filename": wga_seq_file,
               "no_wag_seq_filename": no_wag_seq_file,
-              "viterbi_path_filename": viterbi_path_filename}
+              "viterbi_path_filename": viterbi_path_filename,
+              "n_seqs": n_sequences,
+              "seq_size": 0,
+              "number_of_gaps": 0,
+              "extracted_sequences": 1,
+              "n_mixed_windows": 0}
 
     print("{0} Window type {1}".format(INFO, window_type))
     result["window_type"] = 'BOTH'
@@ -209,22 +221,15 @@ def compute_viterbi_path_task(hmm_name, chromosome,
     print("{0} Saved HMM path image {1}".format(INFO, computation.hmm_path_img))
 
     region = Region.load(filename=region_filename)
-    region.get_mixed_windows()
-    print("{0} Region windows: {1}".format(INFO, region.get_n_mixed_windows()))
+    windows = region.get_mixed_windows()
+    print("{0} Region windows: {1}".format(INFO, windows))
 
     result["n_mixed_windows"] = region.get_n_mixed_windows()
     window_type = WindowType.from_string(window_type)
 
-    n_seqs = n_sequences
-    result["n_seqs"] = n_seqs
-
-    seq_size = sequence_size
-    result["seq_size"] = seq_size
-    result["chromosome"] = chromosome
-
-    print("{0} Window type: {1}".format(INFO, window_type))
-    print("{0} Sequence size: {1}".format(INFO, seq_size))
-    print("{0} Number of sequences: {1}".format(INFO, n_seqs))
+    #print("{0} Window type: {1}".format(INFO, window_type))
+    #print("{0} Sequence size: {1}".format(INFO, seq_size))
+    #print("{0} Number of sequences: {1}".format(INFO, n_seqs))
 
     try:
         sequence = region.get_region_as_rd_mean_sequences_with_windows(size=None,
@@ -232,7 +237,6 @@ def compute_viterbi_path_task(hmm_name, chromosome,
                                                                        n_seqs=1,
                                                                        exclude_gaps=False)
 
-        result["extracted_sequences"] = 1
         computation.extracted_sequences = 1
         result["seq_size"] = len(sequence)
         computation.seq_size = len(sequence)
@@ -282,8 +286,6 @@ def compute_viterbi_path_task(hmm_name, chromosome,
     #                                                          title="Region: [1-10]x10^6",
     #                                                          xlim=(0.0, 150.), ylim=(0.0, 150.0),
     #                                                          show_plt=False, save_file=True, save_filename=label_plot_filename)
-
-    result["viterbi_label_plot_filename"] = DEV_STATIC_FILES + 'imgs/' + 'no_image_available.jpg' #"NO PLOT CREATED" #label_plot_filename
     result["result"] = JobResultEnum.SUCCESS.name
     result["number_of_gaps"] = number_of_gaps
     computation.result = JobResultEnum.SUCCESS.name

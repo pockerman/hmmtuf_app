@@ -10,9 +10,9 @@ from compute_engine.job import JobType, JobResultEnum
 from compute_engine.utils import read_json, extract_file_names, get_sequence_name, get_tdf_file
 
 from hmmtuf import VITERBI_PATH_FILENAME
-from hmmtuf import INVALID_TASK_ID
+from hmmtuf import INVALID_TASK_ID, INVALID_ITEM
 from hmmtuf.helpers import get_configuration
-from hmmtuf.settings import BASE_DIR
+
 from hmmtuf.celery import celery_app
 from hmmtuf_home.models import HMMModel, RegionModel, RegionGroupTipModel
 
@@ -51,7 +51,7 @@ def schedule_hmm_multi_viterbi_view(request):
 
     if len(hmms) == 0:
         context = {"error_empty_hmm_list": "HMM models have not been created."}
-        template = loader.get_template('hmmtuf_compute/schedule_hmm_multi_viterbi_view.html')
+        template = loader.get_template('hmmtuf_compute/schedule_multi_viterbi__compute_view.html')
         return HttpResponse(template.render(context, request))
 
     hmm_names = []
@@ -65,7 +65,7 @@ def schedule_hmm_multi_viterbi_view(request):
 
     if request.method == 'POST':
 
-        form = forms.MultipleViterbiComputeForm(template_html='hmmtuf_compute/schedule_hmm_multi_viterbi_view.html',
+        form = forms.MultipleViterbiComputeForm(template_html='hmmtuf_compute/schedule_multi_viterbi__compute_view.html',
                                                 configuration=configuration,
                                                 context=context)
 
@@ -80,7 +80,7 @@ def schedule_hmm_multi_viterbi_view(request):
         # return the id for the computation
         return redirect('success_schedule_multi_viterbi_computation_view', task_id=task_id)
 
-    template = loader.get_template('hmmtuf_compute/schedule_hmm_multi_viterbi_view.html')
+    template = loader.get_template('hmmtuf_compute/schedule_multi_viterbi__compute_view.html')
     return HttpResponse(template.render(context, request))
 
 
@@ -91,7 +91,7 @@ def view_multi_viterbi_path(request, task_id):
     """
     #import pdb
     #pdb.set_trace()
-    template = loader.get_template('hmmtuf_compute/multi_viterbi_path_view.html')
+    template = loader.get_template('hmmtuf_compute/multi_viterbi_result_view.html')
     try:
 
         print("{0} trying to get task: {1}".format(INFO, task_id))
@@ -99,7 +99,10 @@ def view_multi_viterbi_path(request, task_id):
         # if the task exists do not ask celery. This means
         # that either the task failed or succeed
         task = models.MultiViterbiComputation.objects.get(task_id=task_id)
+        context = _get_result_view_context(task=task, task_id=task_id)
+        return HttpResponse(template.render(context, request))
 
+        """
         if task.result == JobResultEnum.FAILURE.name:
             context = {'error_task_failed': True,
                        "error_message": task.error_explanation,
@@ -117,6 +120,7 @@ def view_multi_viterbi_path(request, task_id):
 
             context = {'task_status': task.result, "computation": task}
             return HttpResponse(template.render(context, request))
+        """
     except ObjectDoesNotExist:
 
         print("{0}  task: {1} didn't exist".format(INFO, task_id))
@@ -147,24 +151,12 @@ def view_multi_viterbi_path(request, task_id):
         elif task.status == 'FAILURE':
 
             result = task.get(propagate=False)
-
-            map = dict()
-            map["task_id"] = task.id
-            map["result"] = JobResultEnum.FAILURE.name
-            map["error_explanation"] = str(result)
-            map["computation_type"] = JobType.MULTI_VITERBI.name
-            map["file_viterbi_path"] = INVALID_STR
-            map["region_filename"] = INVALID_STR
-            map["hmm_filename"] = INVALID_STR
-            map["chromosome"] = INVALID_STR
-            map["ref_seq_file"] = INVALID_STR
-            map["window_type"] = INVALID_STR
-            map["n_regions"] = 0
-            map["hmm_path_img"] = None
-
-            computation = models.MultiViterbiComputation.build_from_map(map, save=True)
-            context.update({'error_task_failed': True, "error_message": str(result),
-                            'task_id': task_id, "computation": computation})
+            data_map = models.MultiViterbiComputation.get_invalid_map(task=task, result=result)
+            computation = models.MultiViterbiComputation.build_from_map(data_map, save=True)
+            context.update({'error_task_failed': True,
+                            "error_message": str(result),
+                            'task_id': task_id,
+                            "computation": computation})
             return HttpResponse(template.render(context, request))
 
 
@@ -185,8 +177,11 @@ def schedule_hmm_viterbi_computation_view(request):
 
     if request.method == 'POST':
 
-        kwargs = forms.wrap_data_for_viterbi_calculation(request=request)
-        task_id = models.ViterbiComputation.compute(data=kwargs)
+        form = forms.ViterbiComputeForm(template_html=INVALID_ITEM,
+                                        configuration=INVALID_ITEM,
+                                        context=INVALID_ITEM)
+        form.check(request=request)
+        task_id = models.ViterbiComputation.compute(data=form.as_map())
 
         # return the id for the computation
         return redirect('success_schedule_viterbi_computation_view', task_id=task_id)
@@ -233,11 +228,14 @@ def view_viterbi_path(request, task_id):
         # if the task exists do not ask celery. This means
         # that either the task failed or succeed
         task = models.ViterbiComputation.objects.get(task_id=task_id)
+        context = _get_result_view_context(task=task, task_id=task_id)
+        return HttpResponse(template.render(context, request))
 
+        """
         if task.result == JobResultEnum.FAILURE.name:
             context = {'error_task_failed': True,
                        "error_message": task.error_explanation,
-                        'task_id': task_id, "computation": task}
+                       'task_id': task_id, "computation": task}
 
             return HttpResponse(template.render(context, request))
         elif task.result == JobResultEnum.PENDING.name:
@@ -251,9 +249,6 @@ def view_viterbi_path(request, task_id):
         else:
 
             configuration = get_configuration()
-
-            print("{0} WGA filename task: {1}".format(INFO, task.wga_seq_filename))
-
             wga_name = task.wga_seq_filename.split("/")[-1]
             wga_seq_name = get_sequence_name(configuration=configuration, seq=wga_name)
             wga_tdf_file = get_tdf_file(configuration=configuration, seq=wga_name)
@@ -269,6 +264,7 @@ def view_viterbi_path(request, task_id):
                        "wga_tdf_file": wga_tdf_file,
                        "no_wga_tdf_file": no_wga_tdf_file}
             return HttpResponse(template.render(context, request))
+        """
     except ObjectDoesNotExist:
 
         print("{0}  task: {1} didn't exist".format(INFO, task_id))
@@ -295,32 +291,46 @@ def view_viterbi_path(request, task_id):
         elif task.status == 'FAILURE':
 
             result = task.get(propagate=False)
-
-            map = dict()
-
-            map["task_id"] = task.id
-            map["result"] = JobResultEnum.FAILURE.name
-            map["error_explanation"] = str(result)
-            map["computation_type"] = JobType.VITERBI.name
-            map["viterbi_path_filename"] = INVALID_STR
-            map["region_filename"] = INVALID_STR
-            map["hmm_filename"] = INVALID_STR
-            map["chromosome"] = INVALID_STR
-            map["seq_size"] = 0
-            map["ref_seq_file"] = INVALID_STR
-            map["wga_seq_file"] = INVALID_STR
-            map["no_wag_seq_file"] = INVALID_STR
-            map["number_of_gaps"] = 0
-            map["hmm_path_img"] = None
-            map["extracted_sequences"] = 0
-            map["n_mixed_windows"] = 0
-            map["window_type"] = INVALID_STR
-
-            computation = models.ViterbiComputation.build_from_map(map, save=True)
+            data_map = models.ViterbiComputation.get_invalid_map(task=task, result=result)
+            computation = models.ViterbiComputation.build_from_map(data_map, save=True)
             context.update({'error_task_failed': True,
                             "error_message": str(result),
                             'task_id': task_id, "computation": computation})
 
             return HttpResponse(template.render(context, request))
+
+
+def _get_result_view_context(task, task_id):
+    if task.result == JobResultEnum.FAILURE.name:
+        context = {'error_task_failed': True,
+                   "error_message": task.error_explanation,
+                   'task_id': task_id, "computation": task}
+        return context
+    elif task.result == JobResultEnum.PENDING.name:
+
+        context = {'show_get_results_button': True,
+                   'task_id': task_id,
+                   'task_status': JobResultEnum.PENDING.name}
+
+        return context
+
+    else:
+
+        configuration = get_configuration()
+        wga_name = task.wga_seq_filename.split("/")[-1]
+        wga_seq_name = get_sequence_name(configuration=configuration, seq=wga_name)
+        wga_tdf_file = get_tdf_file(configuration=configuration, seq=wga_name)
+
+        no_wga_name = task.no_wag_seq_filename.split("/")[-1]
+        no_wga_seq_name = get_sequence_name(configuration=configuration, seq=no_wga_name)
+        no_wga_tdf_file = get_tdf_file(configuration=configuration, seq=no_wga_name)
+
+        context = {'task_status': task.result,
+                   "computation": task,
+                   "wga_seq_name": wga_seq_name,
+                   "no_wga_seq_name": no_wga_seq_name,
+                   "wga_tdf_file": wga_tdf_file,
+                   "no_wga_tdf_file": no_wga_tdf_file}
+        return context
 
 
