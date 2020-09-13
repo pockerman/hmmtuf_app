@@ -12,6 +12,7 @@ from compute_engine.utils import read_json, extract_file_names, get_sequence_nam
 from hmmtuf import VITERBI_PATH_FILENAME
 from hmmtuf import INVALID_TASK_ID, INVALID_ITEM
 from hmmtuf.helpers import get_configuration
+from hmmtuf.helpers import make_bed_path
 
 from hmmtuf.celery import celery_app
 from hmmtuf_home.models import HMMModel, RegionModel, RegionGroupTipModel
@@ -102,25 +103,6 @@ def view_multi_viterbi_path(request, task_id):
         context = _get_result_view_context(task=task, task_id=task_id)
         return HttpResponse(template.render(context, request))
 
-        """
-        if task.result == JobResultEnum.FAILURE.name:
-            context = {'error_task_failed': True,
-                       "error_message": task.error_explanation,
-                       'task_id': task_id,
-                       "computation": task}
-            return HttpResponse(template.render(context, request))
-        elif task.result == JobResultEnum.PENDING.name:
-
-            context = {'show_get_results_button': True,
-                       'task_id': task_id,
-                       'task_status': JobResultEnum.PENDING.name}
-            return HttpResponse(template.render(context, request))
-
-        else:
-
-            context = {'task_status': task.result, "computation": task}
-            return HttpResponse(template.render(context, request))
-        """
     except ObjectDoesNotExist:
 
         print("{0}  task: {1} didn't exist".format(INFO, task_id))
@@ -230,41 +212,6 @@ def view_viterbi_path(request, task_id):
         task = models.ViterbiComputation.objects.get(task_id=task_id)
         context = _get_result_view_context(task=task, task_id=task_id)
         return HttpResponse(template.render(context, request))
-
-        """
-        if task.result == JobResultEnum.FAILURE.name:
-            context = {'error_task_failed': True,
-                       "error_message": task.error_explanation,
-                       'task_id': task_id, "computation": task}
-
-            return HttpResponse(template.render(context, request))
-        elif task.result == JobResultEnum.PENDING.name:
-
-            context = {'show_get_results_button': True,
-                       'task_id': task_id,
-                       'task_status': JobResultEnum.PENDING.name}
-
-            return HttpResponse(template.render(context, request))
-
-        else:
-
-            configuration = get_configuration()
-            wga_name = task.wga_seq_filename.split("/")[-1]
-            wga_seq_name = get_sequence_name(configuration=configuration, seq=wga_name)
-            wga_tdf_file = get_tdf_file(configuration=configuration, seq=wga_name)
-
-            no_wga_name = task.no_wag_seq_filename.split("/")[-1]
-            no_wga_seq_name = get_sequence_name(configuration=configuration, seq=no_wga_name)
-            no_wga_tdf_file = get_tdf_file(configuration=configuration, seq=no_wga_name)
-
-            context = {'task_status': task.result,
-                       "computation": task,
-                       "wga_seq_name": wga_seq_name,
-                       "no_wga_seq_name": no_wga_seq_name,
-                       "wga_tdf_file": wga_tdf_file,
-                       "no_wga_tdf_file": no_wga_tdf_file}
-            return HttpResponse(template.render(context, request))
-        """
     except ObjectDoesNotExist:
 
         print("{0}  task: {1} didn't exist".format(INFO, task_id))
@@ -301,6 +248,7 @@ def view_viterbi_path(request, task_id):
 
 
 def _get_result_view_context(task, task_id):
+
     if task.result == JobResultEnum.FAILURE.name:
         context = {'error_task_failed': True,
                    "error_message": task.error_explanation,
@@ -330,7 +278,15 @@ def _get_result_view_context(task, task_id):
                    "wga_seq_name": wga_seq_name,
                    "no_wga_seq_name": no_wga_seq_name,
                    "wga_tdf_file": wga_tdf_file,
-                   "no_wga_tdf_file": no_wga_tdf_file}
+                   "no_wga_tdf_file": no_wga_tdf_file,
+                   "normal_bed_url": make_bed_path(task_id=task_id, bed_name='normal.bed'),
+                   "tuf_bed_url": make_bed_path(task_id=task_id, bed_name='tuf.bed'),
+                   "deletion_bed_url": make_bed_path(task_id=task_id, bed_name="deletion.bed"),
+                   "duplication_bed_url": make_bed_path(task_id=task_id, bed_name="duplication.bed"),
+                   "gap_bed_url": make_bed_path(task_id=task_id, bed_name="gap.bed"),
+                   "repeats_bed_url": make_bed_path(task_id=task_id, bed_name="rep.bed"),
+                   "quad_bed_url": make_bed_path(task_id=task_id, bed_name="quad.bed"),
+                   "tdt_bed_url": make_bed_path(task_id=task_id, bed_name="tdt.bed")}
         return context
 
 
