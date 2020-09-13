@@ -69,6 +69,7 @@ class RegionLoadForm(ErrorHandler):
         self._no_wga_seq_region = None
         self._start_idx = None
         self._end_idx = None
+        self._group_tip = None
 
     @property
     def chromosome(self):
@@ -93,6 +94,10 @@ class RegionLoadForm(ErrorHandler):
     @property
     def end_idx(self):
         return self._end_idx
+
+    @property
+    def group_tip(self):
+        return self._group_tip
 
     def check(self, request):
 
@@ -172,6 +177,21 @@ class RegionLoadForm(ErrorHandler):
         if self._start_idx >= self._end_idx:
             template = loader.get_template(self._template_html)
             context = {"error_found": "End index not strictly greater than start index"}
+            context.update(self._context)
+            self._response = HttpResponse(template.render(context, request))
+            return not OK
+
+        if self._start_idx < 0:
+            template = loader.get_template(self._template_html)
+            context = {"error_found": "Start index cannot be negative"}
+            context.update(self._context)
+            self._response = HttpResponse(template.render(context, request))
+            return not OK
+
+        self._group_tip = request.POST.get('region_group_tip', '')
+        if self._group_tip == '':
+            template = loader.get_template(self._template_html)
+            context = {"error_found": "Group tip is missing"}
             context.update(self._context)
             self._response = HttpResponse(template.render(context, request))
             return not OK
