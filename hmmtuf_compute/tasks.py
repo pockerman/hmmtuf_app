@@ -142,17 +142,31 @@ def compute_mutliple_viterbi_path_task(hmm_name, chromosome,
 
 
 @task(name="compute_viterbi_path_task")
-def compute_viterbi_path_task(hmm_name, chromosome,
-                              window_type,
-                              region_filename, hmm_filename,
+def compute_viterbi_path_task(hmm_name, chromosome, chromosome_index,
+                              window_type, region_filename, hmm_filename,
                               sequence_size, n_sequences,
-                              ref_seq_file, wga_seq_file, no_wag_seq_file):
+                              ref_seq_file, wga_seq_file, no_wga_seq_file):
+
+    task_id = compute_viterbi_path_task.request.id
+    return compute_viterbi_path(task_id=task_id, hmm_name=hmm_name,
+                                chromosome=chromosome,chromosome_index=chromosome_index,
+                                window_type=window_type, region_filename=region_filename,
+                                hmm_filename=hmm_filename, sequence_size=sequence_size,
+                                n_sequences=n_sequences, ref_seq_file=ref_seq_file,
+                                wga_seq_file=wga_seq_file,
+                                no_wga_seq_file=no_wga_seq_file)
+
+
+def compute_viterbi_path(task_id, hmm_name, chromosome,
+                         chromosome_index, window_type, region_filename,
+                         hmm_filename, sequence_size, n_sequences,
+                         ref_seq_file, wga_seq_file, no_wga_seq_file):
 
     logger.info("Computing Viterbi path")
     from .models import ViterbiComputation
 
-    task_id = compute_viterbi_path_task.request.id
     viterbi_path_filename = make_viterbi_path_filename(task_id=task_id)
+    task_path = make_viterbi_path(task_id=task_id)
 
     computation = ViterbiComputation()
     computation.task_id = task_id
@@ -165,7 +179,7 @@ def compute_viterbi_path_task(hmm_name, chromosome,
     computation.region_filename = region_filename
     computation.ref_seq_filename = ref_seq_file
     computation.wga_seq_filename = wga_seq_file
-    computation.no_wag_seq_filename = no_wag_seq_file
+    computation.no_wag_seq_filename = no_wga_seq_file
     computation.window_type = window_type
     computation.number_of_gaps = 0
     computation.seq_size = 0
@@ -182,7 +196,7 @@ def compute_viterbi_path_task(hmm_name, chromosome,
               "chromosome": chromosome,
               "ref_seq_filename": ref_seq_file,
               "wga_seq_filename": wga_seq_file,
-              "no_wag_seq_filename": no_wag_seq_file,
+              "no_wag_seq_filename": no_wga_seq_file,
               "viterbi_path_filename": viterbi_path_filename,
               "n_seqs": n_sequences,
               "seq_size": 0,
@@ -250,8 +264,11 @@ def compute_viterbi_path_task(hmm_name, chromosome,
         filename = make_tuf_del_tuf_path_filename(task_id=task_id)
         viterbi_helpers.save_segments(segments=segments, chromosome=chromosome, filename=filename)
 
+        #import pdb
+        #pdb.set_trace()
         # get the TUF-DEL-TUF
-        tufdel.main(path=viterbi_path, fas_file_name=ref_seq_file)
+        tufdel.main(path=task_path, fas_file_name=ref_seq_file,
+                    chr_idx=chromosome_index, viterbi_file=viterbi_path_filename)
 
         wga_obs = []
         no_wga_obs = []

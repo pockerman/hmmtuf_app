@@ -4,6 +4,9 @@ import os
 import shutil
 import random
 
+from . constants import INFO, WARNING, ENABLE_SPADE, SPADE_PATH
+from . constants import TREAT_ERRORS_AS_WARNINGS
+
 fas = None
 outbedgraph = None
 outtuf = None
@@ -15,6 +18,7 @@ outtdt = None
 outquad = None
 outrep = None
 quadout = None
+PATH = None
 
 
 # this function copied from gquadfinder
@@ -76,15 +80,18 @@ def BaseScore(line):
                 item = item+1
     return line, liste
 
+
 # this function copied from gquadfinder
 def CalScore(liste, k):
+
     Score_Liste=[]
-    for i in range (len (liste)-(k-1)):
-        j,Sum=0,0
-        while (j<k):
-            Sum=Sum+liste[i]
-            j=j+1
-            i=i+1
+    for i in range(len(liste)-(k-1)):
+        j, Sum = 0, 0
+
+        while j < k:
+            Sum = Sum + liste[i]
+            j = j + 1
+            i = i + 1
         Mean=Sum/float(k)
         Score_Liste.append(Mean) 
     return Score_Liste
@@ -97,6 +104,7 @@ def GetG4(line,liste, Window,k, Len ):
             seq=line[i:i+k]
             LG4.append(i)
     return LG4
+
 
 # this function copied from gquadfinder
 def WriteSeq(line,liste, LISTE, F, Len ):
@@ -173,21 +181,45 @@ def gcpercent(cseq):
 
 
 def spade(repseq, chrom, start, stop, type):
+
     global outrep
-    if not os.path.isdir('./TDTplots/repeats'):
+    global PATH
+
+    if outrep is None:
+        raise Exception("outrep file is None")
+
+
+    if PATH is None:
+        raise Exception("PATH variable not specified")
+
+    if not os.path.isdir(PATH + 'repeats'):
         try:
-            os.mkdir('./TDTplots/repeats')
+            os.mkdir(PATH + 'repeats')
         except OSError as e:
-            print ("Error: %s - %s." % (e.strerror))
-    fasta = open('./TDTplots/tdtseq.fasta','w')
-    folder = chrom+'_'+str(start)+'-'+str(stop)+'_'+type+'_'+gcpercent(repseq)
+
+            if TREAT_ERRORS_AS_WARNINGS:
+                print("%s Error: %s." % (WARNING, e.strerror))
+            else:
+                raise e
+
+    fasta = open(PATH + 'repeats/tdtseq.fasta', 'w') #open('./repeats/tdtseq.fasta', 'w')
+
+    folder = chrom + '_'+str(start) + '-' + str(stop) + '_' + type + '_' + gcpercent(repseq)
     # print(folder)
     fasta.write('>'+folder+'\n')
     # fasta.write('>tempspade\n')
     fasta.write(repseq+'\n')
     fasta.close()
-    os.system('activate testenv; python /Volumes/Samsung_T5/Sequencing/SPADE/SPADE.py -in /Volumes/Samsung_T5/Sequencing/TDTplots/tdtseq.fasta')
-    dirlist = [dI for dI in os.listdir('./'+folder+'/') if os.path.isdir(os.path.join('./'+folder+'/',dI))]
+    #os.system('activate testenv; python /Volumes/Samsung_T5/Sequencing/SPADE/SPADE.py -in /Volumes/Samsung_T5/Sequencing/TDTplots/tdtseq.fasta')
+    str_cmd = 'python3 {0} -in {1}'.format(SPADE_PATH + 'SPADE.py', PATH + 'repeats/tdtseq.fasta')
+    print("{0} str_cmd {1}".format(INFO, str_cmd))
+
+    store_dir = PATH + 'repeats/'
+    os.system(str_cmd)
+
+    """
+    dirlist = [dI for dI in os.listdir(store_dir + folder + '/') if os.path.isdir(os.path.join('./'+folder+'/', dI))]
+
     for repf in dirlist:
         # print('./'+folder+'/'+repf+'/weblogo.txt')
         if os.path.isfile('./'+folder+'/'+folder+'_SPADE.gb'):
@@ -208,10 +240,15 @@ def spade(repseq, chrom, start, stop, type):
         # print(folder)
         shutil.rmtree(folder)
     except OSError as e:
-        print("Error: %s - %s." % (e.filename, e.strerror))
+        if TREAT_ERRORS_AS_WARNINGS:
+            print("%s Error: %s - %s." % (WARNING, e.filename, e.strerror))
+        else:
+            raise e
+    """
 
 
 def createbed(line, ccheck):
+
     data = {}
     line = line.split(':')
     if len(line) == 5:
@@ -231,33 +268,52 @@ def createbed(line, ccheck):
         data['loc'] = data['loc'].replace(')', '')
         data['loc'] = data['loc'].split(',')             
     elif len(line) == 1:
-        print("start of file")
+        print("{0} start of file".format(INFO))
     else:
-        print("incorrect format of viterbi")
+        print("{0} incorrect format of viterbi".format(INFO))
     return data
 
 
 def doTDT(tdtarray, outfile):
+
     global outtdt
     global outquad
+    global fas
+
+    if outgap is None:
+        raise Exception("outquad file is None")
+
+    if outtdt is None:
+        raise Exception("outtdt file is None")
+
+    if fas is None:
+        raise Exception("fas file is None")
+
     for tdt in tdtarray:
         # check not a deletion beginning
         # do quad and repeat finding
         # print(tdt)
-        seq = fas.fetch(tdt['chr'],tdt['start'],tdt['end'])
-        spade(seq, tdt['chr'],tdt['start'],tdt['end'],tdt['type'])
-        x = []
-        y = []      
-        if tdt['type'] == 'Deletion' and len(seq) < 2000:
-            outtdt.write(tdt['chr']+'\t'+str(tdt['start'])+'\t'+str(tdt['end'])+'\n')
+        seq = fas.fetch(tdt['chr'], tdt['start'], tdt['end'])
+        if ENABLE_SPADE:
+            spade(seq, tdt['chr'], tdt['start'], tdt['end'], tdt['type'])
 
-        gquad,mscore = gquadcheck(seq)
+        if tdt['type'] == 'Deletion' and len(seq) < 2000:
+            outtdt.write(tdt['chr'] + '\t' +
+                         str(tdt['start']) + '\t' +
+                         str(tdt['end']) + '\n')
+
+        gquad, mscore = gquadcheck(seq)
+
         if gquad:
             outquad.write(tdt['chr']+'\t'+str(tdt['start'])+'\t'+str(tdt['end'])+'\n')
-        outfile.write(tdt['chr']+':'+str(tdt['start'])+'-'+str(tdt['end'])+'_'+tdt['type']+'_'+gcpercent(seq)+'\t'+str(gquad)+str(mscore)+'\n')
+        outfile.write(tdt['chr'] + ':' + str(tdt['start']) +
+                      '-' + str(tdt['end']) + '_' + tdt['type'] +
+                      '_' + gcpercent(seq) + '\t' + str(gquad) + str(mscore) + '\n')
 
 
-def main(path, fas_file_name):
+def main(path, fas_file_name, chr_idx, viterbi_file):
+
+    print("{0} Start TUF-DEL-TUF".format(INFO))
 
     global fas
     global outbedgraph
@@ -270,6 +326,12 @@ def main(path, fas_file_name):
     global outquad
     global outrep
     global quadout
+    global PATH
+
+    PATH = path
+
+    if ENABLE_SPADE:
+        os.mkdir(PATH + "repeats")
 
     fas = pysam.FastaFile(fas_file_name)
 
@@ -301,34 +363,44 @@ def main(path, fas_file_name):
     chr = ''
     ptemp = True
 
-    chrlist = [dI for dI in os.listdir('./HMMOut/') if os.path.isdir(os.path.join('./HMMOut/', dI))]
-    chrlistsorted = {}
+    #chrlist = filelist #[dI for dI in os.listdir('./HMMOut/') if os.path.isdir(os.path.join('./HMMOut/', dI))]
+    chrlistsorted = {chr_idx: viterbi_file}
 
-    for chrfolder in chrlist:
-        chrlistsorted[int(chrfolder.split('chr')[1])] = chrfolder
+    #for chrfolder in chrlist:
+    #    chrlistsorted[int(chrfolder.split('chr')[1])] = chrfolder
 
     for i in sorted(chrlistsorted):
 
-        flist = os.listdir('./HMMOut/'+chrlistsorted[i]+'/')
+        flist = [] #os.listdir('./HMMOut/'+chrlistsorted[i]+'/')
         tdtsorted = {}
-        viterbisorted = {}
+        viterbisorted = chrlistsorted#{}
+
+
         for f in flist:
             # if 'tuf_delete_tuf' in f and '._' not in f:
             #     tdtsorted[int(f.split('_')[6])] = f
             if 'viterbi' in f and '._' not in f:
                 viterbisorted[int(f.split('_')[5])] = f
+
         tdtcheck = ''
         tdtlist = []
 
         for j in sorted(viterbisorted):
-            with open('./HMMOut/'+chrlistsorted[i]+'/'+viterbisorted[j]) as vfile:
+            print("{0} working with file: {1}".format(INFO, viterbisorted[j]))
+            with open(viterbisorted[j]) as vfile: #open('./HMMOut/'+chrlistsorted[i]+'/'+viterbisorted[j]) as vfile:
+
                 ccheck = chrlistsorted[i].split('_')[2].rstrip()
+
                 for line in vfile:
                     vdata = createbed(line, ccheck)
+
                     if len(vdata) == 0:
                         continue
-                    outbedgraph.write(vdata['chr']+'\t'+str(int(float(vdata['loc'][0])))+'\t'+str(int(float(vdata['loc'][1])))+'\t'+str(conv[vdata['state']])+'\n')
+
+                    outbedgraph.write(vdata['chr']+'\t' + str(int(float(vdata['loc'][0]))) +
+                                      '\t'+str(int(float(vdata['loc'][1]))) + '\t'+str(conv[vdata['state']])+'\n')
                     curstate = vdata['state']
+
                     if curstate == 'TUFDUP':
                         curstate = 'TUF'
                     elif curstate == 'Normal-II':
@@ -341,48 +413,59 @@ def main(path, fas_file_name):
                     if curstate == prevstate and chr == vdata['chr'] and (int(float(vdata['loc'][0])) == end+1 or ptemp):
                         end = int(float(vdata['loc'][1]))
                     if curstate != prevstate or chr != vdata['chr'] or (int(float(vdata['loc'][0])) != end+1 and not ptemp):
-                        if (prevstate == 'TUF'):
-                            tdtcheck = tdtcheck+'T'
-                            tdtlist.append({"chr":chr,"start":start,"end":end,"type":'TUF'})
+                        if prevstate == 'TUF':
+                            tdtcheck = tdtcheck + 'T'
+                            tdtlist.append({"chr": chr, "start": start, "end": end, "type": 'TUF'})
                             print(chr+'\t'+str(start)+'\t'+str(end)+'TUF')
                             outtuf.write(chr+'\t'+str(start)+'\t'+str(end)+'\n')
-                        if (prevstate == 'Normal-I'):
+                        if prevstate == 'Normal-I':
                             if 'TDT' in tdtcheck:
-                                print("processing TDT")
-                                doTDT(tdtlist,quadout)
+                                print("{0} Processing TDT file".format(INFO))
+                                doTDT(tdtlist, quadout)
+                                print("{0} Done Processing TDT file".format(INFO))
+
                             tdtcheck = ''
                             tdtlist = []
-                            print(chr+'\t'+str(start)+'\t'+str(end)+'Normal')
+                            print("{0} {1}".format(INFO, chr+'\t'+str(start)+'\t'+str(end)+'Normal'))
                             outnor.write(chr+'\t'+str(start)+'\t'+str(end)+'\n')
-                            if (end-start)>1000:
+                            if (end-start) > 1000:
                                 p = random.randint(1,10)
-                                print("normal >1000, rand: ",p)
+                                print("{0} normal >1000, rand: {1}".format(INFO, p))
                                 if p == 7:
-                                    print("processing random 1000 from normal region")
-                                    n = random.randint(start,end-1000)
-                                    nseq = fas.fetch(chr,n,n+1000)
+                                    print("{0} processing random 1000 from normal region".format(INFO))
+                                    n = random.randint(start, end-1000)
+                                    nseq = fas.fetch(chr, n, n+1000)
                                     # print("calculating random normal G Quad")
-                                    gquad,mscore = gquadcheck(nseq)
-                                    quadout.write(chr+':'+str(n)+'-'+str(n+1000)+'_'+'Normal'+'_'+gcpercent(nseq)+'\t'+str(gquad)+str(mscore)+'\n')
-                                    spade(nseq,chr,n,n+1000,'Normal')
+                                    gquad, mscore = gquadcheck(nseq)
+                                    quadout.write(chr + ':' + str(n) + '-'+str(n+1000) + '_' +
+                                                  'Normal' + '_'+gcpercent(nseq) + '\t' +
+                                                  str(gquad)+str(mscore)+'\n')
+
+                                    if ENABLE_SPADE:
+                                        spade(nseq, chr, n, n+1000, 'Normal')
                             else:
-                                print("normal too short")
-                        if (prevstate == 'Deletion'):
-                            if len(tdtcheck)>0 and tdtcheck[0] == 'T':
+                                print("{0} normal too short".format(INFO))
+                        if prevstate == 'Deletion':
+                            if len(tdtcheck) > 0 and tdtcheck[0] == 'T':
                                 tdtcheck = tdtcheck+'D'
-                                tdtlist.append({"chr":chr,"start":start,"end":end,"type":'Deletion'})
-                            print(chr+'\t'+str(start)+'\t'+str(end)+'Deletion')
+                                tdtlist.append({"chr": chr, "start": start, "end": end, "type": 'Deletion'})
+
+                            print("{0} {1}".format(INFO, chr+'\t'+str(start)+'\t'+str(end)+'Deletion'))
                             outdel.write(chr+'\t'+str(start)+'\t'+str(end)+'\n')
-                        if (prevstate == 'Duplication'):
+                        if prevstate == 'Duplication':
                             if 'TDT' in tdtcheck:
-                                doTDT(tdtlist,quadout)
+                                print("{0} Processing TDT file".format(INFO))
+                                doTDT(tdtlist, quadout)
+                                print("{0} Done Processing TDT file".format(INFO))
                             tdtcheck = ''
                             tdtlist = []
                             print(chr+'\t'+str(start)+'\t'+str(end)+'Duplication')
                             outdup.write(chr+'\t'+str(start)+'\t'+str(end)+'\n')
-                        if (prevstate == 'GAP_STATE'):
+                        if prevstate == 'GAP_STATE':
                             if 'TDT' in tdtcheck:
-                                doTDT(tdtlist,quadout)
+                                print("{0} Processing TDT file".format(INFO))
+                                doTDT(tdtlist, quadout)
+                                print("{0} Done Processing TDT file".format(INFO))
                             tdtcheck = ''
                             tdtlist = []
                             print(chr+'\t'+str(start)+'\t'+str(end)+'GAP')
@@ -402,6 +485,7 @@ def main(path, fas_file_name):
     outtdt.close()
     outquad.close()
     outrep.close()
+    print("{0} END TUF-DEL-TUF".format(INFO))
 
             
 

@@ -92,14 +92,15 @@ class RegionGroupTipModel(models.Model):
 
 class RegionModel(FilesModel):
 
-    file_region = models.FileField(upload_to=upload_region_file)
-    chromosome = models.CharField(max_length=10)
-    ref_seq_file = models.CharField(max_length=1000)
-    wga_seq_file = models.CharField(max_length=1000)
-    no_wga_seq_file = models.CharField(max_length=1000)
-    start_idx = models.IntegerField()
-    end_idx = models.IntegerField()
-    group_tip = models.ForeignKey(RegionGroupTipModel, on_delete=models.CASCADE)
+    file_region = models.FileField(upload_to=upload_region_file, null=False)
+    chromosome = models.CharField(max_length=10, null=False)
+    chromosome_index = models.IntegerField(default=-1, null=False)
+    ref_seq_file = models.CharField(max_length=1000, null=False)
+    wga_seq_file = models.CharField(max_length=1000, null=False)
+    no_wga_seq_file = models.CharField(max_length=1000, null=False)
+    start_idx = models.IntegerField(null=False)
+    end_idx = models.IntegerField(null=False)
+    group_tip = models.ForeignKey(RegionGroupTipModel, on_delete=models.CASCADE, null=False)
 
     class Meta(FilesModel.Meta):
         db_table = 'region_model'
@@ -131,6 +132,7 @@ class RegionModel(FilesModel):
         inst.no_wga_seq_file = form.no_wga_seq_filename
         inst.start_idx = form.start_idx
         inst.end_idx = form.end_idx
+        inst.chromosome_index = form.chromosome_idx
 
         if save:
             inst.save()
