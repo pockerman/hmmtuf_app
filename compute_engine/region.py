@@ -1,10 +1,12 @@
 import array
 from .windows import WindowType, MixedWindowView, Window
-from .utils import WARNING, INFO
+
 from .exceptions import Error
 from .preprocess_utils import remove_outliers, compute_statistic
 from .analysis_helpers import save_windows_statistic
 from .bam_helpers import extract_windows
+from . constants import TREAT_ERRORS_AS_WARNINGS
+from . constants import WARNING, INFO
 
 
 class RegionIterator(object):
@@ -70,7 +72,15 @@ class Region(object):
                         try:
                             val = float(val)
                         except:
-                            pass
+
+                            if TREAT_ERRORS_AS_WARNINGS:
+
+                                print("{0} Could not float parse value {1} "
+                                      "for name {2} and WGA window id {3}".format(WARNING, val, name, wid))
+                                val = 0.0
+                            else:
+                                raise ValueError("Could not float parse value {0} "
+                                      "for name {3} and WGA window id {2}".format(val, name, wid))
 
                     samdata[name] = val
 
@@ -100,7 +110,14 @@ class Region(object):
                         try:
                             val = float(val)
                         except:
-                            pass
+                            if TREAT_ERRORS_AS_WARNINGS:
+
+                                print("{0} Could not float parse value {1} "
+                                      "for name {2} and NO-WGA window id {3}".format(WARNING, val, name, wid))
+                                val = 0.0
+                            else:
+                                raise ValueError("Could not float parse value {0} "
+                                      "for name {1} and NO-WGA window id {2}".format(val, name, wid))
 
                     samdata[name] = val
 
@@ -154,9 +171,11 @@ class Region(object):
 
         return len(self._mixed_windows)
 
-    def save(self, tips):
+    def save(self, path, filename, tips):
 
-        filename = "region_" + str(self.ridx)
+        #filename = "region_" + str(self.ridx)
+
+        #filename_ = path + filename
 
         if tips is not None:
             for tip in tips:
@@ -164,7 +183,7 @@ class Region(object):
 
         filename += ".txt"
 
-        with open(filename, 'w') as f:
+        with open(path + filename, 'w') as f:
             f.write("ID:" + str(self.ridx) + "\n")
             f.write("Start:" + str(self.start) + "\n")
             f.write("End:" + str(self.end) + "\n")
@@ -223,15 +242,24 @@ class Region(object):
 
         args["sam_read_config"] = kwargs["sam_read_config"]
 
-        windows = extract_windows(chromosome=chromosome,
-                                  ref_filename=ref_filename,
-                                  bam_filename=bam_filename,
-                                  **args)
+        #windows = extract_windows(chromosome=chromosome,
+        #                          ref_filename=ref_filename,
+        #                          bam_filename=bam_filename,
+        #                          **args)
+        windows = []
 
-        print("{0} Region Start Window "
-              "Coords: Start/End idx {1}".format(INFO, windows[0].start_end_pos))
-        print("{0} Region End Window "
-              "Coords: Start/End idx {1}".format(INFO, windows[-1].start_end_pos))
+        if len(windows) != 0:
+            print("{0} Region Start Window "
+                  "Coords: Start/End idx {1}".format(INFO, windows[0].start_end_pos))
+            print("{0} Region End Window "
+                  "Coords: Start/End idx {1}".format(INFO, windows[-1].start_end_pos))
+        else:
+
+            if TREAT_ERRORS_AS_WARNINGS:
+                print("{0} WGA Windows were not  created ".format(INFO))
+            else:
+                raise Error("Empty WGA windows list")
+
         self._windows[WindowType.WGA] = windows
 
     def make_no_wga_windows(self, chromosome,
@@ -247,15 +275,25 @@ class Region(object):
 
         args["sam_read_config"] = kwargs["sam_read_config"]
 
-        windows = extract_windows(chromosome=chromosome,
-                                  ref_filename=ref_filename,
-                                  bam_filename=bam_filename,
-                                  **args)
+        #windows = extract_windows(chromosome=chromosome,
+        #                          ref_filename=ref_filename,
+        #                          bam_filename=bam_filename,
+        #                          **args)
 
-        print("{0} Region Start Window "
-              "Coords: Start/End idx {1}".format(INFO, windows[0].start_end_pos))
-        print("{0} Region End Window "
-              "Coords: Start/End idx {1}".format(INFO, windows[-1].start_end_pos))
+        windows = []
+
+        if len(windows) != 0:
+            print("{0} Region Start Window "
+                  "Coords: Start/End idx {1}".format(INFO, windows[0].start_end_pos))
+            print("{0} Region End Window "
+                  "Coords: Start/End idx {1}".format(INFO, windows[-1].start_end_pos))
+        else:
+
+            if TREAT_ERRORS_AS_WARNINGS:
+                print("{0} NO_WGA Windows were not  created ".format(INFO))
+            else:
+                raise Error("Empty NO WGA windows list")
+
         self._windows[WindowType.NO_WGA] = windows
 
     def check_windows_sanity(self):

@@ -12,13 +12,14 @@ https://docs.djangoproject.com/en/3.1/ref/settings/
 
 import os
 from pathlib import Path
-#from . celery_settings import BROKER_URL
-#from . celery_settings import CELERY_ACCEPT_CONTENT
-#from . celery_settings import CELERY_TASK_SERIALIZER
-#from . celery_settings import CELERY_TIMEZONE
+from .config import BASE_DIR
+from .config import DEBUG
+from .config import USE_CELERY
+from .config import DATABASES
 
+#process_manager = None
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve(strict=True).parent.parent
+#BASE_DIR = Path(__file__).resolve(strict=True).parent.parent
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.1/howto/deployment/checklist/
@@ -26,10 +27,6 @@ BASE_DIR = Path(__file__).resolve(strict=True).parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'y=ujo$_)gjwj$*k!v@2ihj@u)s0od%37)m6m)01)k6pc0siqsg'
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-
-ALLOWED_HOSTS = []
 
 
 # Application definition
@@ -63,7 +60,7 @@ ROOT_URLCONF = 'hmmtuf.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': ['%s/templates/' %(BASE_DIR)],
+        'DIRS': ['%s/templates/' % BASE_DIR],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -76,21 +73,7 @@ TEMPLATES = [
     },
 ]
 
-
-
 WSGI_APPLICATION = 'hmmtuf.wsgi.application'
-
-
-# Database
-# https://docs.djangoproject.com/en/3.1/ref/settings/#databases
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
-
 
 # Password validation
 # https://docs.djangoproject.com/en/3.1/ref/settings/#auth-password-validators

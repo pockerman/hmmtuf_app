@@ -7,7 +7,8 @@ class ExtractRegionForm(object):
 
         request = form.request
 
-        form.region_name = request.POST.get("region_name", "")
+
+        form.region_name = "R2" #request.POST.get("region_name", "R2")
         if form.region_name == "":
             return "Region name is not specified"
 
@@ -23,13 +24,13 @@ class ExtractRegionForm(object):
         if form.nwga_ref_seq_file == "":
             return "No-WGA filename is not specified"
 
-        form.region_start = request.POST.get("region_start", "")
+        form.region_start = 1# request.POST.get("region_start", "1")
         if form.region_start == "":
             return "Region start is not specified"
 
         form.region_start = int(form.region_start)
 
-        form.region_end = request.POST.get("region_end", "")
+        form.region_end = 100#request.POST.get("region_end", "100")
         if form.region_end == "":
             return "Region end is not specified"
 
@@ -38,17 +39,17 @@ class ExtractRegionForm(object):
         if form.region_end <= form.region_start:
             return "Region end cannot be less than or equal to region start"
 
-        form.window_size = request.POST.get("window_size", "")
+        form.window_size = request.POST.get("window_size", "100")
         if form.window_size == "":
             form.window_size = 100
         else:
             form.window_size = int(form.window_size)
 
-        form.chromosome = request.POST.get("chromosome", "")
+        form.chromosome = "chr1" #request.POST.get("chromosome", "chr1")
         if form.chromosome == "":
             return "Chromosome is not specified"
 
-        form.outlier_remove = request.POST.get("outlier_remove", "")
+        form.outlier_remove = "mean_cutoff" #request.POST.get("outlier_remove", "mean_cutoff")
         if form.outlier_remove == "":
             return "Chromosome is not specified"
 
@@ -68,6 +69,20 @@ class ExtractRegionForm(object):
             form.quality_threshold = 20
         else:
             form.quality_threshold = int(form.quality_threshold)
+
+        form.remove_gap_windows = request.POST.get("remove_gaps", "")
+        if form.remove_gap_windows == "false":
+            form.remove_gap_windows = False
+        else:
+            form.remove_gap_windows = True
+
+        form.mark_for_gap_windows = request.POST.get("gap_indicator", "")
+        if form.mark_for_gap_windows == "":
+            form.mark_for_gap_windows = -999.0
+        else:
+            form.mark_for_gap_windows = float(form.mark_for_gap_windows)
+
+
 
         return True
 
@@ -89,6 +104,8 @@ class ExtractRegionForm(object):
         self.region_name = ""
         self.processing = "serial"
         self.check_windowing_sanity = True
+        self.remove_gap_windows = ""
+        self.mark_for_gap_windows = -999.0
 
     def as_dict(self):
         return {"quality_threshold": self.quality_threshold,

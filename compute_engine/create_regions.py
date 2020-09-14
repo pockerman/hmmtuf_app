@@ -6,11 +6,10 @@ import sys
 #from helpers import read_configuration_file
 #from helpers import set_up_logger
 from .windows import WindowType
-from .utils import INFO, WARNING
+from .constants import INFO, WARNING
 from .utils import timefn
 from .region import Region
 from .exceptions import Error
-
 
 @timefn
 def make_window_regions(configuration):
@@ -62,13 +61,13 @@ def make_window_regions(configuration):
                                 bam_filename=configuration["wga_file"]["filename"],
                                 **kwargs)
 
-        if region.get_n_windows(type_=WindowType.WGA) == 0:
-            raise Error("WGA windows have not been created")
-        else:
-            print("{0} Number of WGA "
+        #if region.get_n_windows(type_=WindowType.WGA) == 0:
+        #    raise Error("WGA windows have not been created")
+        #else:
+        print("{0} Number of WGA "
                   "windows: {1}".format(INFO,
                                         region.get_n_windows(type_=WindowType.WGA)))
-            sys.stdout.flush()
+        sys.stdout.flush()
 
         print("{0} Creating No WGA Windows...".format(INFO))
         sys.stdout.flush()
@@ -77,13 +76,13 @@ def make_window_regions(configuration):
                                    bam_filename=configuration["no_wga_file"]["filename"],
                                    **kwargs)
 
-        if region.get_n_windows(type_=WindowType.NO_WGA) == 0:
-            raise Error("Non-WGA windows have not  been created")
-        else:
-            print("{0} Number of Non WGA"
+        #if region.get_n_windows(type_=WindowType.NO_WGA) == 0:
+        #    raise Error("Non-WGA windows have not  been created")
+        #else:
+        print("{0} Number of Non WGA"
                   " windows: {1}".format(INFO,
                                          region.get_n_windows(type_=WindowType.NO_WGA)))
-            sys.stdout.flush()
+        sys.stdout.flush()
 
         regions_created.append(region)
         counter += 1
@@ -188,9 +187,9 @@ def save_regions(regions, configuration):
     sys.stdout.flush()
 
     for region in regions:
-        region.save_mixed_windows_statistic(statistic="mean", tips=configuration["plot_tips"])
-        region.save_mixed_windows_gc_content(tips=configuration["plot_tips"])
-        region.save(tips=configuration["plot_tips"])
+        #region.save_mixed_windows_statistic(statistic="mean", tips=configuration["plot_tips"])
+        #region.save_mixed_windows_gc_content(tips=configuration["plot_tips"])
+        region.save(path=configuration["region_path"], filename=configuration["region_name"], tips=None)# tips=configuration["plot_tips"])
 
 
 @timefn

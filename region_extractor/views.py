@@ -5,13 +5,19 @@ from django.template import loader
 from django.shortcuts import redirect
 from django.core.exceptions import ObjectDoesNotExist
 
-from hmmtuf.settings import BASE_DIR
 from compute_engine.utils import read_json
+from compute_engine.create_regions import main as extract_region
+from compute_engine.utils import extract_file_names
+
+from hmmtuf.settings import BASE_DIR
+from hmmtuf.settings import USE_CELERY
+from hmmtuf.settings import REGIONS_FILES_ROOT
 from hmmtuf_home.models import RegionModel
 
-from .utils import extract_file_names
 from .forms import ExtractRegionForm
 from .tasks import extract_region_task
+from .models import ExtractRegionComputation
+
 
 # Create your views here.
 
@@ -47,39 +53,40 @@ def extract_region_view(request):
             context.update({"has_errors": True, "errors": result})
             return HttpResponse(template.render(context, request))
 
+
         try:
             model = RegionModel.objects.get(name=form.region_name)
             context.update({"has_errors": True, "errors": "Region with name: {0} already exists".format(form.region_name)})
             return HttpResponse(template.render(context, request))
         except ObjectDoesNotExist:
 
-            task = extract_region_task.delay(region_name=form.region_name,
-                                             chromosome=form.chromosome,
-                                             region_start=form.region_start,
-                                             region_end=form.region_end,
-                                             processing=form.processing)
+            #if USE_CELERY:
 
-            # return the id for the computation
-            return redirect('extract_region_success_view', task_id=task.id)
+                configuration = {'processing': {"type": "serial"}}
 
-        """
-        
-        else:
-            print("Ref file: ", form.ref_file)
-            print("WGA file: ", form.wga_ref_seq_file)
-            print("No-WGA file: ", form.nwga_ref_seq_file)
+                configuration["window_size"] = form.window_size
+                configuration["chromosome"] = form.chromosome
+                configuration["remove_windows_with_gaps"] = form.remove_gap_windows
+                configuration["mark_for_gap_windows"] = form.mark_for_gap_windows
+                configuration["regions"] = {"start": [form.region_start],
+                                            "end": [form.region_end]}
 
-            print("Quality threshold:", form.quality_threshold)
-            print("Indels: ", form.add_indels)
-            print("Truncate: ", form.truncate)
-            print("Ignore orphans:", form.ignore_orphans)
-            print("Max depth: ",form.max_depth)
-            print("Outlier remove:", form.outlier_remove)
-            print("Chromosome: ", form.chromosome)
-            print("Window size: ", form.window_size)
-            print("Region end: ", form.region_end)
-            print("Region start:", form.region_start)
-        """
+                configuration["reference_file"] = {"filename": form.ref_file}
+                configuration["no_wga_file"] = {"filename": form.nwga_ref_seq_file}
+                configuration["wga_file"] = {"filename": form.wga_ref_seq_file}
+                configuration["region_name"] = form.region_name
+                configuration["region_path"] = REGIONS_FILES_ROOT
+
+                configuration["sam_read_config"] = {"max_depth": form.max_depth,
+                                                    "ignore_orphans": form.ignore_orphans,
+                                                    "truncate": form.truncate,
+                                                    "quality_threshold": form.quality_threshold,
+                                                    "add_indels": form.add_indels}
+
+                task_id = ExtractRegionComputation.compute(data=configuration)
+
+                # return the id for the computation
+                return redirect('extract_region_success_view', task_id=task_id)
 
     return HttpResponse(template.render(context, request))
 

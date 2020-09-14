@@ -7,7 +7,7 @@ import numpy as np
 import re
 
 from .windows import Window
-from .utils import INFO
+from .constants import INFO
 
 
 def extract_windows(chromosome, ref_filename, bam_filename, **args):

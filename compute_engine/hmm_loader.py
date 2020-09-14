@@ -2,7 +2,7 @@ import numpy as np
 from pomegranate import *
 import matplotlib.pyplot as plt
 
-from .utils import INFO
+from .constants import INFO
 
 def build_hmm(hmm_file):
 

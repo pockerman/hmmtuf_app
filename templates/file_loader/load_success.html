@@ -6,12 +6,12 @@
 <div class ="row">
 <div class="col-lg-8 mb-4">
 {% if load_region %}
-<p>Successfully loaded region file: {{ name }} </p><br/>
+<p>Successfully loaded region: {{ name }} </p><br/>
 <p>Load another region <a href="/load_file/load_region">Load Region</a></p>
 {% endif %}
 
 {% if load_hmm %}
-<p>Successfully loaded HMM file: {{ name }} </p><br/>
+<p>Successfully loaded HMM model: {{ name }} </p><br/>
 <p>Load another HMM <a href="/load_file/load_hmm">Load HMM</a></p>
 {% endif %}
 </div>
