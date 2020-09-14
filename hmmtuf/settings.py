@@ -43,8 +43,9 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'hmmtuf_home',
     'file_loader',
-    'hmmtuf_compute',
-    'region_extractor',
+    #'hmmtuf_compute',
+    #'region_extractor',
+    'hmm_creator'
 ]
 
 MIDDLEWARE = [

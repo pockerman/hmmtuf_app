@@ -24,8 +24,9 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('hmmtuf_home.urls')),
     path('load_file/', include('file_loader.urls')),
-    path('compute/', include('hmmtuf_compute.urls')),
-    path('region_extractor/', include('region_extractor.urls')),
+    #path('compute/', include('hmmtuf_compute.urls')),
+    #path('region_extractor/', include('region_extractor.urls')),
+    path('hmm_creator/', include('hmm_creator.urls')),
 ]
 
 if settings.DEBUG:
