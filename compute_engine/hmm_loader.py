@@ -1,4 +1,3 @@
-import numpy as np
 from pomegranate import *
 import matplotlib.pyplot as plt
 

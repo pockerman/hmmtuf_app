@@ -3,10 +3,9 @@ from django.shortcuts import redirect
 from django.http import HttpResponse
 from django.template import loader
 from django.core.exceptions import ObjectDoesNotExist
-
 from django.core.files.storage import FileSystemStorage
-from hmmtuf.settings import REGIONS_FILES_ROOT
-from hmmtuf.settings import HMM_FILES_ROOT
+
+from compute_engine.constants import OK
 
 from .forms import HMMFormCreator
 
@@ -19,6 +18,8 @@ def create_hmm_view(request):
                               context=context)
 
         result = form.check(request=request)
+        if result is not OK:
+            return form.response
 
         print("Iam posting....")
 
