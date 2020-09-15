@@ -211,7 +211,9 @@ def spade(repseq, chrom, start, stop, type):
     fasta.write(repseq+'\n')
     fasta.close()
     #os.system('activate testenv; python /Volumes/Samsung_T5/Sequencing/SPADE/SPADE.py -in /Volumes/Samsung_T5/Sequencing/TDTplots/tdtseq.fasta')
-    str_cmd = 'python3 {0} -in {1}'.format(SPADE_PATH + 'SPADE.py', PATH + 'repeats/tdtseq.fasta')
+    str_cmd = 'python3 {0} -in {1} -out_dir {2}'.format(SPADE_PATH + 'SPADE.py',
+                                                        PATH + 'repeats/tdtseq.fasta',
+                                                        PATH + 'spade_output/')
     print("{0} str_cmd {1}".format(INFO, str_cmd))
 
     store_dir = PATH + 'repeats/'
@@ -332,6 +334,7 @@ def main(path, fas_file_name, chr_idx, viterbi_file):
 
     if ENABLE_SPADE:
         os.mkdir(PATH + "repeats")
+        os.mkdir(PATH + "spade_output")
 
     fas = pysam.FastaFile(fas_file_name)
 

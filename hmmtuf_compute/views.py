@@ -22,12 +22,6 @@ from . import models
 from . import forms
 
 
-def learn_d3(request):
-    template = loader.get_template('hmmtuf_compute/learn_d3.html')
-    context={}
-    return HttpResponse(template.render(context, request))
-
-
 def success_schedule_multi_viterbi_computation_view(request, task_id):
     template = loader.get_template('hmmtuf_compute/success_schedule_multi_viterbi_computation_view.html')
 

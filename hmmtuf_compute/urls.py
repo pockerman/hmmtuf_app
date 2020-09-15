@@ -12,5 +12,5 @@ urlpatterns = [
          views.success_schedule_multi_viterbi_computation_view, name='success_schedule_multi_viterbi_computation_view'),
     path('success_schedule_viterbi_computation/<str:task_id>/',
          views.success_schedule_viterbi_computation_view, name='success_schedule_viterbi_computation_view'),
-    path('learn_d3/', views.learn_d3, name='learn_d3'),
+
 ]

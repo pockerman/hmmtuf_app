@@ -8,4 +8,4 @@ OK = True
 DUMMY_ID = -1
 INVALID_STR = 'INVALID'
 ENABLE_SPADE = True
-SPADE_PATH = "/home/alex/qi3/hidden_markov_modeling/bedcode/SPADE/"
+SPADE_PATH = "/home/alex/qi3/hmmtuf/compute_engine/SPADE/" #"/home/alex/qi3/hidden_markov_modeling/bedcode/SPADE/"
