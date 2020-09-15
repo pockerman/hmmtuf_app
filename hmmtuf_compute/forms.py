@@ -37,7 +37,8 @@ class MultipleViterbiComputeForm(object):
                 "wga_seq_filename": self._wga_seq_filename,
                 "no_wga_seq_filename": self._no_wga_seq_filename,
                 "path": self._path,
-                "group_tip": self._group_tip}
+                "group_tip": self._group_tip,
+                }
 
     def check(self, request):
 
@@ -81,7 +82,6 @@ class MultipleViterbiComputeForm(object):
         self._wga_seq_filename = region.wga_seq_file
         self._no_wga_seq_filename = region.no_wga_seq_file
         self._ref_sequence_file = region.ref_seq_file
-
         return OK
 
 
@@ -99,7 +99,8 @@ class ViterbiComputeForm(object):
                           'n_sequences': INVALID_ITEM,
                           'ref_seq_file': INVALID_ITEM,
                           'wga_seq_file': INVALID_ITEM,
-                          'no_wag_seq_file': INVALID_ITEM}
+                          'no_wag_seq_file': INVALID_ITEM,
+                          'chromosome_index': INVALID_ITEM}
 
     def as_map(self):
         return self._kwargs
@@ -126,8 +127,6 @@ class ViterbiComputeForm(object):
         #sequence_size = request.POST.get('sequence_size', '')
         n_sequences = 1 #request.POST.get('n_sequences', '')
 
-
-
         self._kwargs = {'hmm_name': hmm_name,
                       'region_name': region_name,
                       'chromosome': chromosome,
@@ -141,5 +140,6 @@ class ViterbiComputeForm(object):
                       'path_img': VITERBI_PATHS_FILES_ROOT,
                       'ref_seq_file': ref_seq_file,
                       'wga_seq_file': wga_seq_file,
-                      'no_wag_seq_file': no_wag_seq_file}
+                      'no_wag_seq_file': no_wag_seq_file,
+                      "chromosome_index": region.chromosome_index}
 
