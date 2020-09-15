@@ -7,7 +7,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.core.files.storage import FileSystemStorage
 
 from compute_engine.constants import OK
-from compute_engine.hmm_creator import create_hmm_model_from_form
+from compute_engine.hmm_builder import create_hmm_model_from_form
 
 from hmmtuf.helpers import make_hmm_file_path
 from hmmtuf_home.models import HMMModel
@@ -32,6 +32,8 @@ def create_hmm_view(request):
         if result is not OK:
             return form.response
 
+        #import pdb
+        #pdb.set_trace()
         hmm_model = create_hmm_model_from_form(form=form)
         json_str = hmm_model.to_json()
         filename = make_hmm_file_path(hmm_name=form.hmm_name + ".json")
@@ -41,8 +43,8 @@ def create_hmm_view(request):
             hmm_model_obj = HMMModel()
             hmm_model_obj.name = form.hmm_name
             hmm_model_obj.file_hmm = filename
-            hmm_model.extension = 'json'
-            hmm_model.save()
+            hmm_model_obj.extension = 'json'
+            hmm_model_obj.save()
 
             return redirect('success_create_hmm_view', hmm_name=form.hmm_name)
 
