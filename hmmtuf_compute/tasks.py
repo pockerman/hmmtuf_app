@@ -8,14 +8,14 @@ from celery.utils.log import get_task_logger
 from compute_engine import INFO, DEFAULT_ERROR_EXPLANATION
 from compute_engine.job import JobType, JobResultEnum
 from compute_engine import hmm_loader
-from compute_engine import viterbi_calculation_helpers
+from compute_engine import viterbi_calculation_helpers as viterbi_helpers
 from compute_engine.windows import WindowType
 from compute_engine.region import Region
+from compute_engine import tufdel
 
 from hmmtuf import INVALID_ITEM
-from hmmtuf.settings import HMM_FILES_ROOT, VITERBI_PATHS_FILES_ROOT
-from hmmtuf.settings import DEV_STATIC_FILES
-from hmmtuf.helpers import make_viterbi_path
+from hmmtuf.settings import VITERBI_PATHS_FILES_ROOT
+from hmmtuf.helpers import make_viterbi_path_filename, make_viterbi_path, make_tuf_del_tuf_path_filename
 from hmmtuf_home.models import RegionModel, HMMModel
 
 logger = get_task_logger(__name__)
@@ -31,7 +31,9 @@ def compute_mutliple_viterbi_path_task(hmm_name, chromosome,
     from .models import MultiViterbiComputation
 
     task_id = compute_mutliple_viterbi_path_task.request.id
-    viterbi_path_filename = VITERBI_PATHS_FILES_ROOT + task_id.replace('-', '_') + "/" + viterbi_path_filename
+    #viterbi_task_path = VITERBI_PATHS_FILES_ROOT + task_id.replace('-', '_') + "/"
+    #viterbi_path_filename =  viterbi_task_path + viterbi_path_filename
+    viterbi_path_filename = make_viterbi_path_filename(task_id=task_id)
 
     # load the regions
     regions = RegionModel.objects.filter(group_tip__tip=group_tip,
@@ -122,10 +124,11 @@ def compute_mutliple_viterbi_path_task(hmm_name, chromosome,
                                                                            exclude_gaps=False)
 
             viterbi_path, observations, \
-            sequence_viterbi_state = viterbi_calculation_helpers.create_viterbi_path(sequence=sequence, hmm_model=hmm_model,
-                                                                                     chr=chromosome,
-                                                                                     filename=viterbi_path_filename,
-                                                                                     append_or_write='a')
+            sequence_viterbi_state = viterbi_helpers.create_viterbi_path(sequence=sequence, hmm_model=hmm_model,
+                                                                         chr=chromosome, filename=viterbi_path_filename,
+                                                                         append_or_write='a')
+
+
         except Exception as e:
 
             computation.result = JobResultEnum.FAILURE.name
@@ -139,20 +142,31 @@ def compute_mutliple_viterbi_path_task(hmm_name, chromosome,
 
 
 @task(name="compute_viterbi_path_task")
-def compute_viterbi_path_task(hmm_name, chromosome,
-                              window_type,
-                              region_filename, hmm_filename,
+def compute_viterbi_path_task(hmm_name, chromosome, chromosome_index,
+                              window_type, region_filename, hmm_filename,
                               sequence_size, n_sequences,
-                              ref_seq_file, wga_seq_file, no_wag_seq_file):
+                              ref_seq_file, wga_seq_file, no_wga_seq_file):
+
+    task_id = compute_viterbi_path_task.request.id
+    return compute_viterbi_path(task_id=task_id, hmm_name=hmm_name,
+                                chromosome=chromosome,chromosome_index=chromosome_index,
+                                window_type=window_type, region_filename=region_filename,
+                                hmm_filename=hmm_filename, sequence_size=sequence_size,
+                                n_sequences=n_sequences, ref_seq_file=ref_seq_file,
+                                wga_seq_file=wga_seq_file,
+                                no_wga_seq_file=no_wga_seq_file)
+
+
+def compute_viterbi_path(task_id, hmm_name, chromosome,
+                         chromosome_index, window_type, region_filename,
+                         hmm_filename, sequence_size, n_sequences,
+                         ref_seq_file, wga_seq_file, no_wga_seq_file):
 
     logger.info("Computing Viterbi path")
     from .models import ViterbiComputation
 
-    task_id = compute_viterbi_path_task.request.id
-    viterbi_path_filename = make_viterbi_path(task_id=task_id)
-    #VITERBI_PATHS_FILES_ROOT + task_id.replace('-', '_') + "/" + viterbi_path_filename
-
-    print("{0} WGA Seq file: {1}".format(INFO, wga_seq_file))
+    viterbi_path_filename = make_viterbi_path_filename(task_id=task_id)
+    task_path = make_viterbi_path(task_id=task_id)
 
     computation = ViterbiComputation()
     computation.task_id = task_id
@@ -165,7 +179,7 @@ def compute_viterbi_path_task(hmm_name, chromosome,
     computation.region_filename = region_filename
     computation.ref_seq_filename = ref_seq_file
     computation.wga_seq_filename = wga_seq_file
-    computation.no_wag_seq_filename = no_wag_seq_file
+    computation.no_wag_seq_filename = no_wga_seq_file
     computation.window_type = window_type
     computation.number_of_gaps = 0
     computation.seq_size = 0
@@ -182,7 +196,7 @@ def compute_viterbi_path_task(hmm_name, chromosome,
               "chromosome": chromosome,
               "ref_seq_filename": ref_seq_file,
               "wga_seq_filename": wga_seq_file,
-              "no_wag_seq_filename": no_wag_seq_file,
+              "no_wag_seq_filename": no_wga_seq_file,
               "viterbi_path_filename": viterbi_path_filename,
               "n_seqs": n_sequences,
               "seq_size": 0,
@@ -221,15 +235,10 @@ def compute_viterbi_path_task(hmm_name, chromosome,
     print("{0} Saved HMM path image {1}".format(INFO, computation.hmm_path_img))
 
     region = Region.load(filename=region_filename)
-    windows = region.get_mixed_windows()
-    print("{0} Region windows: {1}".format(INFO, windows))
+    region.get_mixed_windows()
 
     result["n_mixed_windows"] = region.get_n_mixed_windows()
     window_type = WindowType.from_string(window_type)
-
-    #print("{0} Window type: {1}".format(INFO, window_type))
-    #print("{0} Sequence size: {1}".format(INFO, seq_size))
-    #print("{0} Number of sequences: {1}".format(INFO, n_seqs))
 
     try:
         sequence = region.get_region_as_rd_mean_sequences_with_windows(size=None,
@@ -242,55 +251,56 @@ def compute_viterbi_path_task(hmm_name, chromosome,
         computation.seq_size = len(sequence)
 
         viterbi_path, observations, \
-        sequence_viterbi_state = viterbi_calculation_helpers.create_viterbi_path(sequence=sequence,
-                                                                                 hmm_model=hmm_model,
-                                                                                 chr=chromosome,
-                                                                                 filename=viterbi_path_filename,
-                                                                                 append_or_write='w+')
+        sequence_viterbi_state = viterbi_helpers.create_viterbi_path(sequence=sequence, hmm_model=hmm_model,
+                                                                     chr=chromosome, filename=viterbi_path_filename,
+                                                                     append_or_write='w+')
+
+        tuf_delete_tuf = viterbi_helpers.filter_viterbi_path(path=viterbi_path[1][1:],
+                                                             wstate='TUF',
+                                                             limit_state='Deletion', min_subsequence=1)
+
+        segments = viterbi_helpers.get_start_end_segment(tuf_delete_tuf, sequence)
+
+        filename = make_tuf_del_tuf_path_filename(task_id=task_id)
+        viterbi_helpers.save_segments(segments=segments, chromosome=chromosome, filename=filename)
+
+        #import pdb
+        #pdb.set_trace()
+        # get the TUF-DEL-TUF
+        tufdel.main(path=task_path, fas_file_name=ref_seq_file,
+                    chr_idx=chromosome_index, viterbi_file=viterbi_path_filename)
+
+        wga_obs = []
+        no_wga_obs = []
+        no_gaps_obs = []
+
+        number_of_gaps = 0
+        for obs in observations:
+
+            # do not account for gaps
+            if obs != (-999.0, -999.0):
+                wga_obs.append(obs[0])
+                no_wga_obs.append(obs[1])
+                no_gaps_obs.append((obs[1], obs[0]))
+            else:
+                number_of_gaps += 1
+
+        result["result"] = JobResultEnum.SUCCESS.name
+        result["number_of_gaps"] = number_of_gaps
+        computation.result = JobResultEnum.SUCCESS.name
+        computation.number_of_gaps = number_of_gaps
+        computation.save()
+        return result
     except Exception as e:
+        result["result"] = JobResultEnum.FAILURE.name
+        result["number_of_gaps"] = 0
+        result["error_explanation"] = str(e)
         computation.result = JobResultEnum.FAILURE.name
         computation.error_explanation = str(e)
         computation.save()
         return result
 
-    wga_obs = []
-    no_wga_obs = []
-    no_gaps_obs = []
 
-    number_of_gaps = 0
-    for obs in observations:
 
-        # do not account for gaps
-        if obs != (-999.0, -999.0):
-            wga_obs.append(obs[0])
-            no_wga_obs.append(obs[1])
-            no_gaps_obs.append((obs[1], obs[0]))
-        else:
-            number_of_gaps += 1
 
-    """
-    hmm_states_to_labels = {"Duplication": 0,
-                            "Normal-I": 1,
-                            "Normal-II": 2,
-                            "Deletion": 3,
-                            "Single-Deletion": 4,
-                            "TUF": 5, "TUFDUP": 6}
-    """
-
-    #label_plot_filename = path_img + str(task_id) + '/' + 'viterbi_scatter.csv'
-    #color_comp_assoc_hmm, hmm_states_to_labels, hmm_labels = \
-    #    viterbi_calculation_helpers.plot_hmm_states_to_labels(hmm_states_to_labels=hmm_states_to_labels,
-    #                                                          observations=observations,
-    #                                                          sequence_viterbi_state=sequence_viterbi_state,
-    #                                                          no_wga_obs=no_wga_obs, wga_obs=wga_obs,
-    #                                                          title="Region: [1-10]x10^6",
-    #                                                          xlim=(0.0, 150.), ylim=(0.0, 150.0),
-    #                                                          show_plt=False, save_file=True, save_filename=label_plot_filename)
-    result["result"] = JobResultEnum.SUCCESS.name
-    result["number_of_gaps"] = number_of_gaps
-    computation.result = JobResultEnum.SUCCESS.name
-    computation.number_of_gaps = number_of_gaps
-    computation.save()
-
-    return result
 

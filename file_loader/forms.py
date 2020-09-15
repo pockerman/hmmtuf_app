@@ -70,6 +70,7 @@ class RegionLoadForm(ErrorHandler):
         self._start_idx = None
         self._end_idx = None
         self._group_tip = None
+        self._chromosome_idx = None
 
     @property
     def chromosome(self):
@@ -98,6 +99,10 @@ class RegionLoadForm(ErrorHandler):
     @property
     def group_tip(self):
         return self._group_tip
+
+    @property
+    def chromosome_idx(self):
+        return self._chromosome_idx
 
     def check(self, request):
 
@@ -192,6 +197,30 @@ class RegionLoadForm(ErrorHandler):
         if self._group_tip == '':
             template = loader.get_template(self._template_html)
             context = {"error_found": "Group tip is missing"}
+            context.update(self._context)
+            self._response = HttpResponse(template.render(context, request))
+            return not OK
+
+        self._chromosome_idx = request.POST.get('chr_idx', '')
+        if self._chromosome_idx == '':
+            template = loader.get_template(self._template_html)
+            context = {"error_found": "Chromosome index is missing"}
+            context.update(self._context)
+            self._response = HttpResponse(template.render(context, request))
+            return not OK
+
+        try:
+            self._chromosome_idx = int(self._chromosome_idx)
+        except ValueError as e:
+            template = loader.get_template(self._template_html)
+            context = {"error_found": "Chromosome index in integer field"}
+            context.update(self._context)
+            self._response = HttpResponse(template.render(context, request))
+            return not OK
+
+        if self._chromosome_idx < 0:
+            template = loader.get_template(self._template_html)
+            context = {"error_found": "Chromosome index cannot be negative"}
             context.update(self._context)
             self._response = HttpResponse(template.render(context, request))
             return not OK

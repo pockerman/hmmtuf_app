@@ -9,11 +9,7 @@ REMOTE = False
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
-USE_CELERY = True
-
-# used when USE_CELERY = False
-NUM_WORKER_PROCESSES = 2
-MAX_QUEUE_JOB_SIZE = 20
+USE_CELERY = False
 
 if REMOTE == True:
     BASE_DIR = '/home/a/ag568/hmmtuf_app'

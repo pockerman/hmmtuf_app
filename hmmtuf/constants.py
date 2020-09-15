@@ -1,3 +1,4 @@
 VITERBI_PATH_FILENAME = 'viterbi_path.csv'
+TUF_DEL_TUF_PATH_FILENAME = "tuf_delete_tuf.csv"
 INVALID_TASK_ID = 'INF'
 INVALID_ITEM = None

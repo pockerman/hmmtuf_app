@@ -86,7 +86,6 @@ def load_region_view(request):
                                        template_html='file_loader/load_region_view.html')
 
         if error_handler.check(request=request) is not OK:
-            print("form has errors")
             return error_handler.response
 
         # check if the region model with such a name exists

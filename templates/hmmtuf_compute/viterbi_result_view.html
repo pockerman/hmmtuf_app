@@ -112,66 +112,98 @@ var options =
                     url: '/static/igv_tracks/{{no_wga_tdf_file}}',
                     indexed: false,
                     min:0,
-                    max:60
+                    max:60,
+                    graphType:"lines",
+                    roi: [
+                        {
+                            name: 'TUF',
+                            url: '{{tuf_bed_url}}',
+                            color: "rgba(200, 18, 10, 0.15)"
+                        },
+                        {
+                            name: 'CORE',
+                            url: '{{tdt_bed_url}}',
+                            color: "rgba(18, 200, 10, 0.25)"
+                        }
+                    ]
                 },
                 {
                     name: '{{wga_seq_name}}',
                     url: '/static/igv_tracks/{{wga_tdf_file}}',
                     indexed: false,
                     min:0,
-                    max:60
+                    max:60,
+                    graphType:"lines",
+                    roi: [
+                        {
+                            name: 'TUF',
+                            url: '{{tuf_bed_url}}',
+                            color: "rgba(200, 18, 10, 0.15)"
+                        },
+                        {
+                            name: 'CORE',
+                            url: '{{tdt_bed_url}}',
+                            color: "rgba(18, 200, 10, 0.25)"
+                        }
+                    ]
                 },
                 {
                     name: 'TUF',
-                    url: '{% static "igv_tracks/tuf.bed" %}',
-                    indexed: false
-                    /*indexURL: '{% static "igv_tracks/tuf.bed.gz.tbi" %}',
-                    displayMode: "SQUISHED",
-                    height: 30*/
-               },
-                {
-                    name: 'Normal',
-                    url: '{% static "igv_tracks/normal.bed.gz" %}',
-                    indexURL: '{% static "igv_tracks/normal.bed.gz.tbi" %}',
+                    url: '{{tuf_bed_url}}',
+                    indexed: false,
+                    format: "bed",
                     displayMode: "SQUISHED",
                     height: 30
                },
-               /*{
+                {
+                    name: 'Normal',
+                    url: '{{normal_bed_url}}',
+                    format: "bed",
+                    indexed: false,
+                    displayMode: "SQUISHED",
+                    height: 30
+               },
+               {
                     name: 'Deletion',
-                    url: '{% static "igv_tracks/deletion.bed.gz" %}',
-                    indexURL: '{% static "igv_tracks/deletion.bed.gz.tbi" %}',
+                    url: '{{deletion_bed_url}}',
+                    indexed: false,
+                    format: "bed",
                     displayMode: "SQUISHED",
                     height: 30
                },
 
                 {
                     name: 'Duplication',
-                    url: '{% static "igv_tracks/duplication.bed.gz" %}',
-                    indexURL: '{% static "igv_tracks/duplication.bed.gz.tbi" %}',
+                    url: '{{duplication_bed_url}}',
+                    indexed: false,
+                    format: "bed",
                     displayMode: "SQUISHED",
                     height: 30
                },
                 {
                     name: 'GAP',
-                    url: '{% static "igv_tracks/gap.bed.gz" %}',
-                    indexURL: '{% static "igv_tracks/gap.bed.gz.tbi" %}',
+                    url: '{{gap_bed_url}}',
+                    indexed: false,
+                    format: "bed",
                     displayMode: "SQUISHED",
                     height: 30
                },
                 {
                     name: 'Repeats',
-                    url: '{% static "igv_tracks/rep.bed.gz" %}',
-                    indexURL: '{% static "igv_tracks/rep.bed.gz.tbi" %}',
+                    url: '{{repeats_bed_url}}',
+                    indexed: false,
+                    format: "bed",
                     displayMode: "SQUISHED",
                     height: 30
                },
                 {
                     name: 'GQUAD',
-                    url: '{% static "igv_tracks/quad.bed.gz" %}',
-                    indexURL: '{% static "igv_tracks/quad.bed.gz.tbi" %}',
+                    url: '{{quad_bed_url}}',
+                    indexed: false,
+                    format: "bed",
                     displayMode: "SQUISHED",
                     height: 30
-               }*/
+               }
             ]
         };
         var igvDiv = document.getElementById("igv-browser");

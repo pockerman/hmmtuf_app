@@ -4,8 +4,8 @@ from django.core.exceptions import ObjectDoesNotExist
 from compute_engine import INFO, INVALID_STR
 from compute_engine.job import JobType, JobResultEnum
 from compute_engine.windows import WindowType
-from hmmtuf import VITERBI_PATH_FILENAME
 from hmmtuf import INVALID_ITEM
+from hmmtuf.settings import USE_CELERY
 from hmmtuf_home.models import Computation
 
 
@@ -106,22 +106,38 @@ class ViterbiComputation(Computation):
         hmm_filename = data['hmm_filename']
         ref_seq_file = data["ref_seq_file"]
         wga_seq_file = data["wga_seq_file"]
-        no_wag_seq_file = data["no_wag_seq_file"]
+        no_wga_seq_file = data["no_wag_seq_file"]
 
-        print(data)
+        if USE_CELERY:
 
-        # schedule the computation
-        task = compute_viterbi_path_task.delay(hmm_name=hmm_name,
-                                               chromosome=chromosome,
-                                               window_type=window_type,
-                                                region_filename=region_filename,
-                                                hmm_filename=hmm_filename,
-                                                sequence_size=None,
-                                                n_sequences=1,
-                                                ref_seq_file=ref_seq_file,
-                                                no_wag_seq_file=no_wag_seq_file,
-                                                wga_seq_file=wga_seq_file)
-        return task.id
+            # schedule the computation
+            task = compute_viterbi_path_task.delay(hmm_name=hmm_name,
+                                                   chromosome=chromosome,
+                                                   chromosome_index=data["chromosome_index"],
+                                                   window_type=window_type,
+                                                    region_filename=region_filename,
+                                                    hmm_filename=hmm_filename,
+                                                    sequence_size=None,
+                                                    n_sequences=1,
+                                                    ref_seq_file=ref_seq_file,
+                                                    no_wga_seq_file=no_wga_seq_file,
+                                                    wga_seq_file=wga_seq_file)
+            return task.id
+        else:
+
+            import uuid
+            from .tasks import compute_viterbi_path
+            task_id = str(uuid.uuid4())
+            compute_viterbi_path(task_id=task_id, hmm_name=hmm_name,
+                                 chromosome=chromosome, chromosome_index=data["chromosome_index"],
+                                 window_type=window_type,
+                                 region_filename=region_filename, hmm_filename=hmm_filename,
+                                 sequence_size=None, n_sequences=1,
+                                 ref_seq_file=ref_seq_file, no_wga_seq_file=no_wga_seq_file,
+                                 wga_seq_file=wga_seq_file)
+            return task_id
+
+
 
     @staticmethod
     def get_invalid_map(task, result):
