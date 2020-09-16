@@ -10,6 +10,44 @@ from hmmtuf.settings import VITERBI_PATHS_FILES_ROOT
 from hmmtuf_home.models import HMMModel, RegionModel
 
 
+class GroupViterbiComputeForm(object):
+
+    def __init__(self, template_html, context):
+
+        self._template_html = template_html
+        self._context = context
+        self._response = INVALID_ITEM
+        self._group_tip = INVALID_ITEM
+        self._hmm_name = INVALID_ITEM
+
+    @property
+    def response(self):
+        return self._response
+
+    def as_map(self):
+        return {"hmm_name": self._hmm_name,
+                "group_tip": self._group_tip}
+
+    def check(self, request):
+
+        # do we have regions for this
+        self._hmm_name = request.POST.get("hmm", "")
+        if self._hmm_name == "":
+            return not OK
+
+        self._group_tip = request.POST.get("group_tip")
+        objects = RegionModel.objects.filter(group_tip__tip=self._group_tip)
+
+        if len(objects) == 0:
+            template = loader.get_template(self._template_html)
+            self._context.update({"error_found": True,
+                                  "no_seq_chromosome": "No regions for group {0}".format(self._group_tip )})
+            self._response = HttpResponse(template.render(self._context, request))
+            return not OK
+
+        return OK
+
+
 class MultipleViterbiComputeForm(object):
 
     def __init__(self, template_html, configuration, context):

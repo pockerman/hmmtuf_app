@@ -5,7 +5,7 @@ from .exceptions import Error
 from .preprocess_utils import remove_outliers, compute_statistic
 from .analysis_helpers import save_windows_statistic
 from .bam_helpers import extract_windows
-from . constants import TREAT_ERRORS_AS_WARNINGS
+from . constants import TREAT_ERRORS_AS_WARNINGS, PRINT_WARNINGS
 from . constants import WARNING, INFO
 
 
@@ -75,12 +75,13 @@ class Region(object):
 
                             if TREAT_ERRORS_AS_WARNINGS:
 
-                                print("{0} Could not float parse value {1} "
-                                      "for name {2} and WGA window id {3}".format(WARNING, val, name, wid))
+                                if PRINT_WARNINGS:
+                                    print("{0} Could not float parse value {1} "
+                                          "for name {2} and WGA window id {3}".format(WARNING, val, name, wid))
                                 val = 0.0
                             else:
                                 raise ValueError("Could not float parse value {0} "
-                                      "for name {3} and WGA window id {2}".format(val, name, wid))
+                                      "for name {1} and WGA window id {2}".format(val, name, wid))
 
                     samdata[name] = val
 
@@ -112,8 +113,9 @@ class Region(object):
                         except:
                             if TREAT_ERRORS_AS_WARNINGS:
 
-                                print("{0} Could not float parse value {1} "
-                                      "for name {2} and NO-WGA window id {3}".format(WARNING, val, name, wid))
+                                if PRINT_WARNINGS:
+                                    print("{0} Could not float parse value {1} "
+                                          "for name {2} and NO-WGA window id {3}".format(WARNING, val, name, wid))
                                 val = 0.0
                             else:
                                 raise ValueError("Could not float parse value {0} "
