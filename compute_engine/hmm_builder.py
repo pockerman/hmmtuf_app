@@ -13,10 +13,10 @@ def create_hmm_model_from_form(form):
     for name in form_states:
 
         state = form_states[name]
-        comp_type = state["ComType"]
+        comp_type = state["com_type"]
         if comp_type == "SingleComponent":
 
-            dist_type = state["Distribution"]
+            dist_type = state["distribution"]
             if dist_type == "Uniform":
                 upper = state["parameters"]["upper"]
                 lower = state["parameters"]["lower"]
@@ -29,6 +29,25 @@ def create_hmm_model_from_form(form):
                 states.append(state)
             else:
                 raise Error("No known SingleComponent distribution type")
+        elif comp_type == "MixtureComponent":
+            components = state["components"]
+
+            comps = []
+            for comp in components:
+
+                if comp["distribution"] == 'Normal':
+                    dist = create_normal_component(means=comp["parameters"]["means"],
+                                                   vars=comp["parameters"]["vars"])
+                    comps.append(dist)
+                elif comp["distribution"] == "Uniform":
+                    dist = create_uniform_component(upper=comp["parameters"]["upper"],
+                                                    lower=comp["parameters"]["lower"])
+                    comps.append(dist)
+                else:
+                    raise Error("No known MixtureComponent distribution type")
+
+            state = State(GeneralMixtureModel(comps, weights=state["weighs"]), name=name)
+            states.append(state)
 
     # add states
     hmm_model.add_states(states)
@@ -53,17 +72,27 @@ def create_hmm_model_from_form(form):
     return hmm_model
 
 
-def create_uniform_state(upper, lower, name):
-
+def create_uniform_component(upper, lower):
     dist = IndependentComponentsDistribution([UniformDistribution(upper[0], lower[0]),
                                               UniformDistribution(upper[1], lower[1])])
+    return dist
+
+
+def create_uniform_state(upper, lower, name):
+
+    dist = create_uniform_component(upper=upper, lower=lower)
     state = State(dist, name=name)
     return state
 
 
-def create_normal_state(means, vars, name):
-    cov = np.array([[vars[1], 0.0], [0.0, vars[0]]])
+def create_normal_component(means, vars):
+    cov = np.array([[vars[0], 0.0], [0.0, vars[1]]])
     dist = MultivariateGaussianDistribution(np.array(means), cov)
+    return dist
+
+
+def create_normal_state(means, vars, name):
+    dist = create_normal_component(means=means, vars=vars)
     state = State(dist, name=name)
     return state
 
