@@ -215,39 +215,7 @@ def spade(repseq, chrom, start, stop, type):
                                                         PATH + 'repeats/tdtseq.fasta',
                                                         PATH + 'spade_output/')
     print("{0} str_cmd {1}".format(INFO, str_cmd))
-
-    store_dir = PATH + 'repeats/'
     os.system(str_cmd)
-
-    """
-    dirlist = [dI for dI in os.listdir(store_dir + folder + '/') if os.path.isdir(os.path.join('./'+folder+'/', dI))]
-
-    for repf in dirlist:
-        # print('./'+folder+'/'+repf+'/weblogo.txt')
-        if os.path.isfile('./'+folder+'/'+folder+'_SPADE.gb'):
-            shutil.copyfile('./'+folder+'/'+folder+'_SPADE.gb','./TDTplots/repeats/'+folder+'_SPADE.gb')
-        if os.path.isfile('./'+folder+'/'+repf+'/weblogo.txt'):
-            shutil.copyfile('./'+folder+'/'+repf+'/weblogo.txt','./TDTplots/repeats/'+folder+repf+'_weblogo.txt')
-        if os.path.isfile('./'+folder+'/'+repf+'/periodic_repeat.pdf'):
-            shutil.copyfile('./'+folder+'/'+repf+'/periodic_repeat.pdf','./TDTplots/repeats/'+folder+repf+'_periodic_repeat.pdf')
-        if os.path.isfile('./'+folder+'/'+repf+'/weblogo.pdf'):
-            count = 0
-            with open('./'+folder+'/'+repf+'/weblogo.txt','r') as f:
-                for line in f:
-                    count+=1
-            if count > 12:
-                outrep.write(chrom+'\t'+str(start)+'\t'+str(stop)+'\n')
-            shutil.copyfile('./'+folder+'/'+repf+'/weblogo.pdf','./TDTplots/repeats/'+folder+repf+'_weblogo.pdf')
-    try:
-        # print(folder)
-        shutil.rmtree(folder)
-    except OSError as e:
-        if TREAT_ERRORS_AS_WARNINGS:
-            print("%s Error: %s - %s." % (WARNING, e.filename, e.strerror))
-        else:
-            raise e
-    """
-
 
 def createbed(line, ccheck):
 
@@ -337,9 +305,6 @@ def main(path, fas_file_name, chr_idx, viterbi_file):
         os.mkdir(PATH + "spade_output")
 
     fas = pysam.FastaFile(fas_file_name)
-
-    #shutil.rmtree("./TDTplots/dotter")
-    #shutil.rmtree("./TDTplots/repeats")
 
     conv = {'TUF': 10,
             'TUFDUP': 12,

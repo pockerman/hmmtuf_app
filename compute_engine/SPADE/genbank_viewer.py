@@ -1,18 +1,37 @@
 from Bio.SeqRecord import SeqRecord
-from Bio.SeqFeature import SeqFeature, FeatureLocation
+#from Bio.SeqFeature import SeqFeature, FeatureLocation
 from Bio.Seq import Seq
 #from Bio import Alphabet
 from Bio import SeqIO
-import matplotlib
+#import matplotlib
 import matplotlib.pyplot as plt
 import seaborn as sns
 import sys
 import math
 
-#matplotlib.rcParams['pgf.preamble'] = [r'\usepackage{hyperref}']
-template = {'legend.numpoints': 1, 'axes.axisbelow': True, 'font.sans-serif': [u'Arial', u'Liberation Sans', u'Bitstream Vera Sans', u'sans-serif'], 'axes.labelcolor': '.15', 'ytick.major.size': 0.05, 'axes.grid': False, 'ytick.minor.size': 0.0, 'legend.scatterpoints': 1, 'axes.edgecolor': "black", 'grid.color': 'white', 'legend.frameon': False, 'ytick.color': '.15', 'xtick.major.size': 2.0, 'figure.facecolor': "#EAEAF2", 'xtick.color': '.15', 'xtick.minor.size': 3.0, 'font.family': [u'sans-serif'], 'xtick.direction': u'out', 'lines.solid_capstyle': u'round', 'grid.linestyle': u'-', 'image.cmap': u'Greys', 'axes.facecolor': "white", 'text.color': '.15', 'ytick.direction': u'out', 'axes.linewidth': 0.5}
-sns.set_context("poster", font_scale=1.0, rc={"lines.linewidth": 2.0}) 
-#sns.set_style(template) 
+
+template = {'legend.numpoints': 1,
+            'axes.axisbelow': True,
+            'font.sans-serif': [u'Arial', u'Liberation Sans',
+                                u'Bitstream Vera Sans',
+                                u'sans-serif'],
+            'axes.labelcolor': '.15',
+            'ytick.major.size': 0.05,
+            'axes.grid': False,
+            'ytick.minor.size': 0.0,
+            'legend.scatterpoints': 1,
+            'axes.edgecolor': "black",
+            'grid.color': 'white', 'legend.frameon': False,
+            'ytick.color': '.15', 'xtick.major.size': 2.0,
+            'figure.facecolor': "#EAEAF2", 'xtick.color': '.15',
+            'xtick.minor.size': 3.0, 'font.family': [u'sans-serif'], 'xtick.direction': u'out',
+            'lines.solid_capstyle': u'round', 'grid.linestyle': u'-',
+            'image.cmap': u'Greys', 'axes.facecolor': "white",
+            'text.color': '.15', 'ytick.direction': u'out',
+            'axes.linewidth': 0.5}
+
+sns.set_context("poster", font_scale=1.0, rc={"lines.linewidth": 2.0})
+
 
 class GenbView(object):
     def __init__(self,gb,fig):
@@ -179,7 +198,7 @@ class GenbView(object):
     
     def extract(self, start_pos, end_pos, make_file=False): 
         range_set = set(range(start_pos, end_pos)) 
-        partial_gb = SeqRecord(Seq(str(self.gb.seq[start_pos:end_pos]), DNAAlphabet())) #Alphabet.DNAAlphabet())) 
+        partial_gb = SeqRecord(Seq(str(self.gb.seq[start_pos:end_pos])), id="test", annotations={"molecule_type": "DNA"}) #annAlphabet.DNAAlphabet())) #Alphabet.DNAAlphabet()))
         for afeat in self.gb.features:
             afeat_range = set(range(afeat.location.start, afeat.location.end))
             if len(afeat_range & range_set) > 0:

@@ -1,19 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import os
-import csv
-import sys
 import copy 
 import time
-import pickle
 import argparse
-import math
 import shutil
-import collections
 import subprocess
+
 from Bio.Seq import Seq
-#from Bio.Seq import Seq
-#from Bio.Alphabet import generic_dna, generic_protein
 from Bio import SeqIO
 from Bio.SeqRecord import SeqRecord
 from Bio.SeqFeature import SeqFeature, FeatureLocation, CompoundLocation
@@ -51,11 +45,18 @@ class SPADE(object):
         self.format_type = None
 
     def load(self, file_name):
-        if file_name.split(".")[-1] == "fasta" or file_name.split(".")[-1] == "fna" or file_name.split(".")[-1] == "faa" or args.f=="fasta":
+        if file_name.split(".")[-1] == "fasta" or \
+                file_name.split(".")[-1] == "fna" or \
+                file_name.split(".")[-1] == "faa" or \
+                args.f == "fasta":
+
             self.f_parse = SeqIO.parse(args.input, "fasta")
             self.format_type = "fasta"
 
-        elif file_name.split(".")[-1] == "gbff" or file_name.split(".")[-1] == "gb" or args.f=="genbank":
+        elif file_name.split(".")[-1] == "gbff" or \
+                file_name.split(".")[-1] == "gb" or \
+                args.f == "genbank":
+
             self.g_parse = SeqIO.parse(args.input, "genbank")
             self.format_type = "genbank"
         
@@ -83,7 +84,9 @@ class SPADE(object):
                 record2 = self.f_parse.next()
                 if len(set(str(record2.seq))) == 1:
                     seq = record2.seq
-                    seq.Alphabet = Alphabet.DNAAlphabet()
+
+                    # TODO: check this removal
+                    #seq.Alphabet = Alphabet.DNAAlphabet()
                     record.seq = seq
         
             #Single process mode
@@ -125,7 +128,7 @@ class SPADE(object):
                 if len(finishedList) == len(liveProcess):
                     break	
 
-    def thread_run(self,record,parameters):
+    def thread_run(self, record, parameters):
         #Single process for multiprocess mode.
         global OUT_PATH
         if os.path.exists(OUT_PATH + record.id) == False:
@@ -180,7 +183,11 @@ class LOCUS(object):
         self.delete        = delete
 
         head_seq         = str(self.seq)[0:10000].upper() 
-        ratio = (head_seq.count("A") + head_seq.count("T") + head_seq.count("G") + head_seq.count("C") + head_seq.count("N")) * 1.0 / len(head_seq)
+        ratio = (head_seq.count("A") +
+                 head_seq.count("T") +
+                 head_seq.count("G") +
+                 head_seq.count("C") + head_seq.count("N")) * 1.0 / len(head_seq)
+
         if ratio > 0.9 or self.seqtype == "nucl":
             self.seqtype = "nucl"
         else:
@@ -202,7 +209,8 @@ class LOCUS(object):
 
         savetxt(self.Id + "_kmer_count.txt", self.score_array, delimiter="\t", fmt=":.0f") 
 
-    def find_protein_HRA(self): 
+    def find_protein_HRA(self):
+
         i = 0
         output_dir_list = []
         for feat in self.record.features:
@@ -216,13 +224,14 @@ class LOCUS(object):
                                                                  self.pw_size, thresh=self.ptk, gap=self.pg_size,
                                                                  buf=self.pw_size, seqtype="prot")
                 if len(phra_range_list) < 1:
+
                     pass 
                 else:
                     for j in range(len(phra_range_list)):
                         hra = HRA(i+j, "prot", self.pk_size, self.pw_size, self.pg_size,
                                   self.ptk, self.ptp, self.ptb, self.ptm, self.ptq, self.ptr, self.option_mafft,
                                   self.option_blastn, self.option_blastp)
-                        hra.hra_range          = phra_range_list[j]  
+                        hra.hra_range = phra_range_list[j]  
                         hra.region_score_array = region_score_array[hra.hra_range[2]:hra.hra_range[3]]
                         hra.feature = feat
                         hra.strand = feat.strand
@@ -241,9 +250,9 @@ class LOCUS(object):
                         hra.features    = [afeat]
                         from Bio.Seq import Seq
                         from Bio.Alphabet import generic_dna, generic_protein
-                        hra.record      = SeqRecord(Seq(str(feat.qualifiers["translation"][0]), generic_protein)) 
+                        hra.record = SeqRecord(Seq(str(feat.qualifiers["translation"][0]), generic_protein)) 
                         hra.record.features.append(afeat) 
-                        hra.w_size      = hra.hra_range[1] - hra.hra_range[0]  
+                        hra.w_size = hra.hra_range[1] - hra.hra_range[0]  
                         if hra.output_dir not in output_dir_list:
                             output_dir_list.append(hra.output_dir) 
                             self.HRA_list.append(hra)
@@ -251,10 +260,13 @@ class LOCUS(object):
                             pass
                 i += 1
 
+
     def find_HRA(self):
         HRA.window_size = self.w_size
-        HRA.seq_len = len(self.seq) 
+        HRA.seq_len = len(self.seq)
+
         for i, hra_range in enumerate(self.hra_range_list):
+
             if self.seqtype == "nucl":
                 hra = HRA(i, "nucl", self.k_size, self.w_size, self.g_size, self.tk, self.tp,
                           self.tb, self.tm, self.tq, self.tr, self.option_mafft,
@@ -269,10 +281,7 @@ class LOCUS(object):
             hra.region_score_array = self.score_array[hra_range[2]:hra_range[3]]
             hra.output_dir = "_".join([hra.dtype, str(hra_range[0]), str(hra_range[1])])
 
-            print("{0} hra.Id: {1}".format(INFO, hra.Id))
-            print("{0} hra.output_dir: {1}".format(INFO, hra.output_dir))
-
-            hra.hra_range  = hra_range
+            hra.hra_range = hra_range
             hra.w_size = hra_range[1] - hra_range[0]
             if hra.w_size < self.w_size*0.1: 
                 hra.w_size = self.w_size
@@ -310,7 +319,7 @@ class LOCUS(object):
             
             except Exception as e:
                 print("Error in search seed all. dir", self.Id, hra.output_dir) 
-                print(e) 
+                print(str(e))
             it += 1
         
         del self.HRA_list
@@ -320,7 +329,7 @@ class LOCUS(object):
         global OUT_PATH
         for hra in self.HRA_list: 
             path = os.getcwd()
-            if os.path.exists("./" + hra.output_dir) == False:
+            if os.path.exists(OUT_PATH + hra.output_dir) == False:
                 os.mkdir(OUT_PATH + hra.output_dir)
             else: 
                 pass
@@ -337,13 +346,10 @@ class LOCUS(object):
         Run Mafft commands for all HRAs
         """
 
-        #if len(self.HRA_list) != 0:
-        #    import pdb
-        #    pdb.set_trace()
-
         global OUT_PATH
         mafft_file = OUT_PATH + "mafft_coms.sh"
         mafft_coms = open(mafft_file, "w")
+
         for hra in self.HRA_list: 
             try:
                 hra.mafft()
@@ -360,20 +366,17 @@ class LOCUS(object):
     def decide_query_all(self):
         for hra in self.HRA_list:
             path = os.getcwd()
-            print("Now in:  ", path)
+
             try:
+
+                # TODO: Do we need these?
                 os.chdir("../")
-                print("Now in:  ", os.getcwd())
                 os.chdir(hra.output_dir)
-                print("Now in:  ", os.getcwd())
                 hra.decide_query() 
             except Exception as e:
-                import pdb
 
                 print("Error in decide_query_all. dir", self.Id, hra.output_dir)  
-                print(e)
-                pdb.set_trace()
-                print("Hellooooo")
+                print(str(e))
             os.chdir(path)
     
     def blast_all(self): 
@@ -383,42 +386,38 @@ class LOCUS(object):
         global OUT_PATH
         blast_coms_file = OUT_PATH + "blast_coms.sh"
         blast_coms = open(blast_coms_file, "w")
+
         for hra in self.HRA_list: 
             try:
                 hra.blast()
                 blast_coms.write(hra.blast_com + "\n")
             except Exception as e:
                 print("Error in blast_all. dir", self.Id, hra.output_dir) 
-                print(e)
+                print(str(e))
         blast_coms.close()
         subprocess_cmd_str = "bash {0}".format(blast_coms_file)
         subprocess.call(subprocess_cmd_str, shell=True)
 
     def make_se_sets_all(self):
         new_hra_list = []
-        rm_dir_list  = [] 
+        rm_dir_list = []
         for hra in self.HRA_list:
             path = os.getcwd()
-            print("{0} path: {1}".format(INFO, path))
             try:
-
+                # TODO: Do we need these?
                 os.chdir("../")
-                print("{0} path: {1}".format(INFO, os.getcwd()))
                 os.chdir(hra.output_dir)
-                print("{0} path: {1}".format(INFO, os.getcwd()))
                 hra.make_se_sets()
                 hra.make_motif_array() 
 
-                if len(hra.peak_period_set) >0:
+                if len(hra.peak_period_set) > 0:
                     new_hra_list.append(hra)
                 else:
                     rm_dir_list.append(os.getcwd())
             except Exception as e:
                 print("Error in make_se_sets_all. dir", self.Id, hra.output_dir)  
-                print(e)
-                import pdb
-                pdb.set_trace()
-                print("Heloooooo")
+                print(str(e))
+
             os.chdir(path) 
         
         self.HRA_list = new_hra_list
@@ -429,13 +428,13 @@ class LOCUS(object):
         start_end_set = []
         for hra in self.HRA_list:
             path = os.getcwd()
-            print("{0} working path {1}".format(INFO, path))
+
             try:
 
+                # TODO: Do we need these?
                 os.chdir("../")
-                print("{0} working path {1}".format(INFO, os.getcwd()))
                 os.chdir(hra.output_dir)
-                print("{0} working path {1}".format(INFO, os.getcwd()))
+
                 feats = hra.make_feature()
                 if len(feats) > 0:
                     for feat in feats:
@@ -458,23 +457,30 @@ class LOCUS(object):
         self.record.features.extend(spade_list)
         self.record.features.sort(key=lambda x: x.location.start)
         global OUT_PATH
+
         if make_file == True:
+
             if self.format_type == "genbank":
                 record_handle = open(OUT_PATH + self.record.id + "_SPADE.gb", "w")
                 SeqIO.write(self.record, record_handle, "genbank")
                 record_handle.close()
+
             if self.format_type == "fasta":
                 record_handle = open(OUT_PATH + self.record.id + "_SPADE.gb", "w")
                 from Bio.Seq import Seq
                 #from Bio.Alphabet import generic_dna, generic_protein
                 seq = Seq(str(self.record.seq))
-                new_record    = SeqRecord(seq, id="test", annotations={"molecule_type": "DNA"})#SeqRecord(Seq(str(self.record.seq),generic_dna))
+
+                # #SeqRecord(Seq(str(self.record.seq),generic_dna))
+                # Note replace generic_dna with annotations={"molecule_type": "DNA"}
+                new_record = SeqRecord(seq, id="test", annotations={"molecule_type": "DNA"})
                 new_record.id = self.record.id[0:16]
                 self.record   = new_record
                 self.record.features.extend(spade_list)
                 self.record.features.sort(key=lambda x: x.location.start)
                 SeqIO.write(self.record, record_handle, "genbank")
                 record_handle.close()
+
         if self.delete == 1: 
             for apath in rm_dir_list:
                 print(apath) 
@@ -487,19 +493,22 @@ class LOCUS(object):
         """
         make figure of each HRR and motif
         """
+
         for hra in self.HRA_list:
             path = os.getcwd()
-            print("{0} working dir {1}".format(INFO, path))
+
             try:
+
+                # TODO: we really need these
                 os.chdir("../")
-                print("{0} working dir {1}".format(INFO, os.getcwd()))
                 os.chdir(hra.output_dir)
-                print("{0} working dir {1}".format(INFO, os.getcwd()))
+
                 hra.make_figure()
                 hra.make_motif_logo()
             except Exception as e:
                 print("Error in visualisation_all. dir", self.Id, hra.output_dir) 
-                print(e)
+                print(str(e))
+                #raise e
             os.chdir(path)
 
     def all(self):
@@ -764,12 +773,8 @@ class HRA(object):
  
     def mafft(self, Exec=0):
 
-
-        print("{0} Executing mafft".format(INFO))
         mafft_coms = []
-
         global OUT_PATH
-        print("{0} self.output_dir: {1}".format(INFO, self.output_dir))
 
         for period in self.peak_period_set:
             #if os.getcwd().split("/")[-1] == self.output_dir:
@@ -1018,8 +1023,7 @@ class HRA(object):
         blast_coms = []
 
         global OUT_PATH
-        print("{0} Executing blast".format(INFO))
-        print("{0} self.output_dir: {1}".format(INFO, self.output_dir))
+
         for i, period in enumerate(self.peak_period_set):
             #if os.getcwd().split("/")[-1] == self.output_dir:
             #query_name   = OUT_PATH + "query.fasta"
@@ -1029,12 +1033,11 @@ class HRA(object):
             query_name = OUT_PATH + self.output_dir + "/query.fasta"
             subject_name = OUT_PATH + self.output_dir + "/subject.fasta"
             blast_name = OUT_PATH + self.output_dir + "/blast.txt"
-            
+
             if self.dtype == "nucl":
-                #options   = '-strand plus -task blastn-short -penalty -2 -outfmt "6 qseqid qseq sseqid sseq pident qlen length mismatch gapopen qstart qend sstart send gaps evalue bitscore"'
-                blast_com = "blastn -query {} -subject {} {} -out {}".format(query_name, subject_name, self.option_blastn, blast_name) 
+
+                blast_com = "blastn -query {} -subject {} {} -out {}".format(query_name, subject_name, self.option_blastn, blast_name)
             else:
-                #options   = '-task blastp-short -outfmt "6 qseqid qseq sseqid sseq pident qlen length mismatch gapopen qstart qend sstart send gaps evalue bitscore"'
                 blast_com = "blastp -query {} -subject {} {} -out {}".format(query_name, subject_name, self.option_blastp, blast_name) 
         
             blast_coms.append(blast_com)
@@ -1143,7 +1146,7 @@ class HRA(object):
             #If repeating motifs are separated by space whose length is times longer than periodd, the repeat would be evaluated as 
             #two different repeats at next version of spade.
             se_sets = [] 
-            for line in open(OUT_PATH + "align.unit_seq.fasta"):
+            for line in open(OUT_PATH + self.output_dir + "/" + "align.unit_seq.fasta"):
                 if line[0] == ">":
                     s = int(line.rstrip().split("_")[-1]) 
                 else:
@@ -1272,15 +1275,15 @@ class HRA(object):
         return partial_gb, feat_list
      
     def make_motif_logo(self):
-        global PATH
-        vs.motif_logo(self.dtype, path=PATH + self.output_dir +"/")
+        global OUT_PATH
+        vs.motif_logo(self.dtype, path=OUT_PATH + self.output_dir + "/")
         
     def make_figure(self):
-        global PATH
-        vs.load_data(self.dtype, 1, self.k_size, 10, path=PATH + self.output_dir +"/")
+        global OUT_PATH
+        vs.load_data(self.dtype, 1, self.k_size, 10, path=OUT_PATH + self.output_dir + "/")
     
-    def save_region_record(self):
-        pass 
+    #def save_region_record(self):
+    #    pass
 
 
 if __name__ == "__main__":

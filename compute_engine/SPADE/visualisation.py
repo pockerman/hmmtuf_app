@@ -5,7 +5,7 @@ import sys
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.font_manager as fm
-import matplotlib.colors as colors
+#import matplotlib.colors as colors
 import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
@@ -399,34 +399,209 @@ def motif_logo(dtype, path):
             fout.write(txt_formatter(data, format))    
         fout.close()
 
+
+def read_kmer_file(path):
+
+    kmer_count_signal = []
+    kmer_file = open(path + "kmer.tsv")
+    kmer_file.readline()
+    for line in kmer_file:
+        line = line.rstrip().split("\t")
+        kmer_count_signal.append(int(line[1]))
+    return kmer_count_signal
+
+
+def get_gbk_features(gbk, dtype, peak_list):
+
+    candidate = None
+    p_start = None
+    p_end = None
+    for feature in gbk.features:
+        if "note" in feature.qualifiers.keys():
+            if "SPADE" in feature.qualifiers["note"][0]:
+                peak_list.append(int(feature.qualifiers["period"][0]))
+                candidate = list(map(int, feature.qualifiers["hrr_range"][0].split(",")))
+                if dtype == "prot":
+                    p_start = feature.location.start
+                    p_end = feature.location.end
+
+    return candidate, p_start, p_end, peak_list
+
+
+def work_peak_list(peak_list, peak_matrix_list,
+                   rpt_unit_array_list,
+                   gap_rpt_unit_array_list,
+                   aln_rpt_unit_array_list, unit_length_list,
+                   avg_intensity_list, strand, dir_list, path):
+    periods = []
+    for peak in peak_list:
+        for file_name in dir_list:
+            if "align.unit_seq.fasta" == file_name:
+                se_sets = []
+                gap_se_sets = []
+                aln_se_sets = []
+                for line in open(path + file_name).readlines():
+                    if line[0] == ">":
+                        line = line.rstrip().split("_")
+                        s = int(line[1])
+                        s = s if s > 0 else 0
+                    else:
+                        unit_length = len(line.rstrip())
+                        unit_length = peak if unit_length > peak else unit_length
+                        seq = line.rstrip()
+                        e = s + unit_length
+                        for m, char in enumerate(seq):
+                            if char == "-":
+                                pass
+                            else:
+                                break
+
+                        for n, char in enumerate(reversed(seq)):
+                            if char == "-":
+                                pass
+                            else:
+                                break
+
+                        se_sets.append([s, e])
+                        aln_se_sets.append([s + m, e - n])
+                        if m > 0 and len(gap_se_sets) == 0:
+                            gap_se_sets.append([s, s + m])
+                if n > 0:
+                    gap_se_sets.append([e - n, e])
+                repeat_unit_array_x = []
+                repeat_unit_array_y = []
+                for start, end in se_sets:
+                    unit_x = [start]
+                    unit_y = [0]
+                    for j in range(start, end + 1):
+                        unit_x.append(j)
+                        unit_y.append(1)
+                    unit_x.append(j)
+                    unit_y.append(1)
+                    unit_x.append(j)
+                    unit_y.append(0)
+                    repeat_unit_array_x.append(unit_x)
+                    repeat_unit_array_y.append(unit_y)
+                rpt_unit_array = zip(repeat_unit_array_x, repeat_unit_array_y)
+                rpt_unit_array_list.append(rpt_unit_array)
+
+                repeat_unit_array_x = []
+                repeat_unit_array_y = []
+                for start, end in gap_se_sets:
+                    unit_x = [start]
+                    unit_y = [0]
+                    for j in range(start, end + 1):
+                        unit_x.append(j)
+                        unit_y.append(1)
+                    unit_x.append(j)
+                    unit_y.append(1)
+                    unit_x.append(j)
+                    unit_y.append(0)
+                    repeat_unit_array_x.append(unit_x)
+                    repeat_unit_array_y.append(unit_y)
+                rpt_unit_array = zip(repeat_unit_array_x, repeat_unit_array_y)
+                gap_rpt_unit_array_list.append(rpt_unit_array)
+
+                repeat_unit_array_x = []
+                repeat_unit_array_y = []
+                for start, end in aln_se_sets:
+                    unit_x = [start]
+                    unit_y = [0]
+                    for j in range(start, end + 1):
+                        unit_x.append(j)
+                        unit_y.append(1)
+                    unit_x.append(j)
+                    unit_y.append(1)
+                    unit_x.append(j)
+                    unit_y.append(0)
+                    repeat_unit_array_x.append(unit_x)
+                    repeat_unit_array_y.append(unit_y)
+                rpt_unit_array = zip(repeat_unit_array_x, repeat_unit_array_y)
+                aln_rpt_unit_array_list.append(rpt_unit_array)
+                unit_length_list.append(unit_length)
+
+                avg_intensity = []
+                pdist_file = open(path + "pdist.tsv")
+                pdist_file.readline()
+                for line in pdist_file:
+                    avg_intensity.append(float(line.rstrip().split("\t")[1]))
+
+                avg_intensity = np.array(avg_intensity)
+                if peak > 25:
+                    avg_intensity_list.append(
+                        avg_intensity[int(len(avg_intensity) / 2) - 5:int(len(avg_intensity) / 2) + 5 + 1])
+                else:
+                    avg_intensity_list.append(avg_intensity)
+
+                matrix_file = open(path + "ppm4vis.tsv")
+                matrix_file.readline()
+                matrix_file.readline()
+                peak_matrix = []
+                periods = []
+                for line in matrix_file:
+                    line = list(map(int, line.rstrip().split("\t")))
+                    peak_matrix.append(line[1:])
+                    periods.append(line[0])
+                periods = list(range(0, periods[-1] + 1))
+                peak_matrix = np.array(peak_matrix)
+                if peak > 25:
+                    peak_matrix = peak_matrix[int(peak_matrix.shape[0] / 2) - 5:int(peak_matrix.shape[0] / 2) + 5 + 1, :]
+                else:
+                    pass
+
+                if strand == -1:
+                    peak_matrix = peak_matrix[:, ::-1]
+                peak_matrix_list.append(peak_matrix)
+        else:
+            pass
+
+    return (peak_matrix_list, rpt_unit_array_list,
+            gap_rpt_unit_array_list, aln_rpt_unit_array_list,
+            unit_length_list, avg_intensity_list, strand, periods)
+
+
+
 def load_data(dtype, strand, ksize ,thresh, path, Format="pdf"):
-    dir_list  = os.listdir("./")
+
+    dir_list = os.listdir("./")
     peak_list = []
-    unit_length_list        = [] 
-    peak_matrix_list        = [] 
-    rpt_unit_array_list     = []
+    unit_length_list = []
+    peak_matrix_list = []
+    rpt_unit_array_list = []
     gap_rpt_unit_array_list = []
     aln_rpt_unit_array_list = []
-    avg_intensity_list      = []
+    avg_intensity_list = []
     
-    for file_name in dir_list:
-        kmer_count_signal = []
-        kmer_file = open(path + "kmer.tsv")
-        kmer_file.readline() 
-        for line in kmer_file:
-            line = line.rstrip().split("\t") 
-            kmer_count_signal.append(int(line[1])) 
-        kmer_coount_signal = np.array(kmer_count_signal) 
-        gbk = SeqIO.read(path + "repeat.gbk", "genbank")
+    #for file_name in dir_list:
+    kmer_count_signal = read_kmer_file(path=path)
+        #kmer_file = open(path + "kmer.tsv")
+        #kmer_file.readline()
+        #for line in kmer_file:
+        #    line = line.rstrip().split("\t")
+        #    kmer_count_signal.append(int(line[1]))
+    kmer_coount_signal = np.array(kmer_count_signal)
+    gbk = SeqIO.read(path + "repeat.gbk", "genbank")
+    candidate, p_start, p_end, peak_list = get_gbk_features(gbk=gbk, dtype=dtype, peak_list=peak_list)
 
+    """
+    peak_matrix_list = work_peak_list(peak_list=peak_list,
+                                      peak_matrix_list=peak_matrix_list,
+                                      rpt_unit_array_list=rpt_unit_array_list,
+                                      gap_rpt_unit_array_list=gap_rpt_unit_array_list,
+                                      aln_rpt_unit_array_list=aln_rpt_unit_array_list,
+                                      unit_length_list=unit_length_list,
+                                      avg_intensity_list=avg_intensity_list,
+                                      strand=strand,
+                                      dir_list=dir_list, path=path)
     for feature in gbk.features: 
         if "note" in feature.qualifiers.keys():
             if "SPADE" in feature.qualifiers["note"][0]:
                 peak_list.append(int(feature.qualifiers["period"][0]))
-                candidate   = list(map(int,feature.qualifiers["hrr_range"][0].split(",")))
+                candidate = list(map(int, feature.qualifiers["hrr_range"][0].split(",")))
                 if dtype == "prot":
                     p_start = feature.location.start
-                    p_end   = feature.location.end
+                    p_end = feature.location.end
+    """
 
     for peak in peak_list: 
         for file_name in dir_list:
@@ -546,7 +721,8 @@ def load_data(dtype, strand, ksize ,thresh, path, Format="pdf"):
                     peak_matrix = peak_matrix[:,::-1]
                 peak_matrix_list.append(peak_matrix)
         else:
-            pass 
+            pass
+
 
     if dtype == "nucl":
         make_figure(peak_matrix_list, kmer_count_signal, rpt_unit_array_list, gap_rpt_unit_array_list,
