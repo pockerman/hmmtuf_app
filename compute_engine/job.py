@@ -20,6 +20,7 @@ class JobType(Enum):
     VITERBI = 0
     EXTRACT_REGION = 1
     MULTI_VITERBI = 2
+    GROUP_VITERBI = 3
 
 
 class Job(object):

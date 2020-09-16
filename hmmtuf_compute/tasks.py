@@ -21,6 +21,134 @@ from hmmtuf_home.models import RegionModel, HMMModel
 logger = get_task_logger(__name__)
 
 
+@task(name="compute_group_viterbi_path_task")
+def compute_group_viterbi_path_task(hmm_name, window_type, group_tip):
+
+
+    task_id = compute_mutliple_viterbi_path_task.request.id
+    return compute_group_viterbi_path(task_id=task_id, hmm_name=hmm_name,
+                                      window_type=window_type, group_tip=group_tip)
+
+
+def compute_group_viterbi_path(task_id, hmm_name, window_type,  group_tip):
+
+    logger.info("Computing Group Viterbi path")
+    from .models import GroupViterbiComputation
+
+    viterbi_path_filename = make_viterbi_path_filename(task_id=task_id)
+    task_path = make_viterbi_path(task_id=task_id)
+
+    # load the regions belonging to the same group
+    regions = RegionModel.objects.filter(group_tip__tip=group_tip)
+
+    result = {"task_id": task_id,
+              "result": JobResultEnum.PENDING.name,
+              "error_explanation": DEFAULT_ERROR_EXPLANATION,
+              "computation_type": JobType.GROUP_VITERBI.name,
+              "hmm_filename": hmm_name,
+              "file_viterbi_path": viterbi_path_filename,
+              "window_type": 'BOTH',
+              'hmm_path_img': INVALID_ITEM}
+
+    # create a computation instance
+    computation = GroupViterbiComputation()
+    computation.task_id = task_id
+    computation.computation_type = JobType.GROUP_VITERBI.name
+    computation.error_explanation = DEFAULT_ERROR_EXPLANATION
+    computation.result = JobResultEnum.PENDING.name
+    computation.file_viterbi_path = viterbi_path_filename
+    computation.hmm_filename = hmm_name
+    computation.hmm_path_img = INVALID_ITEM
+    computation.save()
+
+    window_type = WindowType.from_string(window_type)
+    db_hmm_model = HMMModel.objects.get(name=hmm_name)
+    hmm_filename = db_hmm_model.file_hmm.name
+
+    # build the hmm model from the file
+    hmm_model = hmm_loader.build_hmm(hmm_file=hmm_filename)
+
+    if hmm_model is None:
+        computation.error_explanation = "Could not build HMM model"
+        computation.result = JobResultEnum.FAILURE.name
+        computation.save()
+
+        result["result"] = JobResultEnum.FAILURE.name
+        result["error_explanation"] = "Could not build HMM model"
+        return result
+
+    # change to underscore to create dir
+    task_id = task_id.replace('-', '_')
+    hmm_path_img = VITERBI_PATHS_FILES_ROOT + task_id
+
+    try:
+        os.mkdir(hmm_path_img)
+        print("{0} Successfully created the directory {1}".format(INFO, hmm_path_img))
+    except OSError:
+
+        computation.error_explanation = "Could not create dir: {0}".format(hmm_path_img)
+        computation.result = JobResultEnum.FAILURE.name
+        computation.save()
+
+        result["result"] = JobResultEnum.FAILURE.name
+        result["error_explanation"] = "Could not create dir: {0}".format(hmm_path_img)
+        return result
+
+    hmm_path_img = hmm_path_img + '/' + hmm_name + '.png'
+    hmm_loader.save_hmm_image(hmm_model=hmm_model, path=hmm_path_img)
+    computation.hmm_path_img = hmm_path_img
+    result['hmm_path_img'] = hmm_path_img
+
+    for region_model in regions:
+
+        region_filename = region_model.file_region.name
+        region = Region.load(filename=region_filename)
+        region.get_mixed_windows()
+
+        chromosome = region_model.chromosome
+        chromosome_index = region_model.chromosome_index
+        ref_seq_file = region_model.ref_seq_file
+
+        try:
+
+            # extract the sequence
+            sequence = region.get_region_as_rd_mean_sequences_with_windows(size=None,
+                                                                           window_type=window_type,
+                                                                           n_seqs=1,
+                                                                           exclude_gaps=False)
+
+            viterbi_path, observations, \
+            sequence_viterbi_state = viterbi_helpers.create_viterbi_path(sequence=sequence, hmm_model=hmm_model,
+                                                                         chr=chromosome, filename=viterbi_path_filename,
+                                                                         append_or_write='a')
+
+            tuf_delete_tuf = viterbi_helpers.filter_viterbi_path(path=viterbi_path[1][1:],
+                                                                 wstate='TUF',
+                                                                 limit_state='Deletion', min_subsequence=1)
+
+            segments = viterbi_helpers.get_start_end_segment(tuf_delete_tuf, sequence)
+
+            filename = make_tuf_del_tuf_path_filename(task_id=task_id)
+            viterbi_helpers.save_segments(segments=segments, chromosome=chromosome, filename=filename)
+
+            # get the TUF-DEL-TUF
+            tufdel.main(path=task_path, fas_file_name=ref_seq_file,
+                        chr_idx=chromosome_index, viterbi_file=viterbi_path_filename)
+
+        except Exception as e:
+
+            result["result"] = JobResultEnum.FAILURE.name
+            result["error_explanation"] = str(e)
+            computation.result = JobResultEnum.FAILURE.name
+            computation.error_explanation = str(e)
+            computation.save()
+            return result
+
+    computation.result = JobResultEnum.SUCCESS.name
+    computation.save()
+    return result
+
+
 @task(name="compute_mutliple_viterbi_path_task")
 def compute_mutliple_viterbi_path_task(hmm_name, chromosome,
                                        window_type, viterbi_path_filename,
@@ -31,8 +159,6 @@ def compute_mutliple_viterbi_path_task(hmm_name, chromosome,
     from .models import MultiViterbiComputation
 
     task_id = compute_mutliple_viterbi_path_task.request.id
-    #viterbi_task_path = VITERBI_PATHS_FILES_ROOT + task_id.replace('-', '_') + "/"
-    #viterbi_path_filename =  viterbi_task_path + viterbi_path_filename
     viterbi_path_filename = make_viterbi_path_filename(task_id=task_id)
 
     # load the regions
@@ -66,6 +192,7 @@ def compute_mutliple_viterbi_path_task(hmm_name, chromosome,
     computation.ref_seq_filename = ref_seq_file
     computation.wga_seq_filename = wga_seq_file
     computation.no_wag_seq_filename = no_wga_seq_file
+    computation.hmm_path_img = INVALID_ITEM
     computation.save()
 
     window_type = WindowType.from_string(window_type)
@@ -128,9 +255,10 @@ def compute_mutliple_viterbi_path_task(hmm_name, chromosome,
                                                                          chr=chromosome, filename=viterbi_path_filename,
                                                                          append_or_write='a')
 
-
         except Exception as e:
 
+            result["result"] = JobResultEnum.FAILURE.name
+            result["error_explanation"] = str(e)
             computation.result = JobResultEnum.FAILURE.name
             computation.error_explanation = str(e)
             computation.save()
@@ -264,8 +392,6 @@ def compute_viterbi_path(task_id, hmm_name, chromosome,
         filename = make_tuf_del_tuf_path_filename(task_id=task_id)
         viterbi_helpers.save_segments(segments=segments, chromosome=chromosome, filename=filename)
 
-        #import pdb
-        #pdb.set_trace()
         # get the TUF-DEL-TUF
         tufdel.main(path=task_path, fas_file_name=ref_seq_file,
                     chr_idx=chromosome_index, viterbi_file=viterbi_path_filename)
