@@ -13,12 +13,20 @@ def make_configuration_path():
     return "%s/config.json" % BASE_DIR
 
 
-def make_viterbi_path_filename(task_id):
-    return VITERBI_PATHS_FILES_ROOT + task_id.replace('-', '_') + "/" + VITERBI_PATH_FILENAME
+def make_viterbi_path_filename(task_id, extra_path=None):
+
+    if extra_path is None:
+        return VITERBI_PATHS_FILES_ROOT + task_id.replace('-', '_') + "/" + VITERBI_PATH_FILENAME
+    else:
+        return VITERBI_PATHS_FILES_ROOT + task_id.replace('-', '_') + "/" + extra_path + "/" + VITERBI_PATH_FILENAME
 
 
-def make_tuf_del_tuf_path_filename(task_id):
-    return VITERBI_PATHS_FILES_ROOT + task_id.replace('-', '_') + "/" + TUF_DEL_TUF_PATH_FILENAME
+def make_tuf_del_tuf_path_filename(task_id, extra_path=None):
+
+    if extra_path is None:
+        return VITERBI_PATHS_FILES_ROOT + task_id.replace('-', '_') + "/" + TUF_DEL_TUF_PATH_FILENAME
+    else:
+        return VITERBI_PATHS_FILES_ROOT + task_id.replace('-', '_') + "/" + extra_path + "/" + TUF_DEL_TUF_PATH_FILENAME
 
 
 def make_viterbi_path(task_id):

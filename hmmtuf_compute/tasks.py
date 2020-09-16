@@ -35,10 +35,11 @@ def compute_group_viterbi_path(task_id, hmm_name, window_type,  group_tip):
     logger.info("Computing Group Viterbi path")
     from .models import GroupViterbiComputation
 
-    viterbi_path_filename = make_viterbi_path_filename(task_id=task_id)
+    viterbi_path_filename = INVALID_ITEM #make_viterbi_path_filename(task_id=task_id)
     task_path = make_viterbi_path(task_id=task_id)
 
     # load the regions belonging to the same group
+    # TODO: sort the w.r.t chr and region start-end
     regions = RegionModel.objects.filter(group_tip__tip=group_tip)
 
     result = {"task_id": task_id,
@@ -48,7 +49,8 @@ def compute_group_viterbi_path(task_id, hmm_name, window_type,  group_tip):
               "hmm_filename": hmm_name,
               "file_viterbi_path": viterbi_path_filename,
               "window_type": 'BOTH',
-              'hmm_path_img': INVALID_ITEM}
+              'hmm_path_img': INVALID_ITEM,
+              'group_tip': group_tip}
 
     # create a computation instance
     computation = GroupViterbiComputation()
@@ -59,6 +61,7 @@ def compute_group_viterbi_path(task_id, hmm_name, window_type,  group_tip):
     computation.file_viterbi_path = viterbi_path_filename
     computation.hmm_filename = hmm_name
     computation.hmm_path_img = INVALID_ITEM
+    computation.group_tip = group_tip
     computation.save()
 
     window_type = WindowType.from_string(window_type)
@@ -99,8 +102,11 @@ def compute_group_viterbi_path(task_id, hmm_name, window_type,  group_tip):
     computation.hmm_path_img = hmm_path_img
     result['hmm_path_img'] = hmm_path_img
 
+    import pdb
+    pdb.set_trace()
     for region_model in regions:
 
+        print("{0} Start working with region: {1}".format(INFO, region_model.name))
         region_filename = region_model.file_region.name
         region = Region.load(filename=region_filename)
         region.get_mixed_windows()
@@ -108,6 +114,19 @@ def compute_group_viterbi_path(task_id, hmm_name, window_type,  group_tip):
         chromosome = region_model.chromosome
         chromosome_index = region_model.chromosome_index
         ref_seq_file = region_model.ref_seq_file
+
+        # create needed directories
+        try:
+            # we may have many regions with the
+            # same chromosome so only create once
+            os.mkdir(task_path + chromosome)
+        except FileExistsError as e:
+            print("{0} Directory {1} exists".format(INFO, task_path + chromosome))
+            
+        os.mkdir(task_path + chromosome + "/" + region_model.name)
+
+        viterbi_path_filename = make_viterbi_path_filename(task_id=task_id, extra_path=chromosome + "/" + region_model.name)
+        tuf_del_tuf_filename = make_tuf_del_tuf_path_filename(task_id=task_id, extra_path=chromosome + "/" + region_model.name)
 
         try:
 
@@ -127,13 +146,15 @@ def compute_group_viterbi_path(task_id, hmm_name, window_type,  group_tip):
                                                                  limit_state='Deletion', min_subsequence=1)
 
             segments = viterbi_helpers.get_start_end_segment(tuf_delete_tuf, sequence)
+            viterbi_helpers.save_segments(segments=segments, chromosome=chromosome, filename=tuf_del_tuf_filename)
 
-            filename = make_tuf_del_tuf_path_filename(task_id=task_id)
-            viterbi_helpers.save_segments(segments=segments, chromosome=chromosome, filename=filename)
+            # get the TUF-DEL-TUF this is for every chromosome and region
+            path = task_path + chromosome + "/" + region_model.name + "/"
+            #tufdel.main(path=path, fas_file_name=ref_seq_file,
+            #            chr_idx=chromosome_index, viterbi_file=viterbi_path_filename)
 
-            # get the TUF-DEL-TUF
-            tufdel.main(path=task_path, fas_file_name=ref_seq_file,
-                        chr_idx=chromosome_index, viterbi_file=viterbi_path_filename)
+            # clean up directories?
+            print("{0} Done working with region: {1}".format(INFO, region_model.name))
 
         except Exception as e:
 

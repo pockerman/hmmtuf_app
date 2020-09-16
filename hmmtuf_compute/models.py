@@ -34,33 +34,34 @@ class GroupViterbiComputation(Computation):
     hmm_path_img = models.FileField(null=True)
 
     @staticmethod
-    def build_from_map(map, save):
+    def build_from_map(map_data, save):
 
         try:
-            computation = GroupViterbiComputation.objects.get(task_id=map["task_id"])
+            computation = GroupViterbiComputation.objects.get(task_id=map_data["task_id"])
             return computation
         except ObjectDoesNotExist:
 
             computation = ViterbiComputation()
-            computation.task_id = map["task_id"]
-            computation.result = map["result"]
-            computation.error_explanation = map["error_explanation"]
-            computation.computation_type = map["computation_type"]
-            computation.file_viterbi_path = map["viterbi_path_filename"]
-            computation.hmm_filename = map["hmm_filename"]
-            computation.hmm_path_img = map["hmm_path_img"]
-            computation.window_type = map["window_type"]
+            computation.task_id = map_data["task_id"]
+            computation.result = map_data["result"]
+            computation.error_explanation = map_data["error_explanation"]
+            computation.computation_type = map_data["computation_type"]
+            computation.file_viterbi_path = map_data["viterbi_path_filename"]
+            computation.hmm_filename = map_data["hmm_filename"]
+            computation.hmm_path_img = map_data["hmm_path_img"]
+            computation.window_type = map_data["window_type"]
+            computation.group_tip = map_data["group_tip"]
 
             if save:
                 computation.save()
-                print("{0} saved computation: {1}".format(INFO, map["task_id"]))
+                print("{0} saved computation: {1}".format(INFO, map_data["task_id"]))
             return computation
 
     @staticmethod
     def compute(data):
 
         hmm_name = data['hmm_name']
-        window_type = str(data['window_type'])
+        window_type = 'BOTH' #str(data['window_type'])
 
         if USE_CELERY:
 
@@ -74,8 +75,10 @@ class GroupViterbiComputation(Computation):
             import uuid
             from .tasks import compute_group_viterbi_path
             task_id = str(uuid.uuid4())
-            compute_group_viterbi_path(task_id=task_id, hmm_name=hmm_name,
-                                        window_type=window_type,  group_tip=data["group_tip"])
+            compute_group_viterbi_path(task_id=task_id,
+                                       hmm_name=hmm_name,
+                                       window_type=window_type,
+                                       group_tip=data["group_tip"])
             return task_id
 
     @staticmethod
@@ -85,20 +88,12 @@ class GroupViterbiComputation(Computation):
         data_map["task_id"] = task.id
         data_map["result"] = JobResultEnum.FAILURE.name
         data_map["error_explanation"] = str(result)
-        data_map["computation_type"] = JobType.VITERBI.name
+        data_map["computation_type"] = JobType.GROUP_VITERBI.name
         data_map["viterbi_path_filename"] = result["viterbi_path_filename"]  # INVALID_STR
-        data_map["region_filename"] = result["region_filename"]
         data_map["hmm_filename"] = result["hmm_filename"]
-        data_map["chromosome"] = result["chromosome"]
-        data_map["seq_size"] = result["chromosome"]
-        data_map["ref_seq_file"] = INVALID_STR
-        data_map["wga_seq_file"] = INVALID_STR
-        data_map["no_wag_seq_file"] = INVALID_STR
-        data_map["number_of_gaps"] = 0
         data_map["hmm_path_img"] = INVALID_ITEM
-        data_map["extracted_sequences"] = 0
-        data_map["n_mixed_windows"] = 0
         data_map["window_type"] = INVALID_STR
+        data_map["group_tip"] = result["group_tip"]
         return data_map
 
 
@@ -237,11 +232,11 @@ class ViterbiComputation(Computation):
         data_map["result"] = JobResultEnum.FAILURE.name
         data_map["error_explanation"] = str(result)
         data_map["computation_type"] = JobType.VITERBI.name
-        data_map["viterbi_path_filename"] = result["viterbi_path_filename"] #INVALID_STR
+        data_map["viterbi_path_filename"] = result["viterbi_path_filename"]
         data_map["region_filename"] = result["region_filename"]
         data_map["hmm_filename"] = result["hmm_filename"]
         data_map["chromosome"] = result["chromosome"]
-        data_map["seq_size"] = result["chromosome"]
+        data_map["seq_size"] = result["seq_size"]
         data_map["ref_seq_file"] = INVALID_STR
         data_map["wga_seq_file"] = INVALID_STR
         data_map["no_wag_seq_file"] = INVALID_STR

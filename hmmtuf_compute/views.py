@@ -21,6 +21,16 @@ from . import forms
 from . view_helpers import get_result_view_context, view_viterbi_path_exception_context
 
 
+def success_schedule_group_viterbi_compute_view(request, task_id):
+    template = loader.get_template('hmmtuf_compute/success_schedule_group_viterbi_compute_view.html')
+
+    context = {"task_id": task_id}
+    if task_id == INVALID_TASK_ID:
+        error_msg = "Task does not exist"
+        context.update({"error_msg": error_msg})
+    return HttpResponse(template.render(context, request))
+
+
 def schedule_group_viterbi_compute_view(request):
 
     template_html = 'hmmtuf_compute/schedule_group_viterbi_compute_view.html'
@@ -55,7 +65,7 @@ def schedule_group_viterbi_compute_view(request):
         task_id = models.GroupViterbiComputation.compute(data=kwargs)
 
         # return the id for the computation
-        return redirect('success_schedule_multi_viterbi_computation_view', task_id=task_id)
+        return redirect('success_schedule_group_viterbi_compute_view', task_id=task_id)
 
     return HttpResponse(template.render(context, request))
 
