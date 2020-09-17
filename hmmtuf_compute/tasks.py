@@ -22,14 +22,16 @@ logger = get_task_logger(__name__)
 
 
 @task(name="compute_group_viterbi_path_task")
-def compute_group_viterbi_path_task(hmm_name, window_type, group_tip):
+def compute_group_viterbi_path_task(hmm_name, window_type, group_tip,
+                                    remove_dirs, use_spade):
 
     task_id = compute_mutliple_viterbi_path_task.request.id
     return compute_group_viterbi_path(task_id=task_id, hmm_name=hmm_name,
-                                      window_type=window_type, group_tip=group_tip)
+                                      window_type=window_type, group_tip=group_tip,
+                                      remove_dirs=remove_dirs, use_spade=use_spade)
 
 
-def compute_group_viterbi_path(task_id, hmm_name, window_type,  group_tip):
+def compute_group_viterbi_path(task_id, hmm_name, window_type,  group_tip, remove_dirs, use_spade):
 
     logger.info("Computing Group Viterbi path")
     from .models import GroupViterbiComputation
@@ -140,10 +142,11 @@ def compute_group_viterbi_path(task_id, hmm_name, window_type,  group_tip):
             segments = viterbi_helpers.get_start_end_segment(tuf_delete_tuf, sequence)
             viterbi_helpers.save_segments(segments=segments, chromosome=chromosome, filename=tuf_del_tuf_filename)
 
-            # get the TUF-DEL-TUF this is for every chromosome and region
-            path = task_path + chromosome + "/" + region_model.name + "/"
-            tufdel.main(path=path, fas_file_name=ref_seq_file,
-                        chr_idx=chromosome_index, viterbi_file=viterbi_path_filename)
+            if use_spade:
+                # get the TUF-DEL-TUF this is for every chromosome and region
+                path = task_path + chromosome + "/" + region_model.name + "/"
+                tufdel.main(path=path, fas_file_name=ref_seq_file, chromosome=chromosome,
+                            chr_idx=chromosome_index, viterbi_file=viterbi_path_filename, remove_dirs=remove_dirs)
 
             print("{0} Done working with region: {1}".format(INFO, region_model.name))
 

@@ -5,7 +5,7 @@ from compute_engine import INFO
 from hmmtuf.helpers import make_bed_path
 from hmmtuf.helpers import get_configuration
 
-from .models import ViterbiComputation, MultiViterbiComputation
+from .models import ViterbiComputation, MultiViterbiComputation, GroupViterbiComputation
 
 def get_result_view_context(task, task_id):
 
@@ -68,6 +68,9 @@ def view_viterbi_path_exception_context(task, task_id, model=ViterbiComputation.
         elif model == MultiViterbiComputation.__name__:
             computation = MultiViterbiComputation.build_from_map(result, save=True)
             context.update({"computation": computation})
+        elif model == GroupViterbiComputation.__name__:
+            computation = GroupViterbiComputation.build_from_map(result, save=True)
+            context.update({"computation": computation})
         else:
             raise ValueError("Model name: {0} not found".format(INFO, model))
     elif task.status == JobResultEnum.FAILURE.name:
@@ -79,9 +82,11 @@ def view_viterbi_path_exception_context(task, task_id, model=ViterbiComputation.
             data_map = ViterbiComputation.get_invalid_map(task=task, result=result)
             computation = ViterbiComputation.build_from_map(data_map, save=True)
             context.update({'error_task_failed': True,
-                        "error_message": str(result),
-                        'task_id': task_id, "computation": computation})
+                            "error_message": str(result),
+                            'task_id': task_id, "computation": computation})
+
         elif model == MultiViterbiComputation.__name__:
+
             result = task.get(propagate=False)
             data_map = MultiViterbiComputation.get_invalid_map(task=task, result=result)
             computation = MultiViterbiComputation.build_from_map(data_map, save=True)
@@ -89,6 +94,17 @@ def view_viterbi_path_exception_context(task, task_id, model=ViterbiComputation.
                             "error_message": str(result),
                             'task_id': task_id,
                             "computation": computation})
+
+        elif model == GroupViterbiComputation.__name__:
+
+            result = task.get(propagate=False)
+            data_map = GroupViterbiComputation.get_invalid_map(task=task, result=result)
+            computation = GroupViterbiComputation.build_from_map(data_map, save=True)
+            context.update({'error_task_failed': True,
+                            "error_message": str(result),
+                            'task_id': task_id,
+                            "computation": computation})
+
         else:
             raise ValueError("Model name: {0} not found".format(INFO, model))
 
