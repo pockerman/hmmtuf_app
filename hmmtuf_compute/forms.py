@@ -126,6 +126,9 @@ class MultipleViterbiComputeForm(object):
 class ViterbiComputeForm(object):
 
     def __init__(self, template_html, configuration, context):
+        self._template_html = template_html
+        self._configuration = configuration
+        self._context = context
 
         self._kwargs = {'hmm_name': INVALID_ITEM,
                         'region_name': INVALID_ITEM,
@@ -138,7 +141,9 @@ class ViterbiComputeForm(object):
                           'ref_seq_file': INVALID_ITEM,
                           'wga_seq_file': INVALID_ITEM,
                           'no_wag_seq_file': INVALID_ITEM,
-                          'chromosome_index': INVALID_ITEM}
+                          'chromosome_index': INVALID_ITEM,
+                          "remove_dirs": INVALID_ITEM,
+                          "use_spade": INVALID_ITEM}
 
     def as_map(self):
         return self._kwargs
@@ -149,6 +154,16 @@ class ViterbiComputeForm(object):
         hmm_name = request.POST.get("hmm", '')
         hmm_model = HMMModel.objects.get(name=hmm_name)
         hmm_filename = hmm_model.file_hmm.name
+
+        checkbox = request.POST.get('remove_dirs', False)
+
+        if checkbox == 'True':
+            checkbox = True
+
+        use_spade = request.POST.get('use_spade', False)
+
+        if use_spade == 'True':
+            use_spade = True
 
         region_name = request.POST.get("region", '')
         region = RegionModel.objects.get(name=region_name)
@@ -161,9 +176,7 @@ class ViterbiComputeForm(object):
         no_wag_seq_file = region.no_wga_seq_file
 
         window_type = 'BOTH'
-        #chromosome = request.POST.get('chromosome', '')
-        #sequence_size = request.POST.get('sequence_size', '')
-        n_sequences = 1 #request.POST.get('n_sequences', '')
+        n_sequences = 1
 
         self._kwargs = {'hmm_name': hmm_name,
                       'region_name': region_name,
@@ -179,5 +192,7 @@ class ViterbiComputeForm(object):
                       'ref_seq_file': ref_seq_file,
                       'wga_seq_file': wga_seq_file,
                       'no_wag_seq_file': no_wag_seq_file,
-                      "chromosome_index": region.chromosome_index}
+                      "chromosome_index": region.chromosome_index,
+                      "remove_dirs": checkbox,
+                      "use_spade": use_spade}
 

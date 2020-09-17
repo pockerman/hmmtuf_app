@@ -19,16 +19,23 @@ outquad = None
 outrep = None
 quadout = None
 PATH = None
+SPADE_OUTPATH = None
+
+# dictionary that holds the names of the
+# directories created
+chromosome_dir_map = dict()
+
 
 
 # this function copied from gquadfinder
 def BaseScore(line):
 
     item, liste=0, []
-    while ( item < len(line)):
-        if (item < len(line) and (line[item]=="G" or line[item]=="g")):
+
+    while item < len(line):
+        if item < len(line) and (line[item] == "G" or line[item] == "g"):
             liste.append(1)
-            if(item+1< len(line) and (line[item+1]=="G" or line[item+1]=="g")):
+            if item+1 < len(line) and (line[item+1] == "G" or line[item+1] == "g"):
                 liste[item]=2
                 liste.append(2)
                 if item+2< len(line) and (line[item+2] == "G" or line[item+2] == "g"):
@@ -40,17 +47,17 @@ def BaseScore(line):
                         liste[item+1] = 4
                         liste[item+2] = 4
                         liste.append(4)
-                        item=item+1
-                    item=item+1
-                item=item+1
-            item=item+1
-            while(item < len(line) and (line[item]=="G" or line[item]=="g")):
+                        item = item+1
+                    item = item+1
+                item = item+1
+            item = item+1
+            while item < len(line) and (line[item] == "G" or line[item] == "g"):
                     liste.append(4)
-                    item=item+1
+                    item = item+1
     
-        elif (item < len(line) and line[item]!="G" and line[item]!="g" and line[item]!= "C" and line[item]!="c" ):
+        elif item < len(line) and line[item] !="G" and line[item] !="g" and line[item] != "C" and line[item] !="c":
                     liste.append(0)
-                    item=item+1
+                    item = item+1
             
         elif(item < len(line) and (line[item]=="C" or line[item]=="c")):
             liste.append(-1)
@@ -97,11 +104,12 @@ def CalScore(liste, k):
     return Score_Liste
 
 # this function copied from gquadfinder
-def GetG4(line,liste, Window,k, Len ):
-    LG4=[]
-    for i in range(len(liste)) :
-        if (liste[i]>= float(Window) or liste[i]<= - float(Window)):
-            seq=line[i:i+k]
+def GetG4(line, liste, Window, k, Len):
+
+    LG4 = []
+    for i in range(len(liste)):
+        if liste[i] >= float(Window) or liste[i] <= - float(Window):
+            seq = line[i:i+k]
             LG4.append(i)
     return LG4
 
@@ -171,6 +179,7 @@ def match(win, altwin):
 
 
 def gcpercent(cseq):
+
     count = 0
     count += cseq.count('G')
     count += cseq.count('g')
@@ -184,13 +193,17 @@ def spade(repseq, chrom, start, stop, type):
 
     global outrep
     global PATH
+    global SPADE_OUTPATH
+    global chromosome_dir_map
 
     if outrep is None:
         raise Exception("outrep file is None")
 
-
     if PATH is None:
         raise Exception("PATH variable not specified")
+
+    if SPADE_OUTPATH is None:
+        raise Exception("SPADE_OUTPATH variable not specified")
 
     if not os.path.isdir(PATH + 'repeats'):
         try:
@@ -202,20 +215,20 @@ def spade(repseq, chrom, start, stop, type):
             else:
                 raise e
 
-    fasta = open(PATH + 'repeats/tdtseq.fasta', 'w') #open('./repeats/tdtseq.fasta', 'w')
+    fasta = open(PATH + 'repeats/tdtseq.fasta', 'w')
 
     folder = chrom + '_'+str(start) + '-' + str(stop) + '_' + type + '_' + gcpercent(repseq)
-    # print(folder)
+    chromosome_dir_map[chrom] = folder
+
     fasta.write('>'+folder+'\n')
-    # fasta.write('>tempspade\n')
     fasta.write(repseq+'\n')
     fasta.close()
-    #os.system('activate testenv; python /Volumes/Samsung_T5/Sequencing/SPADE/SPADE.py -in /Volumes/Samsung_T5/Sequencing/TDTplots/tdtseq.fasta')
     str_cmd = 'python3 {0} -in {1} -out_dir {2}'.format(SPADE_PATH + 'SPADE.py',
                                                         PATH + 'repeats/tdtseq.fasta',
-                                                        PATH + 'spade_output/')
+                                                        SPADE_OUTPATH)
     print("{0} str_cmd {1}".format(INFO, str_cmd))
     os.system(str_cmd)
+
 
 def createbed(line, ccheck):
 
@@ -281,7 +294,33 @@ def doTDT(tdtarray, outfile):
                       '_' + gcpercent(seq) + '\t' + str(gquad) + str(mscore) + '\n')
 
 
-def main(path, fas_file_name, chr_idx, viterbi_file):
+def remove_directories(chromosome):
+
+    global chromosome_dir_map
+    global SPADE_OUTPATH
+
+    directories = os.listdir(path=SPADE_OUTPATH)
+
+    for name in directories:
+
+        # remove gb files
+        if name.endswith('gb'):
+            os.remove(os.path.join(SPADE_OUTPATH, name))
+
+        if name.startswith(chromosome + '_'):
+            if os.path.isdir(SPADE_OUTPATH + name):
+                shutil.rmtree(os.path.join(SPADE_OUTPATH, name))
+        # if this is a nucl_ directory
+        if name.startswith('nucl_'):
+            files = os.listdir(path=SPADE_OUTPATH + name)
+
+            for f in files:
+                if f != 'weblogo.txt':
+                    os.remove(os.path.join(SPADE_OUTPATH + name, f))
+
+
+def main(path, fas_file_name, chromosome,
+         chr_idx, viterbi_file, remove_dirs=False):
 
     print("{0} Start TUF-DEL-TUF".format(INFO))
 
@@ -297,15 +336,19 @@ def main(path, fas_file_name, chr_idx, viterbi_file):
     global outrep
     global quadout
     global PATH
+    global SPADE_OUTPATH
 
     PATH = path
 
     if ENABLE_SPADE:
         os.mkdir(PATH + "repeats")
         os.mkdir(PATH + "spade_output")
+        SPADE_OUTPATH = PATH + "spade_output/"
 
+    # read global reference file
     fas = pysam.FastaFile(fas_file_name)
 
+    # TODO: these should be set by the application
     conv = {'TUF': 10,
             'TUFDUP': 12,
             'Normal-I': 40,
@@ -314,6 +357,7 @@ def main(path, fas_file_name, chr_idx, viterbi_file):
             'Duplication': 50,
             'GAP_STATE': 0}
 
+    # Open global files
     outbedgraph = open(path + "viterbi.bedgraph", "w")
     outtuf = open(path + "tuf.bed", "w")
     outnor = open(path + "normal.bed", "w")
@@ -330,19 +374,12 @@ def main(path, fas_file_name, chr_idx, viterbi_file):
     end = 0
     chr = ''
     ptemp = True
-
-    #chrlist = filelist #[dI for dI in os.listdir('./HMMOut/') if os.path.isdir(os.path.join('./HMMOut/', dI))]
     chrlistsorted = {chr_idx: viterbi_file}
-
-    #for chrfolder in chrlist:
-    #    chrlistsorted[int(chrfolder.split('chr')[1])] = chrfolder
 
     for i in sorted(chrlistsorted):
 
-        flist = [] #os.listdir('./HMMOut/'+chrlistsorted[i]+'/')
-        tdtsorted = {}
-        viterbisorted = chrlistsorted#{}
-
+        flist = []
+        viterbisorted = chrlistsorted
 
         for f in flist:
             # if 'tuf_delete_tuf' in f and '._' not in f:
@@ -355,7 +392,7 @@ def main(path, fas_file_name, chr_idx, viterbi_file):
 
         for j in sorted(viterbisorted):
             print("{0} working with file: {1}".format(INFO, viterbisorted[j]))
-            with open(viterbisorted[j]) as vfile: #open('./HMMOut/'+chrlistsorted[i]+'/'+viterbisorted[j]) as vfile:
+            with open(viterbisorted[j]) as vfile:
 
                 ccheck = chrlistsorted[i].split('_')[2].rstrip()
 
@@ -453,6 +490,10 @@ def main(path, fas_file_name, chr_idx, viterbi_file):
     outtdt.close()
     outquad.close()
     outrep.close()
+
+    if remove_dirs:
+        remove_directories(chromosome=chromosome)
+
     print("{0} END TUF-DEL-TUF".format(INFO))
 
             

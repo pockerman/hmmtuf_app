@@ -8,7 +8,6 @@ from hmmtuf import INVALID_ITEM
 from hmmtuf.settings import USE_CELERY
 from hmmtuf_home.models import Computation, RegionGroupTipModel
 
-
 from .tasks import compute_viterbi_path_task
 from .tasks import compute_mutliple_viterbi_path_task
 from .tasks import compute_group_viterbi_path_task
@@ -46,7 +45,6 @@ class GroupViterbiComputation(Computation):
             computation.result = map_data["result"]
             computation.error_explanation = map_data["error_explanation"]
             computation.computation_type = map_data["computation_type"]
-            computation.file_viterbi_path = map_data["viterbi_path_filename"]
             computation.hmm_filename = map_data["hmm_filename"]
             computation.hmm_path_img = map_data["hmm_path_img"]
             computation.window_type = map_data["window_type"]
@@ -61,7 +59,7 @@ class GroupViterbiComputation(Computation):
     def compute(data):
 
         hmm_name = data['hmm_name']
-        window_type = 'BOTH' #str(data['window_type'])
+        window_type = 'BOTH'
 
         if USE_CELERY:
 
@@ -89,7 +87,6 @@ class GroupViterbiComputation(Computation):
         data_map["result"] = JobResultEnum.FAILURE.name
         data_map["error_explanation"] = str(result)
         data_map["computation_type"] = JobType.GROUP_VITERBI.name
-        data_map["viterbi_path_filename"] = result["viterbi_path_filename"]  # INVALID_STR
         data_map["hmm_filename"] = result["hmm_filename"]
         data_map["hmm_path_img"] = INVALID_ITEM
         data_map["window_type"] = INVALID_STR
@@ -99,12 +96,12 @@ class GroupViterbiComputation(Computation):
 
 class ViterbiComputation(Computation):
     """
-        Represents a Viterbi computation task in the DB
-        All fields are NULL by default as the computation may fail
-        before computing the relevant field. Instances of this class
-        are created by the tasks.compute_viterbi_path_task
-        which tries to fill in as many fields as possible. Upon successful
-        completion of the task all fields should have valid values
+    Represents a Viterbi computation task in the DB
+    All fields are NULL by default as the computation may fail
+    before computing the relevant field. Instances of this class
+    are created by the tasks.compute_viterbi_path_task
+    which tries to fill in as many fields as possible. Upon successful
+    completion of the task all fields should have valid values
     """
 
     # the resulting viterbi path file
@@ -157,29 +154,29 @@ class ViterbiComputation(Computation):
             return computation
         except ObjectDoesNotExist:
 
-                computation = ViterbiComputation()
-                computation.task_id = map["task_id"]
-                computation.result = map["result"]
-                computation.error_explanation = map["error_explanation"]
-                computation.computation_type = map["computation_type"]
-                computation.file_viterbi_path = map["viterbi_path_filename"]
-                computation.region_filename = map["region_filename"]
-                computation.ref_seq_filename = map["ref_seq_file"]
-                computation.wga_seq_filename = map["wga_seq_file"]
-                computation.no_wag_seq_filename = map["no_wag_seq_file"]
-                computation.hmm_filename = map["hmm_filename"]
-                computation.chromosome = map["chromosome"]
-                computation.seq_size = map["seq_size"]
-                computation.number_of_gaps = map["number_of_gaps"]
-                computation.hmm_path_img = map["hmm_path_img"]
-                computation.extracted_sequences = map["extracted_sequences"]
-                computation.n_mixed_windows = map["n_mixed_windows"]
-                computation.window_type = map["window_type"]
+            computation = ViterbiComputation()
+            computation.task_id = map["task_id"]
+            computation.result = map["result"]
+            computation.error_explanation = map["error_explanation"]
+            computation.computation_type = map["computation_type"]
+            computation.file_viterbi_path = map["viterbi_path_filename"]
+            computation.region_filename = map["region_filename"]
+            computation.ref_seq_filename = map["ref_seq_file"]
+            computation.wga_seq_filename = map["wga_seq_file"]
+            computation.no_wag_seq_filename = map["no_wag_seq_file"]
+            computation.hmm_filename = map["hmm_filename"]
+            computation.chromosome = map["chromosome"]
+            computation.seq_size = map["seq_size"]
+            computation.number_of_gaps = map["number_of_gaps"]
+            computation.hmm_path_img = map["hmm_path_img"]
+            computation.extracted_sequences = map["extracted_sequences"]
+            computation.n_mixed_windows = map["n_mixed_windows"]
+            computation.window_type = map["window_type"]
 
-                if save:
-                    computation.save()
-                    print("{0} saved computation: {1}".format(INFO, map["task_id"]))
-                return computation
+            if save:
+                computation.save()
+                print("{0} saved computation: {1}".format(INFO, map["task_id"]))
+            return computation
 
     @staticmethod
     def compute(data):
@@ -200,13 +197,15 @@ class ViterbiComputation(Computation):
                                                    chromosome=chromosome,
                                                    chromosome_index=data["chromosome_index"],
                                                    window_type=window_type,
-                                                    region_filename=region_filename,
-                                                    hmm_filename=hmm_filename,
-                                                    sequence_size=None,
-                                                    n_sequences=1,
-                                                    ref_seq_file=ref_seq_file,
-                                                    no_wga_seq_file=no_wga_seq_file,
-                                                    wga_seq_file=wga_seq_file)
+                                                   region_filename=region_filename,
+                                                   hmm_filename=hmm_filename,
+                                                   sequence_size=None,
+                                                   n_sequences=1,
+                                                   ref_seq_file=ref_seq_file,
+                                                   no_wga_seq_file=no_wga_seq_file,
+                                                   wga_seq_file=wga_seq_file,
+                                                   remove_dirs=data["remove_dirs"],
+                                                   use_spade=data["use_spade"])
             return task.id
         else:
 
@@ -215,14 +214,12 @@ class ViterbiComputation(Computation):
             task_id = str(uuid.uuid4())
             compute_viterbi_path(task_id=task_id, hmm_name=hmm_name,
                                  chromosome=chromosome, chromosome_index=data["chromosome_index"],
-                                 window_type=window_type,
-                                 region_filename=region_filename, hmm_filename=hmm_filename,
-                                 sequence_size=None, n_sequences=1,
+                                 window_type=window_type, region_filename=region_filename,
+                                 hmm_filename=hmm_filename, sequence_size=None, n_sequences=1,
                                  ref_seq_file=ref_seq_file, no_wga_seq_file=no_wga_seq_file,
-                                 wga_seq_file=wga_seq_file)
+                                 wga_seq_file=wga_seq_file, remove_dirs=data["remove_dirs"],
+                                 use_spade=data["use_spade"])
             return task_id
-
-
 
     @staticmethod
     def get_invalid_map(task, result):
@@ -249,7 +246,6 @@ class ViterbiComputation(Computation):
 
 
 class MultiViterbiComputation(Computation):
-
     """
     Represents a multi-Viterbi computation task in the DB
     All fields are NULL by default as the computation may fail
@@ -326,13 +322,13 @@ class MultiViterbiComputation(Computation):
 
         # schedule the computation
         task = compute_mutliple_viterbi_path_task.delay(hmm_name=hmm_name,
-                                                       chromosome=chromosome,
-                                                       window_type=window_type,
-                                                       viterbi_path_filename=viterbi_path_filename,
-                                                       group_tip=data['group_tip'],
-                                                       ref_seq_file=ref_seq_file,
-                                                       no_wga_seq_file=no_wag_seq_file,
-                                                       wga_seq_file=wga_seq_file)
+                                                        chromosome=chromosome,
+                                                        window_type=window_type,
+                                                        viterbi_path_filename=viterbi_path_filename,
+                                                        group_tip=data['group_tip'],
+                                                        ref_seq_file=ref_seq_file,
+                                                        no_wga_seq_file=no_wag_seq_file,
+                                                        wga_seq_file=wga_seq_file)
 
         return task.id
 

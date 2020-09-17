@@ -30,7 +30,7 @@
     <div class="control-group form-group">
         <div class="controls">
             <label>HMM file:</label><br/>
-            <select id="id_hmm" name="hmm">
+            <select name="hmm">
                 {% for hmm_name in hmm_names %}
                     <option value="{{ hmm_name }}">{{ hmm_name }}</option>
                 {% endfor %}
@@ -39,50 +39,13 @@
     </div>
     <br/>
 
-    <!--<div class="control-group form-group">
-        <div class="controls">
-            <label>Number of sequences:</label>
-            <input type="number" class="form-control" name="n_sequences"><br/>
-        </div>
-    </div>
+    <input type="checkbox" name="use_spade" value="True">
+    <label for="use_spade">Use SPADE</label><br><br>
 
-    <div class="control-group form-group">
-        <div class="controls">
-            <label>Chromosome:</label>
-            <input type="text" class="form-control" name="chromosome"><br/>
-        </div>
-    </div>-->
+    <input type="checkbox" name="remove_dirs" value="True">
+    <label for="remove_dirs">Remove created directories</label><br><br>
 
-    <!--<div class="control-group form-group">
-        <div class="controls">
-            <label>Sequence size:</label>
-            <input type="text" class="form-control" name="sequence_size">
-        </div>
-    </div>-->
-
-    <!--<div class="control-group form-group">
-        <div class="controls">
-            <label>Viterbi path filename:</label>
-            <input type="text" class="form-control" name="viterbi_path_filename">
-        </div>
-    </div>-->
-
-    <!--<p>Window Type</p>
-    <select id="id_window_type" name="window_type">
-        {% for window_name in window_names %}
-            <option value="{{ window_name }}">{{ window_name }}</option>
-        {% endfor %}
-    </select>
-    <br/>-->
-
-    <!--<p>Create TUF-DEL-TUF islands</p>
-    <select id="id_tuf_del_tuf" name="id_tuf_del_tuf">
-        {% for window_name in window_names %}
-            <option value="{{ window_name }}">{{ window_name }}</option>
-        {% endfor %}
-    </select>-->
     <br/>
-
     <button type="submit" class="btn btn-primary">Compute</button>
 </form>
 </div>

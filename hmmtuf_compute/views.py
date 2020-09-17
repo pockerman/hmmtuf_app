@@ -159,33 +159,6 @@ def view_multi_viterbi_path(request, task_id):
         view_viterbi_path_exception_context(task=task, task_id=task_id, model=models.MultiViterbiComputation.__name__)
         return HttpResponse(template.render(context, request))
 
-        """
-        context = {'task_status': task.status}
-
-        if task.status == 'PENDING':
-
-            context.update({'show_get_results_button': True,
-                            'task_id': task_id})
-            return HttpResponse(template.render(context, request))
-        elif task.status == 'SUCCESS':
-            result = task.get()
-
-            computation = models.MultiViterbiComputation.build_from_map(result, save=True)
-            context.update({"computation": computation})
-
-            return HttpResponse(template.render(context, request))
-        elif task.status == 'FAILURE':
-
-            result = task.get(propagate=False)
-            data_map = models.MultiViterbiComputation.get_invalid_map(task=task, result=result)
-            computation = models.MultiViterbiComputation.build_from_map(data_map, save=True)
-            context.update({'error_task_failed': True,
-                            "error_message": str(result),
-                            'task_id': task_id,
-                            "computation": computation})
-            return HttpResponse(template.render(context, request))
-        """
-
 
 def success_schedule_viterbi_compute_view(request, task_id):
     template = loader.get_template('hmmtuf_compute/success_schedule_viterbi_compute_view.html')
@@ -201,6 +174,8 @@ def schedule_hmm_viterbi_compute_view(request):
     """
     Schedules a region Viterbi computation.
     """
+
+    template_html = 'hmmtuf_compute/schedule_viterbi_compute_view.html'
 
     if request.method == 'POST':
 
@@ -218,7 +193,7 @@ def schedule_hmm_viterbi_compute_view(request):
 
     if len(hmms) == 0:
         context = {"error_empty_hmm_list": "HMM models have not been created."}
-        template = loader.get_template('hmmtuf_compute/schedule_viterbi_compute_view.html')
+        template = loader.get_template(template_html)
         return HttpResponse(template.render(context, request))
 
     hmm_names = []
@@ -230,7 +205,7 @@ def schedule_hmm_viterbi_compute_view(request):
 
     if len(regions) == 0:
         context = {"error_empty_region_list": "Regions have not been created.", }
-        template = loader.get_template('hmmtuf_compute/schedule_viterbi_compute_view.html')
+        template = loader.get_template(template_html)
         return HttpResponse(template.render(context, request))
 
     region_names = []
@@ -241,7 +216,7 @@ def schedule_hmm_viterbi_compute_view(request):
                "hmm_names": hmm_names,
                'window_names': WindowType.get_window_types(), }
 
-    template = loader.get_template('hmmtuf_compute/schedule_viterbi_compute_view.html')
+    template = loader.get_template(template_html)
     return HttpResponse(template.render(context, request))
 
 
