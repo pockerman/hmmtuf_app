@@ -18,8 +18,8 @@
         {% if error_missing_file %}
         <p>ERROR: {{ error_missing_file }}</p>
         {% endif %}
-        {% if error_missing_chromosome_name %}
-        <p>ERROR: {{ error_missing_chromosome_name }}</p>
+        {% if error_init_p_vector %}
+        <p>ERROR: {{ error_init_p_vector }}</p>
         {% endif %}
         <form method="post" enctype="multipart/form-data">
             {% csrf_token %}

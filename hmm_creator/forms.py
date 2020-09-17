@@ -61,18 +61,60 @@ class HMMFormCreator(object):
             return not OK
         except:
 
-            #import pdb
-            #pdb.set_trace()
+            import pdb
+            pdb.set_trace()
 
-            self._states = {}
-            state_names = request.POST.get('st_name[]',  None)
-            state_names = ["State1", "State2", "State3"]
+            state_names = []
+            state1_name = request.POST.get('State[1][st_name]', "")
 
-            if state_names is None:
+            if state1_name == "":
                 template = loader.get_template(self._template_html)
-                self._context.update({"error_no_states": "The HMM has no states specified"})
+                self._context.update({"error_missing_name": "State 1  name  not given"})
                 self._response = HttpResponse(template.render(self._context, request))
                 return not OK
+
+            state_names.append(state1_name)
+
+            state2_name = request.POST.get('State[2][st_name]', "")
+
+            if state2_name == "":
+                template = loader.get_template(self._template_html)
+                self._context.update({"error_missing_name": "State 2  name  not given"})
+                self._response = HttpResponse(template.render(self._context, request))
+                return not OK
+            elif state2_name in state_names:
+                template = loader.get_template(self._template_html)
+                self._context.update({"error_state_name_exists": "State 2 name {0} "
+                                                                 "already exists".format(state2_name)})
+                self._response = HttpResponse(template.render(self._context, request))
+                return not OK
+
+            # we need at least two states
+            state_names.append(state2_name)
+
+            counter = 3
+            staten_name = 'State[{0}][st_name]'.format(counter)
+
+            while staten_name in request.POST:
+                state_name = request.POST.get('staten_name', "")
+
+                if state_name == "":
+                    template = loader.get_template(self._template_html)
+                    self._context.update({"error_missing_name": "State {0}  name  not given".format(counter)})
+                    self._response = HttpResponse(template.render(self._context, request))
+                    return not OK
+                elif state_name in state_names:
+                    template = loader.get_template(self._template_html)
+                    self._context.update(
+                        {"error_state_name_exists": "State name {0} already exists".format(state_name)})
+                    self._response = HttpResponse(template.render(self._context, request))
+                    return not OK
+
+                state_names.append(state_name)
+                counter += 1
+                staten_name = 'State[{0}][st_name]'.format(counter)
+
+            self._states = {}
 
             for name in state_names:
 
@@ -82,19 +124,45 @@ class HMMFormCreator(object):
                     self._response = HttpResponse(template.render(self._context, request))
                     return not OK
                 else:
-                    self._states[name]={}
+                    self._states[name] = {}
 
-            init_p_vector = request.POST.get('IPV-Value',  None)
+            init_p_vector = request.POST.get('IPV-Value',  "")
+
+            if init_p_vector == "":
+
+                template = loader.get_template(self._template_html)
+                self._context.update({"error_init_p_vector": "Initial probability vector not specified"})
+                self._response = HttpResponse(template.render(self._context, request))
+                return not OK
+
+            init_p_vector = init_p_vector.split(',')
+            if len(init_p_vector) != len(state_names):
+                template = loader.get_template(self._template_html)
+                self._context.update({"error_init_p_vector": "Initial probability vector "
+                                                             "size not equal to number of states"})
+                self._response = HttpResponse(template.render(self._context, request))
+                return not OK
+
+            for idx in range(len(init_p_vector)):
+                init_p_vector[idx] = float(init_p_vector[idx])
 
             print(init_p_vector)
             print(len(init_p_vector))
 
-            init_p_vector = [0.1, 0.8, 0.1]
             self._init_p_vector = dict()
             for name, prob in zip(self._states.keys(), init_p_vector):
                 self._init_p_vector[name] = prob
 
             print(self._init_p_vector)
+
+            for idx in range(len(self._states)):
+                name = "State[{0}]".format(idx + 1)
+                result = self._build_state(state_name=name, state_names=state_names, request=request)
+
+                if result is not OK:
+                    return result
+
+
 
             self._states["State1"] = {"com_type": "SingleComponent",
                                       "distribution": "Normal",
@@ -137,4 +205,93 @@ class HMMFormCreator(object):
                 "states": self._states,
                 "init_p_vector": self._init_p_vector,
                 "hmm_name": self._hmm_name}
+
+    def _build_state(self, idx, state_name, state_names, request):
+
+        state_comp_type_key = state_name + "[com_type]"
+        state_comp_type = request.POST.get(state_comp_type_key, "")
+
+        if state_comp_type == "":
+            template = loader.get_template(self._template_html)
+            self._context.update({"error_state_comp": "State {0} "
+                                                      "component not specified"}.format(state_names[idx]))
+            self._response = HttpResponse(template.render(self._context, request))
+            return not OK
+
+        self._states[state_names[idx]]["com_type"] = state_comp_type
+
+        if state_comp_type == "SingleComponent":
+            state_dist_type_key = state_name + "[distribution]"
+            dist = request.POST.get(state_dist_type_key, "")
+
+            if dist == "":
+                template = loader.get_template(self._template_html)
+                self._context.update({"error_dist_comp": "State {0} "
+                                                         "distribution not specified"}.format(state_names[idx]))
+                self._response = HttpResponse(template.render(self._context, request))
+                return not OK
+
+            self._states[state_names[idx]]["distribution"] = dist
+
+            if dist == 'Normal':
+                mu1_comp_key = state_name + "[single_com_m1]"
+                mu1 = request.POST.get(mu1_comp_key, "")
+                mu2 = request.POST.get("State[1][single_com_m2]", "")
+                var1 = request.POST.get("State[1][single_com_v1]", "")
+                var2 = request.POST.get("State[1][single_com_v2]", "")
+                self._states[state_names[0]]["parameters"] = {"means": [mu1, mu2],
+                                                              "vars": [var1, var2]}
+            elif dist == 'Uniform':
+
+                mu1 = request.POST.get("State[1][single_com_m1]", "")
+                mu2 = request.POST.get("State[1][single_com_m2]", "")
+                var1 = request.POST.get("State[1][single_com_v1]", "")
+                var2 = request.POST.get("State[1][single_com_v2]", "")
+                self._states[state_names[0]]["parameters"] = {"means": [mu1, mu2],
+                                                              "vars": [var1, var2]}
+            else:
+
+                template = loader.get_template(self._template_html)
+                self._context.update({"error_dist_comp": "State {0} "
+                                                         "distribution {1} does not exist"}.format(state_names[0],
+                                                                                                   dist))
+                self._response = HttpResponse(template.render(self._context, request))
+                return not OK
+        elif state1_comp_type == "MixtureComponent":
+
+            dist = request.POST.get("State[1]components[0][distribution]", "")
+
+            if dist == "":
+                template = loader.get_template(self._template_html)
+                self._context.update({"error_dist_comp": "State {0} "
+                                                         "distribution not specified"}.format(state_names[0]))
+                self._response = HttpResponse(template.render(self._context, request))
+                return not OK
+
+            self._states[state_names[0]]["distribution"] = dist
+
+            if dist == 'Normal':
+                mu1 = request.POST.get("State[1][single_com_m1]", "")
+                mu2 = request.POST.get("State[1][single_com_m2]", "")
+                var1 = request.POST.get("State[1][single_com_v1]", "")
+                var2 = request.POST.get("State[1][single_com_v2]", "")
+                self._states[state_names[0]]["parameters"] = {"means": [mu1, mu2],
+                                                              "vars": [var1, var2]}
+            elif dist == 'Uniform':
+
+                mu1 = request.POST.get("State[1][single_com_m1]", "")
+                mu2 = request.POST.get("State[1][single_com_m2]", "")
+                var1 = request.POST.get("State[1][single_com_v1]", "")
+                var2 = request.POST.get("State[1][single_com_v2]", "")
+                self._states[state_names[0]]["parameters"] = {"means": [mu1, mu2],
+                                                              "vars": [var1, var2]}
+            else:
+
+                template = loader.get_template(self._template_html)
+                self._context.update({"error_dist_comp": "State {0} "
+                                                         "distribution {1} does not exist"}.format(state_names[0],
+                                                                                                   dist))
+                self._response = HttpResponse(template.render(self._context, request))
+                return not OK
+
 
