@@ -66,7 +66,9 @@ class GroupViterbiComputation(Computation):
             # schedule the computation
             task = compute_group_viterbi_path_task.delay(hmm_name=hmm_name,
                                                          window_type=window_type,
-                                                         group_tip=data["group_tip"])
+                                                         group_tip=data["group_tip"],
+                                                         remove_dirs=data["remove_dirs"],
+                                                         use_spade=data["use_spade"])
             return task.id
         else:
 
@@ -76,7 +78,9 @@ class GroupViterbiComputation(Computation):
             compute_group_viterbi_path(task_id=task_id,
                                        hmm_name=hmm_name,
                                        window_type=window_type,
-                                       group_tip=data["group_tip"])
+                                       group_tip=data["group_tip"],
+                                       remove_dirs=data["remove_dirs"],
+                                       use_spade=data["use_spade"])
             return task_id
 
     @staticmethod
