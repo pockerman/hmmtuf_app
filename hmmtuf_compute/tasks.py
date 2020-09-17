@@ -24,7 +24,6 @@ logger = get_task_logger(__name__)
 @task(name="compute_group_viterbi_path_task")
 def compute_group_viterbi_path_task(hmm_name, window_type, group_tip):
 
-
     task_id = compute_mutliple_viterbi_path_task.request.id
     return compute_group_viterbi_path(task_id=task_id, hmm_name=hmm_name,
                                       window_type=window_type, group_tip=group_tip)
@@ -35,7 +34,6 @@ def compute_group_viterbi_path(task_id, hmm_name, window_type,  group_tip):
     logger.info("Computing Group Viterbi path")
     from .models import GroupViterbiComputation
 
-    viterbi_path_filename = INVALID_ITEM #make_viterbi_path_filename(task_id=task_id)
     task_path = make_viterbi_path(task_id=task_id)
 
     # load the regions belonging to the same group
@@ -47,7 +45,6 @@ def compute_group_viterbi_path(task_id, hmm_name, window_type,  group_tip):
               "error_explanation": DEFAULT_ERROR_EXPLANATION,
               "computation_type": JobType.GROUP_VITERBI.name,
               "hmm_filename": hmm_name,
-              "file_viterbi_path": viterbi_path_filename,
               "window_type": 'BOTH',
               'hmm_path_img': INVALID_ITEM,
               'group_tip': group_tip}
@@ -58,7 +55,6 @@ def compute_group_viterbi_path(task_id, hmm_name, window_type,  group_tip):
     computation.computation_type = JobType.GROUP_VITERBI.name
     computation.error_explanation = DEFAULT_ERROR_EXPLANATION
     computation.result = JobResultEnum.PENDING.name
-    computation.file_viterbi_path = viterbi_path_filename
     computation.hmm_filename = hmm_name
     computation.hmm_path_img = INVALID_ITEM
     computation.group_tip = group_tip
@@ -106,7 +102,6 @@ def compute_group_viterbi_path(task_id, hmm_name, window_type,  group_tip):
     pdb.set_trace()
     for region_model in regions:
 
-        print("{0} Start working with region: {1}".format(INFO, region_model.name))
         region_filename = region_model.file_region.name
         region = Region.load(filename=region_filename)
         region.get_mixed_windows()
@@ -125,24 +120,23 @@ def compute_group_viterbi_path(task_id, hmm_name, window_type,  group_tip):
             
         os.mkdir(task_path + chromosome + "/" + region_model.name)
 
-        viterbi_path_filename = make_viterbi_path_filename(task_id=task_id, extra_path=chromosome + "/" + region_model.name)
-        tuf_del_tuf_filename = make_tuf_del_tuf_path_filename(task_id=task_id, extra_path=chromosome + "/" + region_model.name)
+        viterbi_path_filename = make_viterbi_path_filename(task_id=task_id,
+                                                           extra_path=chromosome + "/" + region_model.name)
+        tuf_del_tuf_filename = make_tuf_del_tuf_path_filename(task_id=task_id,
+                                                              extra_path=chromosome + "/" + region_model.name)
 
         try:
 
             # extract the sequence
-            sequence = region.get_region_as_rd_mean_sequences_with_windows(size=None,
-                                                                           window_type=window_type,
-                                                                           n_seqs=1,
-                                                                           exclude_gaps=False)
+            sequence = region.get_region_as_rd_mean_sequences_with_windows(size=None, window_type=window_type,
+                                                                           n_seqs=1, exclude_gaps=False)
 
             viterbi_path, observations, \
             sequence_viterbi_state = viterbi_helpers.create_viterbi_path(sequence=sequence, hmm_model=hmm_model,
                                                                          chr=chromosome, filename=viterbi_path_filename,
                                                                          append_or_write='a')
 
-            tuf_delete_tuf = viterbi_helpers.filter_viterbi_path(path=viterbi_path[1][1:],
-                                                                 wstate='TUF',
+            tuf_delete_tuf = viterbi_helpers.filter_viterbi_path(path=viterbi_path[1][1:], wstate='TUF',
                                                                  limit_state='Deletion', min_subsequence=1)
 
             segments = viterbi_helpers.get_start_end_segment(tuf_delete_tuf, sequence)
@@ -150,8 +144,8 @@ def compute_group_viterbi_path(task_id, hmm_name, window_type,  group_tip):
 
             # get the TUF-DEL-TUF this is for every chromosome and region
             path = task_path + chromosome + "/" + region_model.name + "/"
-            #tufdel.main(path=path, fas_file_name=ref_seq_file,
-            #            chr_idx=chromosome_index, viterbi_file=viterbi_path_filename)
+            tufdel.main(path=path, fas_file_name=ref_seq_file,
+                        chr_idx=chromosome_index, viterbi_file=viterbi_path_filename)
 
             # clean up directories?
             print("{0} Done working with region: {1}".format(INFO, region_model.name))
@@ -294,7 +288,8 @@ def compute_mutliple_viterbi_path_task(hmm_name, chromosome,
 def compute_viterbi_path_task(hmm_name, chromosome, chromosome_index,
                               window_type, region_filename, hmm_filename,
                               sequence_size, n_sequences,
-                              ref_seq_file, wga_seq_file, no_wga_seq_file):
+                              ref_seq_file, wga_seq_file, no_wga_seq_file,
+                              remove_dirs, use_spade):
 
     task_id = compute_viterbi_path_task.request.id
     return compute_viterbi_path(task_id=task_id, hmm_name=hmm_name,
@@ -302,14 +297,15 @@ def compute_viterbi_path_task(hmm_name, chromosome, chromosome_index,
                                 window_type=window_type, region_filename=region_filename,
                                 hmm_filename=hmm_filename, sequence_size=sequence_size,
                                 n_sequences=n_sequences, ref_seq_file=ref_seq_file,
-                                wga_seq_file=wga_seq_file,
-                                no_wga_seq_file=no_wga_seq_file)
+                                wga_seq_file=wga_seq_file, no_wga_seq_file=no_wga_seq_file,
+                                remove_dirs=remove_dirs, use_spade=use_spade)
 
 
 def compute_viterbi_path(task_id, hmm_name, chromosome,
                          chromosome_index, window_type, region_filename,
                          hmm_filename, sequence_size, n_sequences,
-                         ref_seq_file, wga_seq_file, no_wga_seq_file):
+                         ref_seq_file, wga_seq_file, no_wga_seq_file,
+                         remove_dirs, use_spade):
 
     logger.info("Computing Viterbi path")
     from .models import ViterbiComputation
@@ -413,9 +409,11 @@ def compute_viterbi_path(task_id, hmm_name, chromosome,
         filename = make_tuf_del_tuf_path_filename(task_id=task_id)
         viterbi_helpers.save_segments(segments=segments, chromosome=chromosome, filename=filename)
 
-        # get the TUF-DEL-TUF
-        tufdel.main(path=task_path, fas_file_name=ref_seq_file,
-                    chr_idx=chromosome_index, viterbi_file=viterbi_path_filename)
+        if use_spade:
+            # get the TUF-DEL-TUF
+            tufdel.main(path=task_path, fas_file_name=ref_seq_file,
+                        chromosome=chromosome, chr_idx=chromosome_index,
+                        viterbi_file=viterbi_path_filename, remove_dirs=remove_dirs)
 
         wga_obs = []
         no_wga_obs = []
