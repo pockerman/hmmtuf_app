@@ -39,11 +39,13 @@
     </div>
     <br/>
 
+    {% if use_spade %}
     <input type="checkbox" name="use_spade" value="True">
     <label for="use_spade">Use SPADE</label><br><br>
 
     <input type="checkbox" name="remove_dirs" value="True">
     <label for="remove_dirs">Remove created directories</label><br><br>
+    {% endif %}
 
     <br/>
     <button type="submit" class="btn btn-primary">Compute</button>

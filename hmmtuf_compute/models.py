@@ -320,17 +320,32 @@ class MultiViterbiComputation(Computation):
         wga_seq_file = data["wga_seq_filename"]
         no_wag_seq_file = data["no_wga_seq_filename"]
 
-        # schedule the computation
-        task = compute_mutliple_viterbi_path_task.delay(hmm_name=hmm_name,
-                                                        chromosome=chromosome,
-                                                        window_type=window_type,
-                                                        viterbi_path_filename=viterbi_path_filename,
-                                                        group_tip=data['group_tip'],
-                                                        ref_seq_file=ref_seq_file,
-                                                        no_wga_seq_file=no_wag_seq_file,
-                                                        wga_seq_file=wga_seq_file)
+        if USE_CELERY:
 
-        return task.id
+            # schedule the computation
+            task = compute_mutliple_viterbi_path_task.delay(hmm_name=hmm_name,
+                                                            chromosome=chromosome,
+                                                            window_type=window_type,
+                                                            group_tip=data['group_tip'],
+                                                            ref_seq_file=ref_seq_file,
+                                                            no_wga_seq_file=no_wag_seq_file,
+                                                            wga_seq_file=wga_seq_file,
+                                                            remove_dirs=data["remove_dirs"],
+                                                            use_spade=data["use_spade"])
+
+            return task.id
+        else:
+
+            import uuid
+            from .tasks import compute_mutliple_viterbi_path
+            task_id = str(uuid.uuid4())
+            compute_mutliple_viterbi_path(task_id=task_id, hmm_name=hmm_name,
+                                          chromosome=chromosome, window_type=window_type,
+                                          group_tip=data['group_tip'], ref_seq_file=ref_seq_file,
+                                          wga_seq_file=wga_seq_file, no_wga_seq_file=no_wag_seq_file,
+                                          remove_dirs=data["remove_dirs"], use_spade=data["use_spade"])
+            return task_id
+
 
     @staticmethod
     def get_invalid_map(task, result):
