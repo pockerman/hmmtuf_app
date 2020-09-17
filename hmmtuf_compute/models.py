@@ -6,21 +6,107 @@ from compute_engine.job import JobType, JobResultEnum
 from compute_engine.windows import WindowType
 from hmmtuf import INVALID_ITEM
 from hmmtuf.settings import USE_CELERY
-from hmmtuf_home.models import Computation
+from hmmtuf_home.models import Computation, RegionGroupTipModel
+
+from .tasks import compute_viterbi_path_task
+from .tasks import compute_mutliple_viterbi_path_task
+from .tasks import compute_group_viterbi_path_task
 
 
-from .tasks import compute_viterbi_path_task, compute_mutliple_viterbi_path_task
+class GroupViterbiComputation(Computation):
+    """
+    Represents a group Viterbi computation task in the DB
+    All fields are NULL by default as the computation may fail
+    before computing the relevant field. Instances of this class
+    are created by the tasks.compute_viterbi_path_task
+    which tries to fill in as many fields as possible. Upon successful
+    completion of the task all fields should have valid values
+    """
+
+    # the tip used for the computation
+    group_tip = models.CharField(max_length=100, null=True)
+
+    # the hmm model used for the computation
+    hmm_filename = models.CharField(max_length=500, null=True)
+
+    # the hmm model image
+    hmm_path_img = models.FileField(null=True)
+
+    @staticmethod
+    def build_from_map(map_data, save):
+
+        try:
+            computation = GroupViterbiComputation.objects.get(task_id=map_data["task_id"])
+            return computation
+        except ObjectDoesNotExist:
+
+            computation = ViterbiComputation()
+            computation.task_id = map_data["task_id"]
+            computation.result = map_data["result"]
+            computation.error_explanation = map_data["error_explanation"]
+            computation.computation_type = map_data["computation_type"]
+            computation.hmm_filename = map_data["hmm_filename"]
+            computation.hmm_path_img = map_data["hmm_path_img"]
+            computation.window_type = map_data["window_type"]
+            computation.group_tip = map_data["group_tip"]
+
+            if save:
+                computation.save()
+                print("{0} saved computation: {1}".format(INFO, map_data["task_id"]))
+            return computation
+
+    @staticmethod
+    def compute(data):
+
+        hmm_name = data['hmm_name']
+        window_type = 'BOTH'
+
+        if USE_CELERY:
+
+            # schedule the computation
+            task = compute_group_viterbi_path_task.delay(hmm_name=hmm_name,
+                                                         window_type=window_type,
+                                                         group_tip=data["group_tip"],
+                                                         remove_dirs=data["remove_dirs"],
+                                                         use_spade=data["use_spade"])
+            return task.id
+        else:
+
+            import uuid
+            from .tasks import compute_group_viterbi_path
+            task_id = str(uuid.uuid4())
+            compute_group_viterbi_path(task_id=task_id,
+                                       hmm_name=hmm_name,
+                                       window_type=window_type,
+                                       group_tip=data["group_tip"],
+                                       remove_dirs=data["remove_dirs"],
+                                       use_spade=data["use_spade"])
+            return task_id
+
+    @staticmethod
+    def get_invalid_map(task, result):
+        data_map = dict()
+
+        data_map["task_id"] = task.id
+        data_map["result"] = JobResultEnum.FAILURE.name
+        data_map["error_explanation"] = str(result)
+        data_map["computation_type"] = JobType.GROUP_VITERBI.name
+        data_map["hmm_filename"] = result["hmm_filename"]
+        data_map["hmm_path_img"] = INVALID_ITEM
+        data_map["window_type"] = INVALID_STR
+        data_map["group_tip"] = result["group_tip"]
+        return data_map
 
 
 class ViterbiComputation(Computation):
     """
-        Represents a Viterbi computation task in the DB
-        All fields are NULL by default as the computation may fail
-        before computing the relevant field. Instances of this class
-        are created by the tasks.compute_viterbi_path_task
-        which tries to fill in as many fields as possible. Upon successful
-        completion of the task all fields should have valid values
-        """
+    Represents a Viterbi computation task in the DB
+    All fields are NULL by default as the computation may fail
+    before computing the relevant field. Instances of this class
+    are created by the tasks.compute_viterbi_path_task
+    which tries to fill in as many fields as possible. Upon successful
+    completion of the task all fields should have valid values
+    """
 
     # the resulting viterbi path file
     file_viterbi_path = models.FileField(null=True)
@@ -72,29 +158,29 @@ class ViterbiComputation(Computation):
             return computation
         except ObjectDoesNotExist:
 
-                computation = ViterbiComputation()
-                computation.task_id = map["task_id"]
-                computation.result = map["result"]
-                computation.error_explanation = map["error_explanation"]
-                computation.computation_type = map["computation_type"]
-                computation.file_viterbi_path = map["viterbi_path_filename"]
-                computation.region_filename = map["region_filename"]
-                computation.ref_seq_filename = map["ref_seq_file"]
-                computation.wga_seq_filename = map["wga_seq_file"]
-                computation.no_wag_seq_filename = map["no_wag_seq_file"]
-                computation.hmm_filename = map["hmm_filename"]
-                computation.chromosome = map["chromosome"]
-                computation.seq_size = map["seq_size"]
-                computation.number_of_gaps = map["number_of_gaps"]
-                computation.hmm_path_img = map["hmm_path_img"]
-                computation.extracted_sequences = map["extracted_sequences"]
-                computation.n_mixed_windows = map["n_mixed_windows"]
-                computation.window_type = map["window_type"]
+            computation = ViterbiComputation()
+            computation.task_id = map["task_id"]
+            computation.result = map["result"]
+            computation.error_explanation = map["error_explanation"]
+            computation.computation_type = map["computation_type"]
+            computation.file_viterbi_path = map["viterbi_path_filename"]
+            computation.region_filename = map["region_filename"]
+            computation.ref_seq_filename = map["ref_seq_file"]
+            computation.wga_seq_filename = map["wga_seq_file"]
+            computation.no_wag_seq_filename = map["no_wag_seq_file"]
+            computation.hmm_filename = map["hmm_filename"]
+            computation.chromosome = map["chromosome"]
+            computation.seq_size = map["seq_size"]
+            computation.number_of_gaps = map["number_of_gaps"]
+            computation.hmm_path_img = map["hmm_path_img"]
+            computation.extracted_sequences = map["extracted_sequences"]
+            computation.n_mixed_windows = map["n_mixed_windows"]
+            computation.window_type = map["window_type"]
 
-                if save:
-                    computation.save()
-                    print("{0} saved computation: {1}".format(INFO, map["task_id"]))
-                return computation
+            if save:
+                computation.save()
+                print("{0} saved computation: {1}".format(INFO, map["task_id"]))
+            return computation
 
     @staticmethod
     def compute(data):
@@ -115,13 +201,15 @@ class ViterbiComputation(Computation):
                                                    chromosome=chromosome,
                                                    chromosome_index=data["chromosome_index"],
                                                    window_type=window_type,
-                                                    region_filename=region_filename,
-                                                    hmm_filename=hmm_filename,
-                                                    sequence_size=None,
-                                                    n_sequences=1,
-                                                    ref_seq_file=ref_seq_file,
-                                                    no_wga_seq_file=no_wga_seq_file,
-                                                    wga_seq_file=wga_seq_file)
+                                                   region_filename=region_filename,
+                                                   hmm_filename=hmm_filename,
+                                                   sequence_size=None,
+                                                   n_sequences=1,
+                                                   ref_seq_file=ref_seq_file,
+                                                   no_wga_seq_file=no_wga_seq_file,
+                                                   wga_seq_file=wga_seq_file,
+                                                   remove_dirs=data["remove_dirs"],
+                                                   use_spade=data["use_spade"])
             return task.id
         else:
 
@@ -130,14 +218,12 @@ class ViterbiComputation(Computation):
             task_id = str(uuid.uuid4())
             compute_viterbi_path(task_id=task_id, hmm_name=hmm_name,
                                  chromosome=chromosome, chromosome_index=data["chromosome_index"],
-                                 window_type=window_type,
-                                 region_filename=region_filename, hmm_filename=hmm_filename,
-                                 sequence_size=None, n_sequences=1,
+                                 window_type=window_type, region_filename=region_filename,
+                                 hmm_filename=hmm_filename, sequence_size=None, n_sequences=1,
                                  ref_seq_file=ref_seq_file, no_wga_seq_file=no_wga_seq_file,
-                                 wga_seq_file=wga_seq_file)
+                                 wga_seq_file=wga_seq_file, remove_dirs=data["remove_dirs"],
+                                 use_spade=data["use_spade"])
             return task_id
-
-
 
     @staticmethod
     def get_invalid_map(task, result):
@@ -147,11 +233,11 @@ class ViterbiComputation(Computation):
         data_map["result"] = JobResultEnum.FAILURE.name
         data_map["error_explanation"] = str(result)
         data_map["computation_type"] = JobType.VITERBI.name
-        data_map["viterbi_path_filename"] = result["viterbi_path_filename"] #INVALID_STR
+        data_map["viterbi_path_filename"] = result["viterbi_path_filename"]
         data_map["region_filename"] = result["region_filename"]
         data_map["hmm_filename"] = result["hmm_filename"]
         data_map["chromosome"] = result["chromosome"]
-        data_map["seq_size"] = result["chromosome"]
+        data_map["seq_size"] = result["seq_size"]
         data_map["ref_seq_file"] = INVALID_STR
         data_map["wga_seq_file"] = INVALID_STR
         data_map["no_wag_seq_file"] = INVALID_STR
@@ -164,7 +250,6 @@ class ViterbiComputation(Computation):
 
 
 class MultiViterbiComputation(Computation):
-
     """
     Represents a multi-Viterbi computation task in the DB
     All fields are NULL by default as the computation may fail
@@ -239,17 +324,32 @@ class MultiViterbiComputation(Computation):
         wga_seq_file = data["wga_seq_filename"]
         no_wag_seq_file = data["no_wga_seq_filename"]
 
-        # schedule the computation
-        task = compute_mutliple_viterbi_path_task.delay(hmm_name=hmm_name,
-                                                       chromosome=chromosome,
-                                                       window_type=window_type,
-                                                       viterbi_path_filename=viterbi_path_filename,
-                                                       group_tip=data['group_tip'],
-                                                       ref_seq_file=ref_seq_file,
-                                                       no_wga_seq_file=no_wag_seq_file,
-                                                       wga_seq_file=wga_seq_file)
+        if USE_CELERY:
 
-        return task.id
+            # schedule the computation
+            task = compute_mutliple_viterbi_path_task.delay(hmm_name=hmm_name,
+                                                            chromosome=chromosome,
+                                                            window_type=window_type,
+                                                            group_tip=data['group_tip'],
+                                                            ref_seq_file=ref_seq_file,
+                                                            no_wga_seq_file=no_wag_seq_file,
+                                                            wga_seq_file=wga_seq_file,
+                                                            remove_dirs=data["remove_dirs"],
+                                                            use_spade=data["use_spade"])
+
+            return task.id
+        else:
+
+            import uuid
+            from .tasks import compute_mutliple_viterbi_path
+            task_id = str(uuid.uuid4())
+            compute_mutliple_viterbi_path(task_id=task_id, hmm_name=hmm_name,
+                                          chromosome=chromosome, window_type=window_type,
+                                          group_tip=data['group_tip'], ref_seq_file=ref_seq_file,
+                                          wga_seq_file=wga_seq_file, no_wga_seq_file=no_wag_seq_file,
+                                          remove_dirs=data["remove_dirs"], use_spade=data["use_spade"])
+            return task_id
+
 
     @staticmethod
     def get_invalid_map(task, result):

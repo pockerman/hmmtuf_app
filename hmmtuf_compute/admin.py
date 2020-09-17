@@ -5,6 +5,7 @@ from django.contrib import admin
 # Register your models here.
 from .models import ViterbiComputation
 from .models import MultiViterbiComputation
+from .models import GroupViterbiComputation
 
 
 class ViterbiComputationAdmin(admin.ModelAdmin):
@@ -20,6 +21,12 @@ class MultiViterbiComputationAdmin(admin.ModelAdmin):
     list_display = ('task_id', 'result', 'error_explanation')
 
 
+class GroupViterbiComputationAdmin(admin.ModelAdmin):
+    fields = ['task_id', 'hmm_filename', 'result', 'error_explanation', 'group_tip', ]
+    list_display = ('task_id', 'result', 'error_explanation', 'group_tip')
+
+
 admin.site.register(ViterbiComputation, ViterbiComputationAdmin)
 admin.site.register(MultiViterbiComputation, MultiViterbiComputationAdmin)
+admin.site.register(GroupViterbiComputation, GroupViterbiComputationAdmin)
 

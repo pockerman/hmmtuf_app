@@ -24,18 +24,6 @@
 
     <div class="control-group form-group">
         <div class="controls">
-            <label>Reference file:</label><br/>
-            <select id="id_region" name="reference_files_names">
-                {% for name in reference_files_names %}
-                    <option value="{{ name }}">{{ name }}</option>
-                {% endfor %}
-            </select>
-        </div>
-    </div>
-    <br/>
-
-    <div class="control-group form-group">
-        <div class="controls">
             <label>HMM file:</label><br/>
             <select id="id_hmm" name="hmm">
                 {% for hmm_name in hmm_names %}
@@ -65,6 +53,14 @@
         </div>
     </div>
     <br/>
+
+    {% if use_spade %}
+    <input type="checkbox" name="use_spade" value="True">
+    <label for="use_spade">Use SPADE</label><br><br>
+
+    <input type="checkbox" name="remove_dirs" value="True">
+    <label for="remove_dirs">Remove created directories</label><br><br>
+    {% endif %}
 
     <button type="submit" class="btn btn-primary">Compute</button>
 </form>
