@@ -5,7 +5,7 @@ from django.shortcuts import redirect
 from django.core.exceptions import ObjectDoesNotExist
 
 from compute_engine.windows import WindowType
-from compute_engine import INFO, OK
+from compute_engine import OK, ENABLE_SPADE
 from compute_engine.utils import extract_file_names
 
 from hmmtuf import VITERBI_PATH_FILENAME
@@ -71,7 +71,9 @@ def schedule_group_viterbi_compute_view(request):
 
 
 def success_schedule_multi_viterbi_compute_view(request, task_id):
-    template = loader.get_template('hmmtuf_compute/success_schedule_multi_viterbi_compute_view.html')
+
+    template_html = 'hmmtuf_compute/success_schedule_multi_viterbi_compute_view.html'
+    template = loader.get_template(template_html)
 
     context = {"task_id": task_id}
     if task_id == INVALID_TASK_ID:
@@ -85,6 +87,7 @@ def schedule_multi_viterbi_compute_view(request):
     Schedule a multi-region Viterbi computation.
     """
 
+    template_html = 'hmmtuf_compute/schedule_multi_viterbi_compute_view.html'
     configuration = get_configuration()
     reference_files_names, wga_files_names, \
     nwga_files_names = extract_file_names(configuration=configuration)
@@ -94,7 +97,7 @@ def schedule_multi_viterbi_compute_view(request):
 
     if len(hmms) == 0:
         context = {"error_empty_hmm_list": "HMM models have not been created."}
-        template = loader.get_template('hmmtuf_compute/schedule_multi_viterbi_compute_view.html')
+        template = loader.get_template(template_html)
         return HttpResponse(template.render(context, request))
 
     hmm_names = []
@@ -102,13 +105,14 @@ def schedule_multi_viterbi_compute_view(request):
         hmm_names.append(item.name)
 
     group_tips = RegionGroupTipModel.objects.all()
+    context = {"hmm_names": hmm_names, "group_tips": group_tips}
 
-    context = {"reference_files_names": reference_files_names,
-               "hmm_names": hmm_names, "group_tips": group_tips}
+    if ENABLE_SPADE:
+        context.update({"use_spade": True})
 
     if request.method == 'POST':
 
-        form = forms.MultipleViterbiComputeForm(template_html='hmmtuf_compute/schedule_multi_viterbi_compute_view.html',
+        form = forms.MultipleViterbiComputeForm(template_html=template_html,
                                                 configuration=configuration,
                                                 context=context)
 
@@ -123,19 +127,18 @@ def schedule_multi_viterbi_compute_view(request):
         # return the id for the computation
         return redirect('success_schedule_multi_viterbi_computation_view', task_id=task_id)
 
-    template = loader.get_template('hmmtuf_compute/schedule_multi_viterbi_compute_view.html')
+    template = loader.get_template(template_html)
     return HttpResponse(template.render(context, request))
 
 
 def view_multi_viterbi_path(request, task_id):
 
     """
-    View the Viterbi path of a multi-region compuation
+    View the Viterbi path of a multi-region computation
     """
-    template = loader.get_template('hmmtuf_compute/multi_viterbi_result_view.html')
+    template_html = 'hmmtuf_compute/multi_viterbi_result_view.html'
+    template = loader.get_template(template_html)
     try:
-
-        print("{0} trying to get task: {1}".format(INFO, task_id))
 
         # if the task exists do not ask celery. This means
         # that either the task failed or succeed
@@ -144,8 +147,6 @@ def view_multi_viterbi_path(request, task_id):
         return HttpResponse(template.render(context, request))
 
     except ObjectDoesNotExist:
-
-        print("{0}  task: {1} didn't exist".format(INFO, task_id))
 
         # try to ask celery
         # check if the computation is ready
@@ -156,12 +157,18 @@ def view_multi_viterbi_path(request, task_id):
         if task is None:
             return success_schedule_multi_viterbi_compute_view(request, task_id=INVALID_TASK_ID)
 
-        view_viterbi_path_exception_context(task=task, task_id=task_id, model=models.MultiViterbiComputation.__name__)
+        view_viterbi_path_exception_context(task=task, task_id=task_id,
+                                            model=models.MultiViterbiComputation.__name__)
         return HttpResponse(template.render(context, request))
 
 
 def success_schedule_viterbi_compute_view(request, task_id):
-    template = loader.get_template('hmmtuf_compute/success_schedule_viterbi_compute_view.html')
+    """
+    Success redirect after scheduling a Viterbi path computation
+    """
+
+    template_html = 'hmmtuf_compute/success_schedule_viterbi_compute_view.html'
+    template = loader.get_template(template_html)
 
     context = {"task_id": task_id}
     if task_id == INVALID_TASK_ID:
@@ -172,9 +179,10 @@ def success_schedule_viterbi_compute_view(request, task_id):
 
 def schedule_hmm_viterbi_compute_view(request):
     """
-    Schedules a region Viterbi computation.
+    Schedule a region Viterbi computation.
     """
 
+    # the view html file
     template_html = 'hmmtuf_compute/schedule_viterbi_compute_view.html'
 
     if request.method == 'POST':
@@ -215,6 +223,8 @@ def schedule_hmm_viterbi_compute_view(request):
     context = {"region_names": region_names,
                "hmm_names": hmm_names,
                'window_names': WindowType.get_window_types(), }
+    if ENABLE_SPADE:
+        context.update({"use_spade": True})
 
     template = loader.get_template(template_html)
     return HttpResponse(template.render(context, request))
@@ -225,16 +235,12 @@ def view_viterbi_path(request, task_id):
     template = loader.get_template('hmmtuf_compute/viterbi_result_view.html')
     try:
 
-        print("{0} trying to get task: {1}".format(INFO, task_id))
-
         # if the task exists do not ask celery. This means
         # that either the task failed or succeed
         task = models.ViterbiComputation.objects.get(task_id=task_id)
         context = get_result_view_context(task=task, task_id=task_id)
         return HttpResponse(template.render(context, request))
     except ObjectDoesNotExist:
-
-        print("{0}  task: {1} didn't exist".format(INFO, task_id))
 
         # try to ask celery
         # check if the computation is ready

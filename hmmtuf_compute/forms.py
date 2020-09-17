@@ -63,6 +63,8 @@ class MultipleViterbiComputeForm(object):
         self._wga_seq_filename = INVALID_ITEM
         self._no_wga_seq_filename = INVALID_ITEM
         self._hmm_name = INVALID_ITEM
+        self._remove_dirs = INVALID_ITEM
+        self._use_spade = INVALID_ITEM
 
     @property
     def response(self):
@@ -76,16 +78,17 @@ class MultipleViterbiComputeForm(object):
                 "no_wga_seq_filename": self._no_wga_seq_filename,
                 "path": self._path,
                 "group_tip": self._group_tip,
-                }
+                "remove_dirs": self._remove_dirs,
+                "use_spade": self._use_spade}
 
     def check(self, request):
 
-        self._ref_sequence_file = request.POST.get("reference_files_names", "")
-        if self._ref_sequence_file == "":
-            template = loader.get_template(self._template_html)
-            self._context.update({"error_found": "No reference sequence file specified"})
-            self._response = HttpResponse(template.render(self._context, request))
-            return not OK
+        #self._ref_sequence_file = request.POST.get("reference_files_names", "")
+        #if self._ref_sequence_file == "":
+        #    template = loader.get_template(self._template_html)
+        #    self._context.update({"error_found": "No reference sequence file specified"})
+        #   self._response = HttpResponse(template.render(self._context, request))
+        #    return not OK
 
         # do we have regions for this
         self._hmm_name = request.POST.get("hmm", "")
@@ -120,6 +123,15 @@ class MultipleViterbiComputeForm(object):
         self._wga_seq_filename = region.wga_seq_file
         self._no_wga_seq_filename = region.no_wga_seq_file
         self._ref_sequence_file = region.ref_seq_file
+
+        self._remove_dirs = request.POST.get('remove_dirs', False)
+        if self._remove_dirs == 'True':
+            self._remove_dirs = True
+
+        self._use_spade = request.POST.get('use_spade', False)
+        if self._use_spade == 'True':
+            self._use_spade = True
+
         return OK
 
 
