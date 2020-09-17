@@ -8,7 +8,7 @@
         <div class="text-center mt-0">
             <h4>Create HMM</h4>
         </div>
-        <hr/>
+        <hr />
         {% if error_missing_name %}
         <p>ERROR: {{ error_missing_name }}</p>
         {% endif %}
@@ -29,22 +29,26 @@
                     <input type="text" class="form-control mb-2" name="hmm-name">
                     <div id="state-group" class="mb-2 mt-2"></div>
 
-                    <div id="TPM-group" class="mb-2 mt-2 prob-group"></div>
-                    <div id="IPV-group" class="mb-2 mt-2 p-2 prob-group">
+                    <fieldset id="TPM-group" class="mb-2 p-2 mt-2 prob-group">
+                        <legend>Transition Probability Matrix</legend>
+                        <div class="st-group pb-2"></div>
+                    </fieldset>
+                    
+                    <fieldset id="IPV-group" class="p-2 mb-2 mt-2  prob-group">
+                        <legend>Initial Probability Vector</legend>
                         <div class="field-group"></div>
                         <small class="text-danger" id="error">Sum of all values should 1</small>
                         <div class="form-group">
                             <label for="IPV-Value">Initial Probability Vector:</label>
-                            <input type="text" name="IPV-Value" id="IPV-Value"class="form-control">
+                            <input type="text" name="IPV-Value" id="IPV-Value" class="form-control">
                         </div>
-                    </div>
-
-                    <button type="button" id="add_state"  class="btn btn-small  btn-success mb-2">Add State</button>
-                    <button type="button" id="add_TPM"  class="btn  prob btn-success mb-2">Add Transition Probability Matrix</button>
-                    <button type="button" id="add_IPV"  class="btn  prob btn-success mb-2">Add Initial Probability Vector</button>
+                    </fieldset>
+                    <button type="button" id="add_state" class="btn btn-small  btn-success mb-2">Add State</button>
+                    <button type="button" id="add_TPM" class="btn  prob btn-primary mb-2">Add Transition Probability Matrix</button>
+                    <button type="button" id="add_IPV" class="btn  prob btn-primary mb-2">Add Initial Probability Vector</button>
                 </div>
             </div>
-            <hr/>
+            <hr />
             <button type="submit" class="btn btn-small btn-primary float-right">Create</button>
         </form>
     </div>

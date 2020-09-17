@@ -27,6 +27,22 @@ label{
 
 fieldset {
   background-color: #eeeeee;
+  border: 1px dashed black;
+}
+
+.sb-field{
+border-color: 2px solid black;
+
+
+}
+
+.sb-field-legend{
+  background-color: #55555F;;
+  color: white;
+  width: auto;
+  font-size: 1.0rem;
+  padding: 1px 2px;
+
 }
 
 legend {
