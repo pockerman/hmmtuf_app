@@ -8,7 +8,7 @@ from .models import RegionGroupTipModel
 
 class HMMModelAdmin(admin.ModelAdmin):
     fields = ['name', 'file_hmm', 'extension']
-    list_display = ('name', 'extension')
+    list_display = ('name', 'file_hmm')
 
 
 class RegionModelAdmin(admin.ModelAdmin):
