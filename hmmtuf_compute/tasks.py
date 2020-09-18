@@ -186,11 +186,14 @@ def compute_mutliple_viterbi_path(task_id, hmm_name, chromosome,
     logger.info("Computing Multi Viterbi path")
     from .models import MultiViterbiComputation
 
+    #import pdb
+    #pdb.set_trace()
+
     task_path = make_viterbi_path(task_id=task_id)
 
-    # load the regions
+    # load the regions order them by start
     regions = RegionModel.objects.filter(group_tip__tip=group_tip,
-                                         chromosome=chromosome)
+                                         chromosome=chromosome).order_by('start_idx')
 
     result = {"task_id": task_id,
               "result": JobResultEnum.PENDING.name,
@@ -259,6 +262,7 @@ def compute_mutliple_viterbi_path(task_id, hmm_name, chromosome,
     hmm_loader.save_hmm_image(hmm_model=hmm_model, path=hmm_path_img)
     computation.hmm_path_img = hmm_path_img
     result['hmm_path_img'] = hmm_path_img
+    files_created_map = dict()
 
     for region_model in regions:
 
@@ -303,15 +307,41 @@ def compute_mutliple_viterbi_path(task_id, hmm_name, chromosome,
             viterbi_helpers.save_segments(segments=segments, chromosome=chromosome, filename=tuf_del_tuf_filename)
 
             if use_spade:
+
+                path = task_path + region_model.name + "/"
                 # get the TUF-DEL-TUF
-                tufdel.main(path=task_path + region_model.name + "/", fas_file_name=ref_seq_file,
-                            chromosome=chromosome, chr_idx=chromosome_index,
-                            viterbi_file=viterbi_path_filename, remove_dirs=remove_dirs)
+                files_created = tufdel.main(path=path, fas_file_name=ref_seq_file,
+                                            chromosome=chromosome, chr_idx=chromosome_index,
+                                            viterbi_file=viterbi_path_filename, remove_dirs=remove_dirs)
+
+                for name in files_created:
+
+                    if name in files_created_map:
+                        files_created_map[name].append(path + name)
+                    else:
+                        files_created_map[name] = [path + name]
 
             print("{0} Done working with region: {1}".format(INFO, region_model.name))
 
+
+
         except Exception as e:
 
+            result["result"] = JobResultEnum.FAILURE.name
+            result["error_explanation"] = str(e)
+            computation.result = JobResultEnum.FAILURE.name
+            computation.error_explanation = str(e)
+            computation.save()
+            return result
+
+    # only if spade is enabled do this
+    if use_spade:
+        try:
+            for name in files_created_map:
+
+                # concatenate the files
+                tufdel.concatenate_bed_files(files_created_map[name], outfile=task_path + name)
+        except Exception as e:
             result["result"] = JobResultEnum.FAILURE.name
             result["error_explanation"] = str(e)
             computation.result = JobResultEnum.FAILURE.name

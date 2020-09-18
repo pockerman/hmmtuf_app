@@ -357,6 +357,14 @@ def main(path, fas_file_name, chromosome,
             'Duplication': 50,
             'GAP_STATE': 0}
 
+    files_created = ["viterbi.bedgraph",
+                     "tuf.bed",
+                     "normal.bed",
+                     "deletion.bed",
+                     "duplication.bed",
+                     "gap.bed",
+                     "tdt.bed", "quad.bed", "rep.bed", 'gquads.txt',]
+
     # Open global files
     outbedgraph = open(path + "viterbi.bedgraph", "w")
     outtuf = open(path + "tuf.bed", "w")
@@ -495,6 +503,19 @@ def main(path, fas_file_name, chromosome,
         remove_directories(chromosome=chromosome)
 
     print("{0} END TUF-DEL-TUF".format(INFO))
+    return files_created
+
+
+def concatenate_bed_files(bedfiles, outfile):
+
+    with open(outfile, 'w') as total_f:
+
+        for file_name in bedfiles:
+
+            with open(file_name, 'r') as f:
+
+                for line in f:
+                    total_f.write(line)
 
             
 

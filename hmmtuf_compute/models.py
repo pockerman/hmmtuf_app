@@ -319,7 +319,6 @@ class MultiViterbiComputation(Computation):
         hmm_name = data['hmm_name']
         chromosome = data['chromosome']
         window_type = 'BOTH'
-        viterbi_path_filename = data['viterbi_path_filename']
         ref_seq_file = data["ref_seq_filename"]
         wga_seq_file = data["wga_seq_filename"]
         no_wag_seq_file = data["no_wga_seq_filename"]
