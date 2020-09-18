@@ -96,7 +96,7 @@ class HMMFormCreator(object):
             staten_name = 'State[{0}][st_name]'.format(counter)
 
             while staten_name in request.POST:
-                state_name = request.POST.get('staten_name', "")
+                state_name = request.POST.get(staten_name, "")
 
                 if state_name == "":
                     template = loader.get_template(self._template_html)
@@ -157,7 +157,8 @@ class HMMFormCreator(object):
 
             for idx in range(len(self._states)):
                 name = "State[{0}]".format(idx + 1)
-                result = self._build_state(state_name=name, state_names=state_names, request=request)
+                result = self._build_state(idx=idx, state_name=name,
+                                           state_names=state_names, request=request)
 
                 if result is not OK:
                     return result
@@ -214,10 +215,12 @@ class HMMFormCreator(object):
         if state_comp_type == "":
             template = loader.get_template(self._template_html)
             self._context.update({"error_state_comp": "State {0} "
-                                                      "component not specified"}.format(state_names[idx]))
+                                                      "component not specified".format(state_names[idx])})
             self._response = HttpResponse(template.render(self._context, request))
             return not OK
 
+        # set the component type either SingleComponent
+        # or MixtureComponent
         self._states[state_names[idx]]["com_type"] = state_comp_type
 
         if state_comp_type == "SingleComponent":
@@ -227,71 +230,113 @@ class HMMFormCreator(object):
             if dist == "":
                 template = loader.get_template(self._template_html)
                 self._context.update({"error_dist_comp": "State {0} "
-                                                         "distribution not specified"}.format(state_names[idx]))
+                                                         "distribution not specified".format(state_names[idx])})
                 self._response = HttpResponse(template.render(self._context, request))
                 return not OK
 
             self._states[state_names[idx]]["distribution"] = dist
 
             if dist == 'Normal':
+
                 mu1_comp_key = state_name + "[single_com_m1]"
                 mu1 = request.POST.get(mu1_comp_key, "")
-                mu2 = request.POST.get("State[1][single_com_m2]", "")
-                var1 = request.POST.get("State[1][single_com_v1]", "")
-                var2 = request.POST.get("State[1][single_com_v2]", "")
-                self._states[state_names[0]]["parameters"] = {"means": [mu1, mu2],
-                                                              "vars": [var1, var2]}
+                mu2_comp_key = state_name + "[single_com_m2]"
+                mu2 = request.POST.get(mu2_comp_key, "")
+
+                var1_comp_key = state_name + "[single_com_v1]"
+                var2_comp_key = state_name + "[single_com_v2]"
+
+                var1 = request.POST.get(var1_comp_key, "")
+                var2 = request.POST.get(var2_comp_key, "")
+
+                self._states[state_names[idx]]["parameters"] = {"means": [mu1, mu2], "vars": [var1, var2]}
+                return OK
             elif dist == 'Uniform':
 
-                mu1 = request.POST.get("State[1][single_com_m1]", "")
-                mu2 = request.POST.get("State[1][single_com_m2]", "")
-                var1 = request.POST.get("State[1][single_com_v1]", "")
-                var2 = request.POST.get("State[1][single_com_v2]", "")
-                self._states[state_names[0]]["parameters"] = {"means": [mu1, mu2],
-                                                              "vars": [var1, var2]}
+                comp_key_up_1 = state_name + "[single_com_u1]"
+                up1 = request.POST.get(comp_key_up_1, "")
+
+                comp_key_up_2 = state_name + "[single_com_u2]"
+                up2 = request.POST.get(comp_key_up_2, "")
+
+                comp_key_low_1 = state_name + "[single_com_l1]"
+                low1 = request.POST.get(comp_key_low_1, "")
+
+                comp_key_low_2 = state_name + "[single_com_l2]"
+                low2 = request.POST.get(comp_key_low_2, "")
+
+                self._states[state_names[idx]]["parameters"] = {"upper": [up1, up2], "lower": [low1, low2]}
+                return OK
             else:
 
                 template = loader.get_template(self._template_html)
                 self._context.update({"error_dist_comp": "State {0} "
-                                                         "distribution {1} does not exist"}.format(state_names[0],
-                                                                                                   dist))
+                                                         "distribution {1} does not exist".format(state_names[idx],
+                                                                                                   dist)})
                 self._response = HttpResponse(template.render(self._context, request))
                 return not OK
-        elif state1_comp_type == "MixtureComponent":
+        elif state_comp_type == "MixtureComponent":
 
-            dist = request.POST.get("State[1]components[0][distribution]", "")
+            component_idx = 0
+            dist_comp_key = state_name + "components[{0}][distribution]".format(component_idx)
 
-            if dist == "":
-                template = loader.get_template(self._template_html)
-                self._context.update({"error_dist_comp": "State {0} "
-                                                         "distribution not specified"}.format(state_names[0]))
-                self._response = HttpResponse(template.render(self._context, request))
-                return not OK
+            # try to find the components
+            components = []
+            while dist_comp_key in request.POST:
 
-            self._states[state_names[0]]["distribution"] = dist
+                dist = request.POST.get(dist_comp_key, "")
 
-            if dist == 'Normal':
-                mu1 = request.POST.get("State[1][single_com_m1]", "")
-                mu2 = request.POST.get("State[1][single_com_m2]", "")
-                var1 = request.POST.get("State[1][single_com_v1]", "")
-                var2 = request.POST.get("State[1][single_com_v2]", "")
-                self._states[state_names[0]]["parameters"] = {"means": [mu1, mu2],
-                                                              "vars": [var1, var2]}
-            elif dist == 'Uniform':
+                if dist == "":
+                    template = loader.get_template(self._template_html)
+                    self._context.update({"error_dist_comp": "State {0} "
+                                                             "distribution not specified".format(state_names[idx])})
+                    self._response = HttpResponse(template.render(self._context, request))
+                    return not OK
 
-                mu1 = request.POST.get("State[1][single_com_m1]", "")
-                mu2 = request.POST.get("State[1][single_com_m2]", "")
-                var1 = request.POST.get("State[1][single_com_v1]", "")
-                var2 = request.POST.get("State[1][single_com_v2]", "")
-                self._states[state_names[0]]["parameters"] = {"means": [mu1, mu2],
-                                                              "vars": [var1, var2]}
-            else:
+                if dist == 'Normal':
 
-                template = loader.get_template(self._template_html)
-                self._context.update({"error_dist_comp": "State {0} "
-                                                         "distribution {1} does not exist"}.format(state_names[0],
-                                                                                                   dist))
-                self._response = HttpResponse(template.render(self._context, request))
-                return not OK
+                    mu1_comp_key = state_name + "[single_com_m1]"
+                    mu1 = request.POST.get(mu1_comp_key, "")
+                    mu2_comp_key = state_name + "[single_com_m2]"
+                    mu2 = request.POST.get(mu2_comp_key, "")
 
+                    var1_comp_key = state_name + "[single_com_v1]"
+                    var2_comp_key = state_name + "[single_com_v2]"
+
+                    var1 = request.POST.get(var1_comp_key, "")
+                    var2 = request.POST.get(var2_comp_key, "")
+
+                    components.append({"distribution": "Normal", "parameters": {"means": [mu1, mu2], "vars": [var1, var2]}})
+
+                    component_idx += 1
+                    dist_comp_key = state_name + "components[{0}][distribution]".format(component_idx)
+
+                elif dist == 'Uniform':
+
+                    comp_key_up_1 = state_name + "[single_com_u1]"
+                    up1 = request.POST.get(comp_key_up_1, "")
+
+                    comp_key_up_2 = state_name + "[single_com_u2]"
+                    up2 = request.POST.get(comp_key_up_2, "")
+
+                    comp_key_low_1 = state_name + "[single_com_l1]"
+                    low1 = request.POST.get(comp_key_low_1, "")
+
+                    comp_key_low_2 = state_name + "[single_com_l2]"
+                    low2 = request.POST.get(comp_key_low_2, "")
+
+                    components.append({"distribution": "Uniform", "parameters": {"upper": [up1, up2], "lower": [low1, low2]}})
+
+                    component_idx += 1
+                    dist_comp_key = state_name + "components[{0}][distribution]".format(component_idx)
+                else:
+
+                    template = loader.get_template(self._template_html)
+                    self._context.update({"error_dist_comp": "State {0} "
+                                                             "distribution {1} does not exist".format(state_names[0], dist)})
+                    self._response = HttpResponse(template.render(self._context, request))
+                    return not OK
+
+            self._states[state_names[idx]]["components"] = components
+            return OK
 
