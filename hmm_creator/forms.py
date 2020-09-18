@@ -65,8 +65,12 @@ class HMMFormCreator(object):
             #pdb.set_trace()
 
             self._states = {}
-            state_names = request.POST.get('st_name[]',  None)
-            state_names = ["State1", "State2", "State3"]
+            state_names =[]
+  
+            
+            for s in states:
+                print("I m here")
+                print (states[s])
 
             if state_names is None:
                 template = loader.get_template(self._template_html)
@@ -98,8 +102,7 @@ class HMMFormCreator(object):
 
             self._states["State1"] = {"com_type": "SingleComponent",
                                       "distribution": "Normal",
-                                      "parameters": {"means":[0.5, 0.3],
-                                                     "vars": [0.5, 0.6]}}
+                                      "parameters": {"means":[0.5, 0.3],"vars": [0.5, 0.6]}}
 
             self._states["State2"] = {"com_type": "SingleComponent",
                                       "distribution": "Uniform",
@@ -129,7 +132,6 @@ class HMMFormCreator(object):
             self._transition_probabilities[("State2", "State3")] = 0.1
             self._transition_probabilities[("State3", "State1")] = 0.1
             self._transition_probabilities[("State3", "State2")] = 0.1
-
             return OK
 
     def as_map(self):
