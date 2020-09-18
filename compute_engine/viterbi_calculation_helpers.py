@@ -23,87 +23,6 @@ def get_window_ids_from_viterbi_path(path, wstate, limit_state):
     return indices
 
 
-"""
-def load_data_file(filename):
-    
-    Loads a .txt data file into an array
-    
-    with open(filename) as file:
-        context = file.read()
-        size = len(context)
-        arraystr= context[1:size-1]
-        arraystr = arraystr.split(',')
-        region_means = [float(item) for item in arraystr]
-        return region_means
-
-
-def make_data_array(wga_mu, no_wga_mu, gc, use_ratio, use_gc):
-    data = []
-
-    if use_ratio and use_gc:
-        for no_wga_val, wga_val, gc_val in zip(no_wga_mu, wga_mu, gc):
-            data.append([no_wga_val, wga_val, (wga_val + 1) / (no_wga_val + 1), gc_val])
-    elif use_ratio:
-        for no_wga, wga in zip(no_wga_mu, wga_mu):
-            data.append([no_wga, wga, (wga + 1) / (no_wga + 1)])
-    elif use_gc:
-
-        for no_wga_val, wga_val, gc_val in zip(no_wga_mu, wga_mu, gc):
-            data.append([no_wga_val, wga_val, gc_val])
-    else:
-
-        for no_wga, wga in zip(no_wga_mu, wga_mu):
-            data.append([no_wga, wga])
-
-    return data
-"""
-
-"""
-def gmm_clustering(clusters, data, cov_type, tol, max_itrs,
-                   n_init, no_wga_mu, wga_mu, xlim, ylim, nbins=80):
-
-    print("{0} Number of clusters {1}".format(INFO, clusters))
-    gmm = mixture.GaussianMixture(n_components=clusters,
-                                  covariance_type=cov_type,
-                                  tol=tol, max_iter=max_itrs,
-                                  n_init=n_init)
-    gmm.fit(data)
-    print("Converged: ", gmm.converged_)
-    print("BIC: ", gmm.bic(data))
-    labels = gmm.predict(data)
-
-    print("Len of labels: ", len(labels))
-
-    colors = np.array(['green', 'blue', 'red',
-                       'yellow', 'pink', 'orange', 'purple', 'navy',
-                       'brown'])
-
-    # add black color for outliers (if any)
-    colors = np.append(colors, ["#000000"])
-    colors = colors[labels]
-
-    plt.scatter(no_wga_mu, wga_mu, color=colors)
-    plt.xlabel("NO-WGA ")
-    plt.ylabel("WGA")
-    plt.xlim(xlim)
-    plt.ylim(ylim)
-    plt.show()
-
-    # map that holds the association between the
-    # component color and component index
-
-    color_comp_assoc = {}
-    for label, color in zip(labels, colors):
-        if color in color_comp_assoc.keys():
-            assert color_comp_assoc[color][0] == label
-            color_comp_assoc[color][1] += 1
-        else:
-            color_comp_assoc[color] = [label, 1]
-
-    return gmm, labels, color_comp_assoc
-"""
-
-
 def is_solid_subseq(subseq, wstate):
     itis = True
     for sitem in subseq:
@@ -162,9 +81,13 @@ def check_items(included, check_on):
 
 def filter_viterbi_path(path, wstate, limit_state, min_subsequence):
 
-    print("Length of path ", len(path))
+    print("{0} Length of Viterbi path {1}".format(INFO, len(path)))
 
     indices = []
+
+    if len(path) == 0:
+        return indices
+
     index_included = []
     path_counter = 0
     stop = False
@@ -247,7 +170,8 @@ def filter_viterbi_path(path, wstate, limit_state, min_subsequence):
                     counter_after += len(limit_state_after)
 
                     if counter_after >= len(path):
-                        print("For position {0} cannot compute path. Counter exceeds path length ".format(counter_after))
+                        print("{0} For position {1} cannot compute path. "
+                              "Counter exceeds path length ".format(INFO, counter_after))
                         break
 
                     # only if the exactly next one is wstate
@@ -320,7 +244,7 @@ def get_continuous(tuf_delete_tuf, start_tuf_counter, name):
 def get_start_end_segment(tuf_delete_tuf, sequence):
 
     if len(tuf_delete_tuf) == 0:
-        print("TUF_DELETE_TUF is empty")
+        print("{0} TUF_DELETE_TUF data is empty".format(INFO))
         return []
 
     start_tuf_counter = 0
@@ -365,7 +289,8 @@ def save_segments(segments, chromosome, filename):
             writer.writerow(row)
 
 
-def create_viterbi_path(sequence, hmm_model, chr, filename, append_or_write):
+def create_viterbi_path(sequence, hmm_model, chr,
+                        filename, append_or_write, gap_state_obs=(-999.0, -999.0)):
 
     observations = []
     for i in range(len(sequence)):
@@ -380,14 +305,14 @@ def create_viterbi_path(sequence, hmm_model, chr, filename, append_or_write):
     sequence_viterbi_state = []
 
     if viterbi_path[1] is not None:
-        print("Viterbi path length: ", len(viterbi_path[1]))
+        print("{0} Viterbi path length: {1}".format(INFO, len(viterbi_path[1])))
 
         counter = 0
         with open(filename, append_or_write) as f:
             f.write(str(len(viterbi_path[1]) - 1) + "\n")
             for item in range(len(sequence)):
 
-                if sequence[item][0] == (-999.0, -999.0):
+                if sequence[item][0] == gap_state_obs:
                     counter += 1
 
                 r = (int(sequence[item][1][0]), int(sequence[item][1][1]))
@@ -395,9 +320,9 @@ def create_viterbi_path(sequence, hmm_model, chr, filename, append_or_write):
                 f.write(chr + ":" + str(item) + ":" + str(r) + ":" + str(sequence[item][0]) + ":" + name + "\n")
                 sequence_viterbi_state.append((item, viterbi_path[1][item + 1][1].name))
 
-        print("There should be {0} gaps".format(counter))
+        print("{0} There should be {1} gaps".format(INFO, counter))
     else:
-        print("Viterbi path is impossible for the given sequence")
+        print("{0} Viterbi path is impossible for the given sequence".format(INFO))
 
     return viterbi_path, observations, sequence_viterbi_state
 

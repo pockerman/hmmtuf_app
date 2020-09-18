@@ -1,26 +1,33 @@
 {% extends "base.html" %}
-{% block title %}HMMtuf-Compute Viterbi Path{% endblock title %}
+{% block title %}HMMtuf-Compute Group Viterbi Path{% endblock title %}
 {%block inner_body %}
 
 <br/>
 <div class="row">
     <div class="col-lg-8 mb-4">
-    {% if error_empty_hmm_list %}
+
+{% if error_empty_hmm_list %}
         <p>ERROR: {{ error_empty_hmm_list }} <a href="/load_file/load_hmm">Create HMM models</a></p>
-    {% elif error_empty_region_list %}
-        <p>ERROR: {{ error_empty_region_list }} <a href="/load_file/load_region">Upload a region file</a></a></p>
-    {% else %}
-    <h4>Schedule Viterbi path computation</h4>
+{% else %}
+    {% if error_found %}
+
+        {% if no_seq_chromosome %}
+        <p>ERROR: {{ no_seq_chromosome }}. <a href="/load_file/load_region">Load region.</a></p>
+        {% else %}
+        <p>ERROR: {{ error_found }}.</a></p>
+        {% endif %}
+    {% endif %}
+    <h4>Schedule group Viterbi path computation</h4>
     <hr/>
 <form method="post" enctype="multipart/form-data">
     {% csrf_token %}
 
     <div class="control-group form-group">
         <div class="controls">
-            <label>Region file:</label><br/>
-            <select id="id_region" name="region">
-                {% for region_name in region_names %}
-                    <option value="{{ region_name }}">{{ region_name }}</option>
+            <label>HMM file:</label><br/>
+            <select id="id_hmm" name="hmm">
+                {% for hmm_name in hmm_names %}
+                    <option value="{{ hmm_name }}">{{ hmm_name }}</option>
                 {% endfor %}
             </select>
         </div>
@@ -29,10 +36,10 @@
 
     <div class="control-group form-group">
         <div class="controls">
-            <label>HMM file:</label><br/>
-            <select name="hmm">
-                {% for hmm_name in hmm_names %}
-                    <option value="{{ hmm_name }}">{{ hmm_name }}</option>
+            <label>Group tip:</label><br/>
+            <select name="group_tip">
+                {% for group in group_tips %}
+                    <option value="{{ group.tip }}">{{ group.tip }}</option>
                 {% endfor %}
             </select>
         </div>
@@ -47,10 +54,9 @@
     <label for="remove_dirs">Remove created directories</label><br><br>
     {% endif %}
 
-    <br/>
     <button type="submit" class="btn btn-primary">Compute</button>
 </form>
 </div>
+    {% endif %}
 </div>
-{% endif %}
 {% endblock inner_body %}
