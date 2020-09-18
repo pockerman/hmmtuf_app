@@ -3,12 +3,18 @@ $(function () {
   var mcom = 0;
 
   $("#add_state").on("click", function () {
+
+
     if (state < 6) {
+
+      var remove = $(document).find(".closebtn");
+      if(remove.length){remove.hide()};
       var s = state + 1;
       $("#state-group").append(
         `
         <fieldset class="mb-2 p-2" name="State[${s}]">
         <legend>State ${s}</legend>
+        <div class="closebtn row"><button type="button" class="btn btn-small btn-circle pull-right remove_St btn-danger"><i class="fas fa-times"></i></button></div>
         <div class="state mb-2 mt-2">
         <div class="form-group mb-2">
         <label for="st_name">Name of state:</label>
@@ -43,6 +49,35 @@ $(function () {
       alert("You can add only 6 states");
     }
   });
+
+  // remove state handler
+ $(document).on("click",".remove_St" , function (){
+
+    var stToRemove= $(this).parent().parent();
+    var PreviousState= stToRemove.prev();
+
+    PreviousState.find('.closebtn').show();
+
+    stToRemove.remove();
+    --state;
+    
+    if (state === 1) {
+        $(".prob").hide();
+        $("#IPV-group").empty();
+        $("#TPM-group").empty();
+        $("#IPV-group").hide();
+        $("#TPM-group").hide();
+      }
+    if ($("#IPV-group").is(":visible")) {
+      $("#add_IPV").click();
+    }
+    if ($("#TPM-group").is(":visible")) {
+      $("#add_TPM").click();
+    }
+
+
+ });
+  //
 
   // Single Component Structure
   $(document).on("click", ".single-component", function () {

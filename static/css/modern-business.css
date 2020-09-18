@@ -45,6 +45,17 @@ border-color: 2px solid black;
 
 }
 
+.closebtn{
+  margin-top: -44px;
+  /* margin-right: -37px; */
+  /* box-sizing: unset; */
+  margin-left: auto;
+  width: fit-content;
+  margin-right: -16px;
+  margin-bottom: -5px;
+  
+}
+
 legend {
   background-color: #55555F;
   color: white;
