@@ -61,8 +61,8 @@ class HMMFormCreator(object):
             return not OK
         except:
 
-            import pdb
-            pdb.set_trace()
+            #import pdb
+            #pdb.set_trace()
 
             state_names = []
             state1_name = request.POST.get('State[1][st_name]', "")
@@ -74,7 +74,6 @@ class HMMFormCreator(object):
                 return not OK
 
             state_names.append(state1_name)
-
             state2_name = request.POST.get('State[2][st_name]', "")
 
             if state2_name == "":
@@ -146,8 +145,8 @@ class HMMFormCreator(object):
             for idx in range(len(init_p_vector)):
                 init_p_vector[idx] = float(init_p_vector[idx])
 
-            print(init_p_vector)
-            print(len(init_p_vector))
+            #print(init_p_vector)
+            #print(len(init_p_vector))
 
             self._init_p_vector = dict()
             for name, prob in zip(self._states.keys(), init_p_vector):
@@ -164,7 +163,7 @@ class HMMFormCreator(object):
                     return result
 
 
-
+            """
             self._states["State1"] = {"com_type": "SingleComponent",
                                       "distribution": "Normal",
                                       "parameters": {"means":[0.5, 0.3],
@@ -187,6 +186,7 @@ class HMMFormCreator(object):
                                                      ],
                                       "weighs": [0.5, 0.5]
             }
+            """
 
             self._transition_probabilities = dict()
             self._transition_probabilities[("State1", "State1")] = 0.8
