@@ -357,12 +357,14 @@ $(function () {
                 <legend class="sb-field-legend">State ${i + 1}</legend>
                 <div class="mt-group p-2 row"></div>
                 <div class="err" style="display:none"><small class="text-danger">Sum of all values should be 1</small></div>
-                <input type="text" name="state_M[]" id="tpm${
+                <input type="text" name="State_M[${i+1}][tpm]" id="tpm${
                   i + 1
                 }" class="st-m form-control">
             </fieldset>
            
         `);
+
+        console.log(state);
     }
 
     var child = elem.find(".iptm-field").find(".mt-group");

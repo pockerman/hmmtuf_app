@@ -37,6 +37,7 @@ def create_hmm_view(request):
         hmm_model = create_hmm_model_from_form(form=form)
         json_str = hmm_model.to_json()
         filename = make_hmm_file_path(hmm_name=form.hmm_name + ".json")
+        print("Saving at: ", filename)
         with open(filename, 'w') as jsonfile:
             json.dump(json_str, jsonfile)
 
@@ -46,7 +47,7 @@ def create_hmm_view(request):
             hmm_model_obj.extension = 'json'
             hmm_model_obj.save()
 
-            return redirect('success_create_hmm_view', hmm_name=form.hmm_name)
+        return redirect('success_create_hmm_view', hmm_name=form.hmm_name)
 
     template = loader.get_template('hmm_creator/create_hmm_view.html')
     return HttpResponse(template.render(context, request))

@@ -44,8 +44,8 @@ class HMMFormCreator(object):
         print(request.POST)
 
         for name in request.POST:
-            print(name)
-            print(request.POST.get(name))
+            print("key name {0}: value entered {1}".format(name, request.POST.get(name)))
+            #print(request.POST.get(name))
 
         if self._hmm_name == "":
             template = loader.get_template(self._template_html)
@@ -61,9 +61,8 @@ class HMMFormCreator(object):
             return not OK
         except:
 
-            #import pdb
+            import pdb
             #pdb.set_trace()
-
 
             state_names = []
             state1_name = request.POST.get('State[1][st_name]', "")
@@ -163,6 +162,27 @@ class HMMFormCreator(object):
                 if result is not OK:
                     return result
 
+            #pdb.set_trace()
+
+            self._transition_probabilities = dict()
+            for idx in range(len(state_names)):
+
+                namei = state_names[idx]
+                trans_p_key = 'State_M[{0}][tpm]'.format(idx + 1)
+
+                vector = request.POST.get(trans_p_key, "")
+                vector = vector.split(",")
+
+                if vector == "" or len(vector) != len(state_names):
+                    template = loader.get_template(self._template_html)
+                    self._context.update({"error_trans_matrix": "Incosistent transition probability matrix"})
+                    self._response = HttpResponse(template.render(self._context, request))
+                    return not OK
+
+                for jidx, namej in enumerate(state_names):
+                    self._transition_probabilities[(namei, namej)] = float(vector[jidx])
+
+
 
             """
             self._states["State1"] = {"com_type": "SingleComponent",
@@ -188,6 +208,7 @@ class HMMFormCreator(object):
             }
             """
 
+            """
             self._transition_probabilities = dict()
             self._transition_probabilities[("State1", "State1")] = 0.8
             self._transition_probabilities[("State2", "State2")] = 0.8
@@ -198,6 +219,7 @@ class HMMFormCreator(object):
             self._transition_probabilities[("State2", "State3")] = 0.1
             self._transition_probabilities[("State3", "State1")] = 0.1
             self._transition_probabilities[("State3", "State2")] = 0.1
+            """
             return OK
 
     def as_map(self):
@@ -248,7 +270,7 @@ class HMMFormCreator(object):
                 var1 = request.POST.get(var1_comp_key, "")
                 var2 = request.POST.get(var2_comp_key, "")
 
-                self._states[state_names[idx]]["parameters"] = {"means": [mu1, mu2], "vars": [var1, var2]}
+                self._states[state_names[idx]]["parameters"] = {"means": [float(mu1), float(mu2)], "vars": [float(var1), float(var2)]}
                 return OK
             elif dist == 'Uniform':
 
@@ -264,7 +286,7 @@ class HMMFormCreator(object):
                 comp_key_low_2 = state_name + "[single_com_l2]"
                 low2 = request.POST.get(comp_key_low_2, "")
 
-                self._states[state_names[idx]]["parameters"] = {"upper": [up1, up2], "lower": [low1, low2]}
+                self._states[state_names[idx]]["parameters"] = {"upper": [float(up1), float(up2)], "lower": [float(low1), float(low2)]}
                 return OK
             else:
 
@@ -276,11 +298,14 @@ class HMMFormCreator(object):
                 return not OK
         elif state_comp_type == "MixtureComponent":
 
+            import pdb
+            #pdb.set_trace()
             component_idx = 0
             dist_comp_key = state_name + "components[{0}][distribution]".format(component_idx)
 
             # try to find the components
             components = []
+            weights = []
             while dist_comp_key in request.POST:
 
                 dist = request.POST.get(dist_comp_key, "")
@@ -292,39 +317,45 @@ class HMMFormCreator(object):
                     self._response = HttpResponse(template.render(self._context, request))
                     return not OK
 
+                weight = request.POST.get(state_name + "weights[{0}][M_com_weight]".format(component_idx), "")
+                weight = float(weight)
+                weights.append(weight)
+
                 if dist == 'Normal':
 
-                    mu1_comp_key = state_name + "[single_com_m1]"
+                    mu1_comp_key = state_name + "components[{0}][single_com_m1]".format(component_idx)
                     mu1 = request.POST.get(mu1_comp_key, "")
-                    mu2_comp_key = state_name + "[single_com_m2]"
+                    mu2_comp_key = state_name + "components[{0}][single_com_m2]".format(component_idx)
                     mu2 = request.POST.get(mu2_comp_key, "")
 
-                    var1_comp_key = state_name + "[single_com_v1]"
-                    var2_comp_key = state_name + "[single_com_v2]"
+                    var1_comp_key = state_name + "components[{0}][single_com_v1]".format(component_idx)
+                    var2_comp_key = state_name + "components[{0}][single_com_v2]".format(component_idx)
 
                     var1 = request.POST.get(var1_comp_key, "")
                     var2 = request.POST.get(var2_comp_key, "")
 
-                    components.append({"distribution": "Normal", "parameters": {"means": [mu1, mu2], "vars": [var1, var2]}})
+                    components.append({"distribution": "Normal", "parameters": {"means": [float(mu1), float(mu2)],
+                                                                                "vars": [float(var1), float(var2)]}})
 
                     component_idx += 1
                     dist_comp_key = state_name + "components[{0}][distribution]".format(component_idx)
 
                 elif dist == 'Uniform':
 
-                    comp_key_up_1 = state_name + "[single_com_u1]"
+                    comp_key_up_1 = state_name + "components[{0}][single_com_u1]".format(component_idx)
                     up1 = request.POST.get(comp_key_up_1, "")
 
-                    comp_key_up_2 = state_name + "[single_com_u2]"
+                    comp_key_up_2 = state_name + "components[{0}][single_com_u2]".format(component_idx)
                     up2 = request.POST.get(comp_key_up_2, "")
 
-                    comp_key_low_1 = state_name + "[single_com_l1]"
+                    comp_key_low_1 = state_name + "components[{0}][single_com_l1]".format(component_idx)
                     low1 = request.POST.get(comp_key_low_1, "")
 
-                    comp_key_low_2 = state_name + "[single_com_l2]"
+                    comp_key_low_2 = state_name + "components[{0}][single_com_l2]".format(component_idx)
                     low2 = request.POST.get(comp_key_low_2, "")
 
-                    components.append({"distribution": "Uniform", "parameters": {"upper": [up1, up2], "lower": [low1, low2]}})
+                    components.append({"distribution": "Uniform", "parameters": {"upper": [float(up1), float(up2)],
+                                                                                 "lower": [float(low1), float(low2)]}})
 
                     component_idx += 1
                     dist_comp_key = state_name + "components[{0}][distribution]".format(component_idx)
@@ -337,5 +368,6 @@ class HMMFormCreator(object):
                     return not OK
 
             self._states[state_names[idx]]["components"] = components
+            self._states[state_names[idx]]["weights"] = weights
             return OK
 

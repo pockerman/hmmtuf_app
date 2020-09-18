@@ -46,7 +46,7 @@ def create_hmm_model_from_form(form):
                 else:
                     raise Error("No known MixtureComponent distribution type")
 
-            state = State(GeneralMixtureModel(comps, weights=state["weighs"]), name=name)
+            state = State(GeneralMixtureModel(comps, weights=state["weights"]), name=name)
             states.append(state)
 
     # add states
