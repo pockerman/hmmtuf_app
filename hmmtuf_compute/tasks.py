@@ -323,8 +323,6 @@ def compute_mutliple_viterbi_path(task_id, hmm_name, chromosome,
 
             print("{0} Done working with region: {1}".format(INFO, region_model.name))
 
-
-
         except Exception as e:
 
             result["result"] = JobResultEnum.FAILURE.name

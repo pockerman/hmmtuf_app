@@ -18,6 +18,8 @@ outtdt = None
 outquad = None
 outrep = None
 quadout = None
+nucl_out = None
+
 PATH = None
 SPADE_OUTPATH = None
 
@@ -196,11 +198,16 @@ def spade(repseq, chrom, start, stop, type):
     """
 
     global outrep
+    global nucl_out
+
     global PATH
     global SPADE_OUTPATH
 
     if outrep is None:
         raise Exception("outrep file is None")
+
+    if nucl_out is None:
+        raise Exception("nucl_out file is None")
 
     if PATH is None:
         raise Exception("PATH variable not specified")
@@ -243,10 +250,33 @@ def spade(repseq, chrom, start, stop, type):
             files = os.listdir(path=SPADE_OUTPATH + name)
             if 'weblogo.txt' in files:
 
+                nucleods = ['A', 'C', 'G', 'T']
                 count = 0
                 with open(SPADE_OUTPATH + name + '/' + 'weblogo.txt', 'r') as f:
                     for line in f:
                         count += 1
+
+                        # don't process the comment line
+                        if line.startswith('#'):
+                            continue
+
+                        # checkout from the line which has the maximum
+                        new_line = line.split('\t')
+
+                        if len(new_line) > 5:
+                            new_line = new_line[1:5]
+                            new_line = [int(item) for item in new_line]
+                            max_item = max(new_line)
+                            nucleod_idx = new_line.index(max_item)
+
+                            if nucleod_idx >= 4:
+                                raise ValueError("Invalid index for nucleod. "
+                                                 "Index {0} not in [0,3]".format(nucleod_idx))
+
+                            nucleod = nucleods[nucleod_idx]
+                            nucl_out.write(chrom + '\t' + str(start) + '\t' + str(stop) + '\t' + nucleod + '\n')
+
+                # TODO: Make this application defined?
                 if count > 12:
                     outrep.write(chrom + '\t' + str(start) + '\t' + str(stop) + '\n')
 
@@ -354,6 +384,8 @@ def main(path, fas_file_name, chromosome,
     global outquad
     global outrep
     global quadout
+    global nucl_out
+
     global PATH
     global SPADE_OUTPATH
 
@@ -382,7 +414,9 @@ def main(path, fas_file_name, chromosome,
                      "deletion.bed",
                      "duplication.bed",
                      "gap.bed",
-                     "tdt.bed", "quad.bed", "rep.bed", 'gquads.txt',]
+                     "tdt.bed", "quad.bed",
+                     "rep.bed", 'gquads.txt',
+                     "nucl_out.bed"]
 
     # Open global files
     outbedgraph = open(path + "viterbi.bedgraph", "w")
@@ -395,6 +429,7 @@ def main(path, fas_file_name, chromosome,
     outquad = open(path + "quad.bed", "w")
     outrep = open(path + "rep.bed", "w")
     quadout = open(path + 'gquads.txt', 'w')
+    nucl_out = open(path + 'nucl_out.bed', 'w')
 
     prevstate = ""
     start = 0
@@ -517,6 +552,7 @@ def main(path, fas_file_name, chromosome,
     outtdt.close()
     outquad.close()
     outrep.close()
+    nucl_out.close()
 
     if remove_dirs:
         remove_directories(chromosome=chromosome)
@@ -528,9 +564,7 @@ def main(path, fas_file_name, chromosome,
 def concatenate_bed_files(bedfiles, outfile):
 
     with open(outfile, 'w') as total_f:
-
         for file_name in bedfiles:
-
             with open(file_name, 'r') as f:
 
                 for line in f:
