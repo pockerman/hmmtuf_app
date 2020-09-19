@@ -40,7 +40,7 @@ def compute_group_viterbi_path(task_id, hmm_name, window_type,  group_tip, remov
 
     # load the regions belonging to the same group
     # TODO: sort the w.r.t chr and region start-end
-    regions = RegionModel.objects.filter(group_tip__tip=group_tip)
+    regions = RegionModel.objects.filter(group_tip__tip=group_tip).order_by('chromosome', 'start_idx')
 
     result = {"task_id": task_id,
               "result": JobResultEnum.PENDING.name,
@@ -49,7 +49,10 @@ def compute_group_viterbi_path(task_id, hmm_name, window_type,  group_tip, remov
               "hmm_filename": hmm_name,
               "window_type": 'BOTH',
               'hmm_path_img': INVALID_ITEM,
-              'group_tip': group_tip}
+              'group_tip': group_tip,
+              "ref_seq_file": regions[0].ref_seq_file,
+              "wga_seq_file": regions[0].wga_seq_file,
+              "no_wag_seq_file": regions[0].no_wga_seq_file}
 
     # create a computation instance
     computation = GroupViterbiComputation()
@@ -60,6 +63,9 @@ def compute_group_viterbi_path(task_id, hmm_name, window_type,  group_tip, remov
     computation.hmm_filename = hmm_name
     computation.hmm_path_img = INVALID_ITEM
     computation.group_tip = group_tip
+    computation.ref_seq_file = regions[0].ref_seq_file
+    computation.wga_seq_filename = regions[0].wga_seq_file
+    computation.no_wag_seq_filename = regions[0].no_wga_seq_file
     computation.save()
 
     window_type = WindowType.from_string(window_type)
@@ -99,6 +105,8 @@ def compute_group_viterbi_path(task_id, hmm_name, window_type,  group_tip, remov
     hmm_loader.save_hmm_image(hmm_model=hmm_model, path=hmm_path_img)
     computation.hmm_path_img = hmm_path_img
     result['hmm_path_img'] = hmm_path_img
+
+    files_created_map = dict()
 
     for region_model in regions:
 
@@ -145,8 +153,15 @@ def compute_group_viterbi_path(task_id, hmm_name, window_type,  group_tip, remov
             if use_spade:
                 # get the TUF-DEL-TUF this is for every chromosome and region
                 path = task_path + chromosome + "/" + region_model.name + "/"
-                tufdel.main(path=path, fas_file_name=ref_seq_file, chromosome=chromosome,
-                            chr_idx=chromosome_index, viterbi_file=viterbi_path_filename, remove_dirs=remove_dirs)
+                files_created = tufdel.main(path=path, fas_file_name=ref_seq_file, chromosome=chromosome,
+                                            chr_idx=chromosome_index, viterbi_file=viterbi_path_filename,
+                                            remove_dirs=remove_dirs)
+
+                for name in files_created:
+                    if name in files_created_map:
+                        files_created_map[name].append(path + name)
+                    else:
+                        files_created_map[name] = [path + name]
 
             print("{0} Done working with region: {1}".format(INFO, region_model.name))
 
@@ -159,6 +174,21 @@ def compute_group_viterbi_path(task_id, hmm_name, window_type,  group_tip, remov
             computation.save()
             return result
 
+    # only if spade is enabled do this
+    if use_spade:
+        try:
+            for name in files_created_map:
+                # concatenate the files
+                tufdel.concatenate_bed_files(files_created_map[name], outfile=task_path + name)
+        except Exception as e:
+            result["result"] = JobResultEnum.FAILURE.name
+            result["error_explanation"] = str(e)
+            computation.result = JobResultEnum.FAILURE.name
+            computation.error_explanation = str(e)
+            computation.save()
+            return result
+
+    result["result"] = JobResultEnum.SUCCESS.name
     computation.result = JobResultEnum.SUCCESS.name
     computation.save()
     return result
@@ -185,9 +215,6 @@ def compute_mutliple_viterbi_path(task_id, hmm_name, chromosome,
 
     logger.info("Computing Multi Viterbi path")
     from .models import MultiViterbiComputation
-
-    #import pdb
-    #pdb.set_trace()
 
     task_path = make_viterbi_path(task_id=task_id)
 
@@ -347,6 +374,7 @@ def compute_mutliple_viterbi_path(task_id, hmm_name, chromosome,
             computation.save()
             return result
 
+    result['result'] = JobResultEnum.SUCCESS.name
     computation.result = JobResultEnum.SUCCESS.name
     computation.save()
     return result
