@@ -61,9 +61,6 @@ class HMMFormCreator(object):
             return not OK
         except:
 
-            import pdb
-            #pdb.set_trace()
-
             state_names = []
             state1_name = request.POST.get('State[1][st_name]', "")
 
@@ -145,9 +142,6 @@ class HMMFormCreator(object):
             for idx in range(len(init_p_vector)):
                 init_p_vector[idx] = float(init_p_vector[idx])
 
-            #print(init_p_vector)
-            #print(len(init_p_vector))
-
             self._init_p_vector = dict()
             for name, prob in zip(self._states.keys(), init_p_vector):
                 self._init_p_vector[name] = prob
@@ -161,8 +155,6 @@ class HMMFormCreator(object):
 
                 if result is not OK:
                     return result
-
-            #pdb.set_trace()
 
             self._transition_probabilities = dict()
             for idx in range(len(state_names)):
@@ -182,44 +174,6 @@ class HMMFormCreator(object):
                 for jidx, namej in enumerate(state_names):
                     self._transition_probabilities[(namei, namej)] = float(vector[jidx])
 
-
-
-            """
-            self._states["State1"] = {"com_type": "SingleComponent",
-                                      "distribution": "Normal",
-                                      "parameters": {"means":[0.5, 0.3],"vars": [0.5, 0.6]}}
-
-            self._states["State2"] = {"com_type": "SingleComponent",
-                                      "distribution": "Uniform",
-                                      "parameters": {"upper": [0.5, 0.3],
-                                                     "lower": [0.5, 0.6]}}
-
-            self._states["State3"] = {"com_type": "MixtureComponent",
-                                      "components": [{"distribution": "Normal",
-                                                      "parameters": {"means": [0.5, 0.3],
-                                                                     "vars": [0.5, 0.6]}
-                                                      },
-                                                     {"distribution": "Normal",
-                                                      "parameters": {"means": [0.5, 0.3],
-                                                                     "vars": [0.5, 0.6]}
-                                                      },
-                                                     ],
-                                      "weighs": [0.5, 0.5]
-            }
-            """
-
-            """
-            self._transition_probabilities = dict()
-            self._transition_probabilities[("State1", "State1")] = 0.8
-            self._transition_probabilities[("State2", "State2")] = 0.8
-            self._transition_probabilities[("State3", "State3")] = 0.8
-            self._transition_probabilities[("State1", "State2")] = 0.1
-            self._transition_probabilities[("State1", "State3")] = 0.1
-            self._transition_probabilities[("State2", "State1")] = 0.1
-            self._transition_probabilities[("State2", "State3")] = 0.1
-            self._transition_probabilities[("State3", "State1")] = 0.1
-            self._transition_probabilities[("State3", "State2")] = 0.1
-            """
             return OK
 
     def as_map(self):
@@ -270,7 +224,8 @@ class HMMFormCreator(object):
                 var1 = request.POST.get(var1_comp_key, "")
                 var2 = request.POST.get(var2_comp_key, "")
 
-                self._states[state_names[idx]]["parameters"] = {"means": [float(mu1), float(mu2)], "vars": [float(var1), float(var2)]}
+                self._states[state_names[idx]]["parameters"] = {"means": [float(mu1), float(mu2)],
+                                                                "vars": [float(var1), float(var2)]}
                 return OK
             elif dist == 'Uniform':
 
@@ -286,7 +241,8 @@ class HMMFormCreator(object):
                 comp_key_low_2 = state_name + "[single_com_l2]"
                 low2 = request.POST.get(comp_key_low_2, "")
 
-                self._states[state_names[idx]]["parameters"] = {"upper": [float(up1), float(up2)], "lower": [float(low1), float(low2)]}
+                self._states[state_names[idx]]["parameters"] = {"upper": [float(up1), float(up2)],
+                                                                "lower": [float(low1), float(low2)]}
                 return OK
             else:
 
@@ -298,8 +254,6 @@ class HMMFormCreator(object):
                 return not OK
         elif state_comp_type == "MixtureComponent":
 
-            import pdb
-            #pdb.set_trace()
             component_idx = 0
             dist_comp_key = state_name + "components[{0}][distribution]".format(component_idx)
 

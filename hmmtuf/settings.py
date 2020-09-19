@@ -28,7 +28,6 @@ from .config import DATABASES
 SECRET_KEY = 'y=ujo$_)gjwj$*k!v@2ihj@u)s0od%37)m6m)01)k6pc0siqsg'
 
 
-
 # Application definition
 
 INSTALLED_APPS = [
@@ -40,9 +39,9 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'hmmtuf_home',
     'file_loader',
-    # 'hmmtuf_compute',
-    #'region_extractor',
-    'hmm_creator'
+    'hmmtuf_compute',
+     'region_extractor',
+     'hmm_creator'
 ]
 
 MIDDLEWARE = [
