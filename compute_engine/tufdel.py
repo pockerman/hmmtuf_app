@@ -21,11 +21,6 @@ quadout = None
 PATH = None
 SPADE_OUTPATH = None
 
-# dictionary that holds the names of the
-# directories created
-chromosome_dir_map = dict()
-
-
 
 # this function copied from gquadfinder
 def BaseScore(line):
@@ -55,14 +50,14 @@ def BaseScore(line):
                     liste.append(4)
                     item = item+1
     
-        elif item < len(line) and line[item] !="G" and line[item] !="g" and line[item] != "C" and line[item] !="c":
+        elif item < len(line) and line[item] != "G" and line[item] != "g" and line[item] != "C" and line[item] != "c":
                     liste.append(0)
                     item = item+1
             
-        elif(item < len(line) and (line[item]=="C" or line[item]=="c")):
+        elif item < len(line) and (line[item] == "C" or line[item] == "c"):
             liste.append(-1)
-            if item+1< len(line) and (line[item+1] == "C" or line[item+1] == "c"):
-                liste[item]=-2
+            if item+1 < len(line) and (line[item+1] == "C" or line[item+1] == "c"):
+                liste[item] = -2
                 liste.append(-2)
                 if item+2 < len(line) and (line[item+2] == "C" or line[item+2] == "c"):
                     liste[item+1]=-3
@@ -116,31 +111,33 @@ def GetG4(line, liste, Window, k, Len):
 
 # this function copied from gquadfinder
 def WriteSeq(line,liste, LISTE, F, Len ):
+
     i,k,I=0,0,0
     a=b=LISTE[i]
     MSCORE=[]
-    if (len(LISTE)>1):
-        c=LISTE[i+1]
-        while (i< len(LISTE)-2):
-            if(c==b+1):
-                k=k+1
-                i=i+1
+
+    if len(LISTE) > 1:
+        c = LISTE[i+1]
+        while i < len(LISTE)-2:
+            if c == b+1:
+                k = k+1
+                i = i+1
             else:
-                I=I+1
-                seq=line[a:a+F+k]
-                sequence,liste2=BaseScore(seq)
-                MSCORE.append(abs(round(np.mean(liste2),2)))
-                k=0
-                i=i+1
-                a=LISTE[i]
-            b=LISTE[i] 
-            c=LISTE[i+1] 
+                I = I+1
+                seq = line[a:a+F+k]
+                sequence, liste2 = BaseScore(seq)
+                MSCORE.append(abs(round(np.mean(liste2), 2)))
+                k = 0
+                i = i+1
+                a = LISTE[i]
+            b = LISTE[i]
+            c = LISTE[i+1]
         I=I+1
         seq=line[a:a+F+k+1]
-        sequence,liste2=BaseScore(seq)
-        MSCORE.append(abs(round(np.mean(liste2),2)))
+        sequence, liste2 = BaseScore(seq)
+        MSCORE.append(abs(round(np.mean(liste2), 2)))
     else:
-        I=I+1
+        I = I+1
         seq = line[a:a+F]
         MSCORE.append(abs(liste[a]))
     return MSCORE   
@@ -179,6 +176,9 @@ def match(win, altwin):
 
 
 def gcpercent(cseq):
+    """
+    Calculate GC percent from the sequence
+    """
 
     count = 0
     count += cseq.count('G')
@@ -191,10 +191,13 @@ def gcpercent(cseq):
 
 def spade(repseq, chrom, start, stop, type):
 
+    """
+    Call SPADE application in the SPADE_PATH
+    """
+
     global outrep
     global PATH
     global SPADE_OUTPATH
-    global chromosome_dir_map
 
     if outrep is None:
         raise Exception("outrep file is None")
@@ -218,7 +221,6 @@ def spade(repseq, chrom, start, stop, type):
     fasta = open(PATH + 'repeats/tdtseq.fasta', 'w')
 
     folder = chrom + '_'+str(start) + '-' + str(stop) + '_' + type + '_' + gcpercent(repseq)
-    chromosome_dir_map[chrom] = folder
 
     fasta.write('>'+folder+'\n')
     fasta.write(repseq+'\n')
@@ -228,6 +230,25 @@ def spade(repseq, chrom, start, stop, type):
                                                         SPADE_OUTPATH)
     print("{0} str_cmd {1}".format(INFO, str_cmd))
     os.system(str_cmd)
+
+    # open the nucl files and attempt to write the
+    # outrep file
+    directories = os.listdir(path=SPADE_OUTPATH)
+
+    for name in directories:
+
+        # if this is a nucl_ directory
+        if name.startswith('nucl_'):
+
+            files = os.listdir(path=SPADE_OUTPATH + name)
+            if 'weblogo.txt' in files:
+
+                count = 0
+                with open(SPADE_OUTPATH + name + '/' + 'weblogo.txt', 'r') as f:
+                    for line in f:
+                        count += 1
+                if count > 12:
+                    outrep.write(chrom + '\t' + str(start) + '\t' + str(stop) + '\n')
 
 
 def createbed(line, ccheck):
@@ -296,9 +317,7 @@ def doTDT(tdtarray, outfile):
 
 def remove_directories(chromosome):
 
-    global chromosome_dir_map
     global SPADE_OUTPATH
-
     directories = os.listdir(path=SPADE_OUTPATH)
 
     for name in directories:
