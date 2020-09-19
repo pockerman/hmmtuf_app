@@ -83,21 +83,7 @@ def view_group_viterbi_path(request, task_id):
         # if the task exists do not ask celery. This means
         # that either the task failed or succeed
         task = models.GroupViterbiComputation.objects.get(task_id=task_id)
-        from compute_engine.job import JobResultEnum
-
-        if task.result == JobResultEnum.FAILURE.name:
-            context = {'error_task_failed': True,
-                       "error_message": task.error_explanation,
-                       'task_id': task_id, "computation": task}
-        elif task.result == JobResultEnum.PENDING.name:
-
-            context = {'show_get_results_button': True,
-                       'task_id': task_id,
-                       'task_status': JobResultEnum.PENDING.name}
-        else:
-            context = {}
-
-        #context = get_result_view_context(task=task, task_id=task_id)
+        context = get_result_view_context(task=task, task_id=task_id)
         return HttpResponse(template.render(context, request))
 
     except ObjectDoesNotExist:

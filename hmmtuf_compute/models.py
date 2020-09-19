@@ -32,6 +32,15 @@ class GroupViterbiComputation(Computation):
     # the hmm model image
     hmm_path_img = models.FileField(null=True)
 
+    # the reference sequence filename
+    ref_seq_filename = models.CharField(max_length=1000, null=True)
+
+    # the reference sequence filename
+    wga_seq_filename = models.CharField(max_length=1000, null=True)
+
+    # the reference sequence filename
+    no_wag_seq_filename = models.CharField(max_length=1000, null=True)
+
     @staticmethod
     def build_from_map(map_data, save):
 
@@ -49,6 +58,9 @@ class GroupViterbiComputation(Computation):
             computation.hmm_path_img = map_data["hmm_path_img"]
             computation.window_type = map_data["window_type"]
             computation.group_tip = map_data["group_tip"]
+            computation.ref_seq_filename = map_data["ref_seq_file"]
+            computation.wga_seq_filename = map_data["wga_seq_file"]
+            computation.no_wag_seq_filename = map_data["no_wag_seq_file"]
 
             if save:
                 computation.save()
@@ -92,9 +104,12 @@ class GroupViterbiComputation(Computation):
         data_map["error_explanation"] = str(result)
         data_map["computation_type"] = JobType.GROUP_VITERBI.name
         data_map["hmm_filename"] = result["hmm_filename"]
-        data_map["hmm_path_img"] = INVALID_ITEM
-        data_map["window_type"] = INVALID_STR
+        data_map["hmm_path_img"] = result["hmm_path_img"]
+        data_map["window_type"] = result["window_type"]
         data_map["group_tip"] = result["group_tip"]
+        data_map["ref_seq_file"] = result["ref_seq_file"]
+        data_map["wga_seq_file"] = result["wga_seq_file"]
+        data_map["no_wag_seq_file"] = result["no_wag_seq_file"]
         return data_map
 
 
