@@ -40,7 +40,7 @@ INSTALLED_APPS = [
     'hmmtuf_home',
     'file_loader',
     'hmmtuf_compute',
-     'region_extractor',
+     #'region_extractor',
      'hmm_creator'
 ]
 

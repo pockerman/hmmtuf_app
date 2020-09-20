@@ -3,4 +3,21 @@
 {% block title %}HMMtuf-Home{% endblock title %}
 
 {%block inner_body %}
+<div class="row">
+
+   {% if messages %}
+    <ul class="messages">
+        {% for message in messages %}
+        <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>
+            {% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %} ERROR:
+            {% elif message.level == DEFAULT_MESSAGE_LEVELS.INFO %}  INFO:
+            {% endif %}
+            {{ message }}
+        </li>
+        {% endfor %}
+    </ul>
+{% endif %}
+
+
+</div>
 {% endblock inner_body %}
