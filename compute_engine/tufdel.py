@@ -4,7 +4,9 @@ import os
 import shutil
 import random
 
-from . constants import INFO, WARNING, ENABLE_SPADE, SPADE_PATH
+from hmmtuf import ENABLE_SPADE, SPADE_PATH
+
+from . constants import INFO, WARNING
 from . constants import TREAT_ERRORS_AS_WARNINGS
 
 fas = None

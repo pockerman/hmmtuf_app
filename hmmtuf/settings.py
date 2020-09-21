@@ -16,6 +16,15 @@ from .config import BASE_DIR
 from .config import DEBUG
 from .config import USE_CELERY
 from .config import DATABASES
+from .config import SESSION_COOKIE_SECURE
+from .config import CSRF_COOKIE_SECURE
+from .config import ALLOWED_HOSTS
+from .config import STATIC_URL
+from .config import STATIC_ROOT
+from .config import STATICFILES_DIRS
+from .config import REGIONS_FILES_ROOT
+from .config import HMM_FILES_ROOT
+from .config import VITERBI_PATHS_FILES_ROOT
 
 #process_manager = None
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -107,22 +116,6 @@ USE_L10N = True
 USE_TZ = True
 
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/3.1/howto/static-files/
-
-STATIC_URL = '/static/'
-DEV_STATIC_FILES = '%s/static/' % BASE_DIR
-STATICFILES_DIRS = [DEV_STATIC_FILES, ]
 
 
-# path to where to store the region files
-REGIONS_FILES_ROOT = '%s/regions/' % BASE_DIR
-REGIONS_FILES_URL = '%s/regions/' % BASE_DIR
 
-# path to where to store the HMM files
-HMM_FILES_ROOT = '%s/hmm_files/' % BASE_DIR
-HMM_FILES_URL = '%s/hmm_files/' % BASE_DIR
-
-# path to where to store the computed Viterbi paths
-VITERBI_PATHS_FILES_ROOT = '%s/viterbi_paths/' % BASE_DIR
-VITERBI_PATHS_FILES_URL = '%s/viterbi_paths/' % BASE_DIR

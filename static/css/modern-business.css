@@ -52,6 +52,7 @@ border-color: 2px solid black;
   margin-left: auto;
   width: fit-content;
   margin-right: -16px;
+  float:right;
   margin-bottom: -5px;
   
 }

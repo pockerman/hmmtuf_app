@@ -3,7 +3,7 @@ from celery import Celery
 from django.conf import settings
 from .celery_settings import CELERY_RESULT_BACKEND, CELERY_TASK_SERIALIZER, CELERY_RESULT_SERIALIZER
 
-
+# the celery application
 celery_app = Celery('hmmtuf',
                     backend=CELERY_RESULT_BACKEND,
                     task_serializer=CELERY_TASK_SERIALIZER,

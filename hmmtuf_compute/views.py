@@ -5,11 +5,11 @@ from django.shortcuts import redirect
 from django.core.exceptions import ObjectDoesNotExist
 
 from compute_engine.windows import WindowType
-from compute_engine import OK, ENABLE_SPADE
+from compute_engine import OK
 from compute_engine.utils import extract_file_names
 
-from hmmtuf import VITERBI_PATH_FILENAME
-from hmmtuf import INVALID_TASK_ID, INVALID_ITEM
+
+from hmmtuf import INVALID_TASK_ID, INVALID_ITEM, ENABLE_SPADE
 from hmmtuf.helpers import get_configuration
 
 from hmmtuf.celery import celery_app

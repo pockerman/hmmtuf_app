@@ -9,6 +9,7 @@ from django.contrib import messages
 
 from hmmtuf.settings import VITERBI_PATHS_FILES_ROOT
 
+
 # Create your views here.
 def home_view(request):
     template_html = 'hmmtuf_home/index.html'
@@ -32,7 +33,8 @@ def delete_task_directories_view(request):
                     shutil.rmtree(os.path.join(VITERBI_PATHS_FILES_ROOT, name))
                     counter += 1
             except Exception as e:
-                messages.error(request, "Attempt to remove task directory {0} failed".format(VITERBI_PATHS_FILES_ROOT + name))
+                messages.error(request, "Attempt to remove task "
+                                        "directory {0} failed".format(VITERBI_PATHS_FILES_ROOT + name))
                 return redirect("index")
 
         if counter == 0:
