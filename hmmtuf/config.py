@@ -11,7 +11,7 @@ from pathlib import Path
 REMOTE = False
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 
@@ -43,11 +43,17 @@ else:
             'NAME': BASE_DIR / 'db.sqlite3',
         }
     }
-
+# ALLOWED_HOSTs
+# This defines a list of the server’s addresses or
+# domain names may be used to connect to the Django instance.
+# Any incoming requests with a  Host header that is
+# not in this list will raise an exception.
+# Django requires that you set this to prevent
+# a certain class of security vulnerability.
 if DEBUG:
-    ALLOWED_HOSTS = []
+    ALLOWED_HOSTS = ['localhost']
 else:
-    ALLOWED_HOSTS = ['127.0.0.1 ', 'localhost',]
+    ALLOWED_HOSTS = ['localhost',]
 
 SPADE_PATH = "%s/compute_engine/SPADE/" % BASE_DIR
 
@@ -65,7 +71,7 @@ SPADE_PATH = "%s/compute_engine/SPADE/" % BASE_DIR
 if DEBUG:
     STATIC_URL = '/static/'
 else:
-    STATIC_URL = '/deploy_static/'
+    STATIC_URL = '/static/'
 
 # This is the absolute path to a directory where Django's "collectstatic" tool will gather
 # any static files referenced in our templates.
