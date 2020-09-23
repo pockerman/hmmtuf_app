@@ -11,7 +11,7 @@ from pathlib import Path
 REMOTE = False
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 
@@ -78,8 +78,10 @@ else:
 # Once collected, these can then be uploaded as a group to
 # # wherever the files are to be hosted.
 STATIC_ROOT = '%s/%s/' % (BASE_DIR, STATIC_URL)
-DEV_STATIC_FILES = '%s/%s/' % (BASE_DIR, STATIC_URL)
-STATICFILES_DIRS = [DEV_STATIC_FILES]
+#DEV_STATIC_FILES = '%s/%s/' % (BASE_DIR, STATIC_URL)
+
+# extra paths to look for static files
+STATICFILES_DIRS = []
 
 
 # path to where to store the region files

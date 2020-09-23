@@ -56,3 +56,15 @@ development
 ```python manage.py migrate zero``` 
 
 ## Monitoring Celery
+
+You can use <a href="https://flower.readthedocs.io/en/latest/">flower</a> in order to monitor Celery
+
+## Deploy
+
+There are several tools that can be used for deployment. A common scenario is using 
+<a href="https://gunicorn.org/">Gunicorn</a> a Python WSGI HTTP Server for UNIX and 
+<a href="https://nginx.org/en/">nginx</a> an HTTP and reverse proxy server. 
+
+You can find instructions how to deploy the application using Gunicorn and 
+nginx <a href="https://www.digitalocean.com/community/tutorials/how-to-set-up-django-with-postgres-nginx-and-gunicorn-on-ubuntu-18-04">here</a>.
+
