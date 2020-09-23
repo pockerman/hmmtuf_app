@@ -47,9 +47,8 @@ border-color: 2px solid black;
 
 .closebtn{
   margin-top: -44px;
-  /* margin-right: -37px; */
-  /* box-sizing: unset; */
-  margin-left: auto;
+  float: right;
+  margin-left: 10px;
   width: fit-content;
   margin-right: -16px;
   margin-bottom: -5px;
