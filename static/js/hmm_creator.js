@@ -121,13 +121,13 @@ $(function () {
         <div class="row mb-2">
             <div class="col-6">
                 <div class ="control-group">
-                    <label for="single_com_m1">Mean1</label>
+                    <label for="single_com_m1">WGA Mean</label>
                     <input type="number" step="0.1" min="0.00" class="form-control" name="State[${sno}][single_com_m1]" >
                 </div>
             </div>
             <div class="col-6">
                 <div class ="control-group">
-                    <label for="single_com_m2">Mean2</label>
+                    <label for="single_com_m2">No WGA Mean</label>
                     <input type="number" step="0.1" min="0.00" class="form-control" name="State[${sno}][single_com_m2]" >
                 </div>
             </div>
@@ -135,14 +135,14 @@ $(function () {
         <div class="row">
             <div class="col-6">
             <div class="form-group">
-            <label for="variant">variance1:</label>
+            <label for="variant">WGA Variance:</label>
             <input type="number" step="0.1" min="0.00" class="form-control mb-2" name="State[${sno}][single_com_v1]">
             </div>
             </div>
             <div class="col-6">
 
             <div class="form-group">
-            <label for="variant">variance2:</label>
+            <label for="variant">No WGA Variance:</label>
             <input type="number" step="0.1" min="0.00" class="form-control mb-2" name="State[${sno}][single_com_v2]">
             </div>
 
@@ -168,13 +168,13 @@ $(function () {
         <div class="row">
             <div class="col-6">
                 <div class ="control-group">
-                    <label for="single_com_l1">Lower1</label>
+                    <label for="single_com_l1">WGA Lower</label>
                     <input type="number" step="0.1" min="0.00" class="form-control" name="State[${sno}][single_com_l1]" >
                 </div>
             </div>
             <div class="col-6">
                 <div class ="control-group">
-                    <label for="single_com_l2">Lower2</label>
+                    <label for="single_com_l2">No WGA Lower</label>
                     <input type="number" step="0.1" min="0.00" class="form-control" name="State[${sno}][single_com_l2]" >
                 </div>
             </div>
@@ -182,13 +182,13 @@ $(function () {
         <div class="row">
         <div class="col-6">
             <div class ="control-group">
-                <label for="single_com_u1">Upper1</label>
+                <label for="single_com_u1">WGA Upper</label>
                 <input type="number" step="0.1" min="0.00" class="form-control" name="State[${sno}][single_com_u1]" >
             </div>
         </div>
         <div class="col-6">
             <div class ="control-group">
-                <label for="single_com_u2">Upper2</label>
+                <label for="single_com_u2">No WGA Upper</label>
                 <input type="number" step="0.1" min="0.00" class="form-control" name="State[${sno}][single_com_u2]" >
             </div>
         </div>
@@ -264,13 +264,13 @@ $(function () {
         <div class="row">
             <div class="col-6">
                 <div class ="control-group">
-                    <label for="single_com_l1">Lower1</label>
+                    <label for="single_com_l1">WGA Lower</label>
                     <input type="number" step="0.1" min="0.00" class="form-control" name="State[${sno}]components[${cno}][single_com_l1]" >
                 </div>
             </div>
             <div class="col-6">
                 <div class ="control-group">
-                    <label for="single_com_l2">Lower2</label>
+                    <label for="single_com_l2">No WGA Lower</label>
                     <input type="number" step="0.1" min="0.00" class="form-control" name="State[${sno}]components[${cno}][single_com_l2]" >
                 </div>
             </div>
@@ -278,13 +278,13 @@ $(function () {
         <div class="row">
         <div class="col-6">
             <div class ="control-group">
-                <label for="single_com_u1">Upper1</label>
+                <label for="single_com_u1">WGA Upper</label>
                 <input type="number" step="0.1" min="0.00" class="form-control" name="State[${sno}]components[${cno}][single_com_u1]" >
             </div>
         </div>
         <div class="col-6">
             <div class ="control-group">
-                <label for="single_com_u2">Upper2</label>
+                <label for="single_com_u2">No WGA Upper</label>
                 <input type="number" step="0.1" min="0.00" class="form-control" name="State[${sno}]components[${cno}][single_com_u2]" >
             </div>
         </div>
@@ -310,13 +310,13 @@ $(function () {
         <div class="row mb-2">
             <div class="col-6">
                 <div class ="control-group">
-                    <label for="single_com_m1">Mean1</label>
+                    <label for="single_com_m1">WGA Mean</label>
                     <input type="number" step="0.1" min="0.00" class="form-control" name="State[${sno}]components[${cno}][single_com_m1]" >
                 </div>
             </div>
             <div class="col-6">
                 <div class ="control-group">
-                    <label for="single_com_m2">Mean2</label>
+                    <label for="single_com_m2">No WGA Mean</label>
                     <input type="number" step="0.1" min="0.00"  class="form-control" name="State[${sno}]components[${cno}][single_com_m2]" >
                 </div>
             </div>
@@ -324,14 +324,14 @@ $(function () {
         <div class="row">
             <div class="col-6">
                 <div class="form-group">
-                    <label for="variant">variance1:</label>
+                    <label for="variant">WGA Variance:</label>
                     <input type="number" step="0.1" min="0.00" class="form-control mb-2" name="State[${sno}]components[${cno}][single_com_v1]">
                 </div>
             </div>
             <div class="col-6">
                   
             <div class="form-group">
-                <label for="variant">variance2:</label>
+                <label for="variant">No WGA Variance:</label>
                 <input type="number" step="0.1" min="0.00" class="form-control mb-2" name="State[${sno}]components[${cno}][single_com_v2]">
             </div>
 
