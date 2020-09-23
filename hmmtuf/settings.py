@@ -22,6 +22,8 @@ from .config import ALLOWED_HOSTS
 from .config import STATIC_URL
 from .config import STATIC_ROOT
 from .config import STATICFILES_DIRS
+from .config import MEDIA_URL
+from .config import MEDIA_ROOT
 from .config import REGIONS_FILES_ROOT
 from .config import HMM_FILES_ROOT
 from .config import VITERBI_PATHS_FILES_ROOT
@@ -114,8 +116,3 @@ USE_I18N = True
 USE_L10N = True
 
 USE_TZ = True
-
-
-
-
-

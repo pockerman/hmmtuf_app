@@ -11,6 +11,7 @@ from compute_engine.utils import extract_file_names
 
 from hmmtuf import INVALID_TASK_ID, INVALID_ITEM, ENABLE_SPADE
 from hmmtuf.helpers import get_configuration
+from hmmtuf.settings import MEDIA_URL
 
 from hmmtuf.celery import celery_app
 from hmmtuf_home.models import HMMModel, RegionModel, RegionGroupTipModel
@@ -261,14 +262,15 @@ def schedule_hmm_viterbi_compute_view(request):
 
 
 def view_viterbi_path(request, task_id):
-
-    template = loader.get_template('hmmtuf_compute/viterbi_result_view.html')
+    template_html = 'hmmtuf_compute/viterbi_result_view.html'
+    template = loader.get_template(template_html)
     try:
 
         # if the task exists do not ask celery. This means
         # that either the task failed or succeed
         task = models.ViterbiComputation.objects.get(task_id=task_id)
         context = get_result_view_context(task=task, task_id=task_id)
+        context["MEDIA_URL"] = MEDIA_URL
         return HttpResponse(template.render(context, request))
     except ObjectDoesNotExist:
 

@@ -16,7 +16,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from django.urls import include
-
+from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from django.conf.urls.static import static
 from django.conf import settings
 
@@ -24,6 +24,7 @@ from .config import REGIONS_FILES_ROOT
 from .config import REGIONS_FILES_URL
 from .config import VITERBI_PATHS_FILES_URL
 from .config import VITERBI_PATHS_FILES_ROOT
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -35,8 +36,8 @@ urlpatterns = [
     path('hmm_creator/', include('hmm_creator.urls')),
 ]
 
-#if settings.DEBUG:
+#
 urlpatterns += static(REGIONS_FILES_URL, document_root=REGIONS_FILES_ROOT)
 urlpatterns += static(VITERBI_PATHS_FILES_URL, document_root=VITERBI_PATHS_FILES_ROOT)
-urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+
 
