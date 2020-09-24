@@ -4,6 +4,8 @@
 - <a href="https://docs.celeryproject.org/en/stable/getting-started/introduction.html">celery</a>
 - <a href="https://pomegranate.readthedocs.io/en/latest/">pomegranate</a>
 - <a href="https://www.sqlite.org/index.html">SQLite</a>
+- <a href="https://pysam.readthedocs.io/en/latest/api.html">pysam</a>
+- <a href="https://biopython.org/">biopython</a>
 
 #### Note
 
