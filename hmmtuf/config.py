@@ -1,12 +1,11 @@
 from pathlib import Path
 
+# Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve(strict=True).parent.parent
 
-REMOTE = False
-
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
-LOCAL_DEPLOY = True
+DEBUG = True
+LOCAL_DEPLOY = False
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 
