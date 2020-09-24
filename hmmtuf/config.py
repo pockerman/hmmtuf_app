@@ -9,14 +9,15 @@ LOCAL_DEPLOY = False
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 
-USE_CELERY = True
+USE_CELERY = False
 ENABLE_SPADE = True
 SPADE_PATH = "%s/compute_engine/SPADE/" % BASE_DIR
+DATA_PATH = "%s/data/" % BASE_DIR
 
 files_dict = {
   "sequence_files": {
 
-    "files": [{"path": "/home/alex/qi3/hmmtuf/data/",
+    "files": [{"path": DATA_PATH,
               "ref_files": ["GCA_000001405.15_GRCh38_no_alt_analysis_set.fna"],
               "no_wga_files": ["m585_verysensitive_trim_sorted.bam"],
               "wga_files": ["m605_verysensitive_trim_sorted.bam"]
