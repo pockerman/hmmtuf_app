@@ -8,11 +8,7 @@ from compute_engine.utils import read_json
 
 
 def get_configuration():
-    return files_dict #read_json(filename=make_configuration_path())
-
-
-def make_configuration_path():
-    return "%s/config.json" % BASE_DIR
+    return files_dict
 
 
 def make_hmm_file_path(hmm_name):
