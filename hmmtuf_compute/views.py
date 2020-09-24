@@ -8,11 +8,8 @@ from compute_engine.windows import WindowType
 from compute_engine import OK
 from compute_engine.utils import extract_file_names
 
-
 from hmmtuf import INVALID_TASK_ID, INVALID_ITEM, ENABLE_SPADE
 from hmmtuf.helpers import get_configuration
-from hmmtuf.settings import MEDIA_URL
-
 from hmmtuf.celery import celery_app
 from hmmtuf_home.models import HMMModel, RegionModel, RegionGroupTipModel
 
@@ -23,7 +20,9 @@ from . view_helpers import get_result_view_context, view_viterbi_path_exception_
 
 
 def success_schedule_group_viterbi_compute_view(request, task_id):
-    template = loader.get_template('hmmtuf_compute/success_schedule_group_viterbi_compute_view.html')
+
+    template_html = 'hmmtuf_compute/success_schedule_group_viterbi_compute_view.html'
+    template = loader.get_template(template_html)
 
     context = {"task_id": task_id}
     if task_id == INVALID_TASK_ID:
@@ -270,7 +269,6 @@ def view_viterbi_path(request, task_id):
         # that either the task failed or succeed
         task = models.ViterbiComputation.objects.get(task_id=task_id)
         context = get_result_view_context(task=task, task_id=task_id)
-        context["MEDIA_URL"] = MEDIA_URL
         return HttpResponse(template.render(context, request))
     except ObjectDoesNotExist:
 
@@ -281,6 +279,13 @@ def view_viterbi_path(request, task_id):
         task = celery_app.AsyncResult(task_id)
         context = view_viterbi_path_exception_context(task=task, task_id=task_id)
         return HttpResponse(template.render(context, request))
+
+
+def schedule_compare_sequences_compute_view(request):
+    template_html = 'hmmtuf_compute/schedule_compare_sequences_compute_view.html'
+    template = loader.get_template(template_html)
+    context = {}
+    return HttpResponse(template.render(context, request))
 
 
 

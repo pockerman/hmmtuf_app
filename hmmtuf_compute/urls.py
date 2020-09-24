@@ -16,5 +16,6 @@ urlpatterns = [
          views.success_schedule_viterbi_compute_view, name='success_schedule_viterbi_computation_view'),
     path('success_schedule_group_viterbi_compute/<str:task_id>/',
          views.success_schedule_group_viterbi_compute_view, name='success_schedule_group_viterbi_compute_view'),
+    path('compare_sequence_viterbi/', views.schedule_compare_sequences_compute_view, name='compare_sequences_view'),
 
 ]

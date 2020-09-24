@@ -1,12 +1,5 @@
 from enum import Enum
 
-#import django
-#django.settings()
-#django.setup()
-
-#from region_extractor import models
-
-
 from .constants import DEFAULT_ERROR_EXPLANATION
 
 
@@ -21,6 +14,7 @@ class JobType(Enum):
     EXTRACT_REGION = 1
     MULTI_VITERBI = 2
     GROUP_VITERBI = 3
+    VITERBI_SEQUENCE_COMPARE = 4
 
 
 class Job(object):
@@ -35,7 +29,6 @@ class Job(object):
         self._model = model
 
     def execute(self):
-
 
         self._started = JobResultEnum.PENDING
 

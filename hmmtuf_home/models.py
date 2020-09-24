@@ -6,13 +6,14 @@ from compute_engine import DEFAULT_ERROR_EXPLANATION
 from hmmtuf.settings import REGIONS_FILES_ROOT
 from hmmtuf.settings import HMM_FILES_ROOT
 
+
 def upload_hmm_file(instance, filename):
     return HMM_FILES_ROOT + filename #'/'.join(['content', instance.user.username, filename])
+
 
 def upload_region_file(instance, filename):
     return REGIONS_FILES_ROOT + filename #'/'.join(['content', instance.user.username, filename])
 
-# Create your models here.
 
 class Computation(models.Model):
 
@@ -33,10 +34,8 @@ class Computation(models.Model):
 
 class FilesModel(models.Model):
 
-    id = models.AutoField(primary_key=True)
-
     # a user defined name to distinguish
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=100, unique=True)
 
     # the extension of the file
     extension = models.CharField(max_length=10)
@@ -84,7 +83,7 @@ class RegionGroupTipModel(models.Model):
     tip = models.CharField(max_length=100)
 
     class Meta:
-        db_table = 'region_group_tipe'
+        db_table = 'region_group_tip'
 
     def __str__(self):
         return "%s" % self.tip
@@ -92,14 +91,25 @@ class RegionGroupTipModel(models.Model):
 
 class RegionModel(FilesModel):
 
+    # the file representing the region
     file_region = models.FileField(upload_to=upload_region_file, null=False)
+
+    # the chromosome of the region
     chromosome = models.CharField(max_length=10, null=False)
     chromosome_index = models.IntegerField(default=-1, null=False)
+
+    # files used to extract the region
     ref_seq_file = models.CharField(max_length=1000, null=False)
     wga_seq_file = models.CharField(max_length=1000, null=False)
     no_wga_seq_file = models.CharField(max_length=1000, null=False)
+
+    # global start index of the region
     start_idx = models.IntegerField(null=False)
+
+    # global end index of the region
     end_idx = models.IntegerField(null=False)
+
+    # group the region belongs to
     group_tip = models.ForeignKey(RegionGroupTipModel, on_delete=models.CASCADE, null=False)
 
     class Meta(FilesModel.Meta):
@@ -137,5 +147,32 @@ class RegionModel(FilesModel):
         if save:
             inst.save()
         return inst
+
+
+class ViterbiSequenceGroupTip(models.Model):
+
+    # tip used to group Viterbi sequence  models
+    tip = models.CharField(max_length=100, unique=True)
+
+    class Meta:
+        db_table = 'viterbi_seq_group_tip'
+
+    def __str__(self):
+        return "%s" % self.tip
+
+
+class ViterbiSequenceModel(FilesModel):
+
+    # the group tip
+    group_tip = models.ForeignKey(ViterbiSequenceGroupTip, on_delete=models.CASCADE, null=False)
+
+    # the file representing the region
+    file_region = models.FileField(upload_to=upload_region_file, null=False)
+
+
+
+
+
+
 
 

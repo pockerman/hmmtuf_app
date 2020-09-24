@@ -1,10 +1,8 @@
-from .settings import BASE_DIR
 from .settings import VITERBI_PATHS_FILES_ROOT
 from .settings import HMM_FILES_ROOT
 from .constants import VITERBI_PATH_FILENAME
 from .constants import TUF_DEL_TUF_PATH_FILENAME
 from .config import files_dict
-from compute_engine.utils import read_json
 
 
 def get_configuration():
