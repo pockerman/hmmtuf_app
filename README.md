@@ -66,7 +66,6 @@ There are several tools that can be used for deployment. A common scenario is us
 
 You can find instructions how to deploy the application using Gunicorn and 
 nginx <a href="https://www.digitalocean.com/community/tutorials/how-to-set-up-django-with-postgres-nginx-and-gunicorn-on-ubuntu-18-04">here</a>.
-
 A minimum configuration that most likely is only suitable for local development/testing, can be:
 
 #### gunicorn configuration
@@ -140,7 +139,6 @@ server {
 	}
 
 	location / {
-		#include proxy_params;
 		proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
 		proxy_set_header Host $http_host;
 		proxy_pass http://app_server;
