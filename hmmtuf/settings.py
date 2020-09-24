@@ -10,7 +10,6 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.1/ref/settings/
 """
 
-import os
 from pathlib import Path
 from .config import BASE_DIR
 from .config import DEBUG
@@ -27,10 +26,6 @@ from .config import MEDIA_ROOT
 from .config import REGIONS_FILES_ROOT
 from .config import HMM_FILES_ROOT
 from .config import VITERBI_PATHS_FILES_ROOT
-
-#process_manager = None
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
-#BASE_DIR = Path(__file__).resolve(strict=True).parent.parent
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.1/howto/deployment/checklist/
