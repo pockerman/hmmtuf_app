@@ -244,6 +244,7 @@ def spade(repseq, chrom, start, stop, type):
     # outrep file
     directories = os.listdir(path=SPADE_OUTPATH)
 
+
     for name in directories:
 
         # if this is a nucl_ directory
@@ -254,6 +255,7 @@ def spade(repseq, chrom, start, stop, type):
 
                 nucleods = ['A', 'C', 'G', 'T']
                 count = 0
+                seq = ''
                 with open(SPADE_OUTPATH + name + '/' + 'weblogo.txt', 'r') as f:
                     for line in f:
                         count += 1
@@ -276,7 +278,10 @@ def spade(repseq, chrom, start, stop, type):
                                                  "Index {0} not in [0,3]".format(nucleod_idx))
 
                             nucleod = nucleods[nucleod_idx]
-                            nucl_out.write(chrom + '\t' + str(start) + '\t' + str(stop) + '\t' + nucleod + '\n')
+                            seq += nucleod
+
+                if len(seq) != 0:
+                    nucl_out.write(chrom + '\t' + str(start) + '\t' + str(stop) + '\t' + seq + '\n')
 
                 # TODO: Make this application defined?
                 if count > 12:
