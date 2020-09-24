@@ -6,7 +6,7 @@ from compute_engine.job import JobType, JobResultEnum
 from compute_engine.windows import WindowType
 from hmmtuf import INVALID_ITEM
 from hmmtuf.settings import USE_CELERY
-from hmmtuf_home.models import Computation, RegionGroupTipModel
+from hmmtuf_home.models import Computation
 
 from .tasks import compute_viterbi_path_task
 from .tasks import compute_mutliple_viterbi_path_task
