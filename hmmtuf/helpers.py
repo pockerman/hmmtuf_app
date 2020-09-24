@@ -3,11 +3,12 @@ from .settings import VITERBI_PATHS_FILES_ROOT
 from .settings import HMM_FILES_ROOT
 from .constants import VITERBI_PATH_FILENAME
 from .constants import TUF_DEL_TUF_PATH_FILENAME
+from .config import files_dict
 from compute_engine.utils import read_json
 
 
 def get_configuration():
-    return read_json(filename=make_configuration_path())
+    return files_dict #read_json(filename=make_configuration_path())
 
 
 def make_configuration_path():
@@ -19,7 +20,6 @@ def make_hmm_file_path(hmm_name):
 
 
 def make_viterbi_path_filename(task_id, extra_path=None):
-
 
     if extra_path is None:
         return VITERBI_PATHS_FILES_ROOT + task_id.replace('-', '_') + "/" + VITERBI_PATH_FILENAME

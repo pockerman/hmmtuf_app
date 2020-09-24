@@ -13,6 +13,27 @@ USE_CELERY = True
 ENABLE_SPADE = True
 SPADE_PATH = "%s/compute_engine/SPADE/" % BASE_DIR
 
+files_dict = {
+  "sequence_files": {
+
+    "files": [{"path": "/home/alex/qi3/hmmtuf/data/",
+              "ref_files": ["GCA_000001405.15_GRCh38_no_alt_analysis_set.fna"],
+              "no_wga_files": ["m585_verysensitive_trim_sorted.bam"],
+              "wga_files": ["m605_verysensitive_trim_sorted.bam"]
+     }]
+  },
+  "sequences_names": {
+      "m585_verysensitive_trim_sorted.bam": "M585",
+      "m605_verysensitive_trim_sorted.bam": "M605"
+    },
+
+    "tdf_files":{
+      "m585_verysensitive_trim_sorted.bam": "m585.tdf",
+      "m605_verysensitive_trim_sorted.bam": "m605.tdf"
+    },
+    "igv_tracks":"igv_tracks"
+}
+
 
 # Database
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
