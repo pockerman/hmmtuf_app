@@ -11,7 +11,7 @@ from compute_engine import OK
 from hmmtuf import INVALID_TASK_ID, INVALID_ITEM, ENABLE_SPADE
 from hmmtuf.helpers import get_configuration
 from hmmtuf.celery import celery_app
-from hmmtuf_home.models import HMMModel, RegionModel, RegionGroupTipModel
+from hmmtuf_home.models import HMMModel, RegionModel, RegionGroupTipModel, ViterbiSequenceGroupTip
 
 # Create your views here.
 from . import models
@@ -73,8 +73,10 @@ def view_group_viterbi_path(request, task_id):
     """
     View the Viterbi path of a multi-region computation
     """
+
     template_html = 'hmmtuf_compute/group_viterbi_result_view.html'
     template = loader.get_template(template_html)
+
     try:
 
         # if the task exists do not ask celery. This means
@@ -158,6 +160,7 @@ def view_multi_viterbi_path(request, task_id):
     """
     template_html = 'hmmtuf_compute/multi_viterbi_result_view.html'
     template = loader.get_template(template_html)
+
     try:
 
         # if the task exists do not ask celery. This means
@@ -199,17 +202,13 @@ def schedule_hmm_viterbi_compute_view(request):
 
     # the view html file
     template_html = 'hmmtuf_compute/schedule_viterbi_compute_view.html'
+    template = loader.get_template(template_html)
 
-    if request.method == 'POST':
+    db_group_tips = ViterbiSequenceGroupTip.objects.all()
+    group_tips = ["None"]
 
-        form = forms.ViterbiComputeForm(template_html=INVALID_ITEM,
-                                        configuration=INVALID_ITEM,
-                                        context=INVALID_ITEM)
-        form.check(request=request)
-        task_id = models.ViterbiComputation.compute(data=form.as_map())
-
-        # return the id for the computation
-        return redirect('success_schedule_viterbi_computation_view', task_id=task_id)
+    for item in db_group_tips:
+        group_tips.append(item.tip)
 
     # get the hmms we have
     hmms = HMMModel.objects.all()
@@ -237,11 +236,26 @@ def schedule_hmm_viterbi_compute_view(request):
 
     context = {"region_names": region_names,
                "hmm_names": hmm_names,
-               'window_names': WindowType.get_window_types(), }
+               'window_names': WindowType.get_window_types(),
+               "sequence_groups": group_tips}
+
     if ENABLE_SPADE:
         context.update({"use_spade": True})
 
-    template = loader.get_template(template_html)
+    if request.method == 'POST':
+
+        form = forms.ViterbiComputeForm(template_html=template_html,
+                                        configuration=INVALID_ITEM,
+                                        context=context)
+
+        if form.check(request=request) is not OK:
+            return form.response
+
+        task_id = models.ViterbiComputation.compute(data=form.as_map())
+
+        # return the id for the computation
+        return redirect('success_schedule_viterbi_computation_view', task_id=task_id)
+
     return HttpResponse(template.render(context, request))
 
 
@@ -277,19 +291,28 @@ def schedule_compare_sequences_compute_view(request):
 
     template_html = 'hmmtuf_compute/schedule_compare_sequences_compute_view.html'
     template = loader.get_template(template_html)
-    context = {"metrics": forms.SequenceComparisonComputeForm.NAMES}
+
+    db_sequence_tips = ViterbiSequenceGroupTip.objects.all()
+    sequence_tips = []
+
+    for item in db_sequence_tips:
+        sequence_tips.append(item.tip)
+
+    context = {"metrics": forms.SequenceComparisonComputeForm.NAMES,
+               "sequence_tips": sequence_tips}
 
     if request.method == 'POST':
 
         form = forms.SequenceComparisonComputeForm(template_html=template_html,
                                                    context=context, configuration=None)
-        
+
         if form.check(request=request) is not OK:
             return form.response
 
-        # return the id for the computation
-        return redirect('success_schedule_compare_sequences_compute_view', task_id="0")
+        task_id = models.CompareViterbiSequenceComputation.compute(data=form.as_map())
 
+        # return the id for the computation
+        return redirect('success_schedule_compare_sequences_compute_view', task_id=task_id)
 
     return HttpResponse(template.render(context, request))
 

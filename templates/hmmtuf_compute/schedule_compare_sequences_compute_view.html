@@ -31,7 +31,7 @@
             <label>Sequence  tip:</label><br/>
             <select name="group_tip">
                 {% for group in sequence_tips %}
-                    <option value="{{ group.tip }}">{{ group.tip }}</option>
+                    <option value="{{ group }}">{{ group }}</option>
                 {% endfor %}
             </select>
         </div>

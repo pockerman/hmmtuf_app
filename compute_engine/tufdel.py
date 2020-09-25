@@ -376,7 +376,7 @@ def remove_directories(chromosome):
 
 
 def main(path, fas_file_name, chromosome,
-         chr_idx, viterbi_file, remove_dirs=False):
+         chr_idx, viterbi_file, nucleods_path, remove_dirs=False):
 
     print("{0} Start TUF-DEL-TUF".format(INFO))
 
@@ -395,6 +395,8 @@ def main(path, fas_file_name, chromosome,
 
     global PATH
     global SPADE_OUTPATH
+
+    NUCL_FILENAME = 'nucl_out.bed'
 
     PATH = path
 
@@ -436,7 +438,7 @@ def main(path, fas_file_name, chromosome,
     outquad = open(path + "quad.bed", "w")
     outrep = open(path + "rep.bed", "w")
     quadout = open(path + 'gquads.txt', 'w')
-    nucl_out = open(path + 'nucl_out.bed', 'w')
+    nucl_out = open(path + NUCL_FILENAME, 'w')
 
     prevstate = ""
     start = 0
@@ -563,6 +565,12 @@ def main(path, fas_file_name, chromosome,
 
     if remove_dirs:
         remove_directories(chromosome=chromosome)
+
+    # create directory for storing the sequence file
+    #os.mkdir(nucleods_path)
+
+    # copy the nucleods file produced
+    shutil.copyfile(path + NUCL_FILENAME, nucleods_path + NUCL_FILENAME)
 
     print("{0} END TUF-DEL-TUF".format(INFO))
     return files_created

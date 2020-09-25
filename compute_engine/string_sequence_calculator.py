@@ -14,3 +14,6 @@ class TextDistanceCalculator(object):
 
     def calculate(self, txt1, txt2):
         pass
+
+    def calculate_from_files(self, fileslist, save_at):
+        pass

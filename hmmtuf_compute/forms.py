@@ -1,6 +1,7 @@
 from abc import abstractmethod
 from django.http import HttpResponse
 from django.template import loader
+from django.core.exceptions import ObjectDoesNotExist
 
 from compute_engine.utils import extract_path
 from compute_engine.string_sequence_calculator import TextDistanceCalculator
@@ -9,7 +10,7 @@ from compute_engine import OK
 from hmmtuf import VITERBI_PATH_FILENAME
 from hmmtuf import INVALID_ITEM
 from hmmtuf.settings import VITERBI_PATHS_FILES_ROOT
-from hmmtuf_home.models import HMMModel, RegionModel, ViterbiSequenceModel
+from hmmtuf_home.models import HMMModel, RegionModel, ViterbiSequenceModel, ViterbiSequenceGroupTip
 
 
 class ComputeFormBase(object):
@@ -31,6 +32,10 @@ class ComputeFormBase(object):
     @property
     def context(self):
         return self._context
+
+    @property
+    def template_html(self):
+        return self._template_html
 
     @abstractmethod
     def as_map(self):
@@ -182,7 +187,8 @@ class ViterbiComputeForm(ComputeFormBase):
                         'no_wag_seq_file': INVALID_ITEM,
                         'chromosome_index': INVALID_ITEM,
                         "remove_dirs": INVALID_ITEM,
-                        "use_spade": INVALID_ITEM}
+                        "use_spade": INVALID_ITEM,
+                        "sequence_group": INVALID_ITEM}
 
     def as_map(self):
         return self._kwargs
@@ -217,6 +223,28 @@ class ViterbiComputeForm(ComputeFormBase):
         window_type = 'BOTH'
         n_sequences = 1
 
+        sequence_group = request.POST.get('sequence_group', "None")
+
+        if sequence_group == "None":
+            sequence_group = request.POST.get('new_sequence_group', "")
+
+            if sequence_group == "":
+                template = loader.get_template(self.template_html)
+                self.context.update({"error_found": True,
+                                     "no_seq_group": "No sequence group specified"})
+
+                self.response = HttpResponse(template.render(self._context, request))
+                return not OK
+            else:
+
+                try:
+
+                    group_tip = ViterbiSequenceGroupTip.objects.get(tip=sequence_group)
+                except ObjectDoesNotExist as e:
+                    model = ViterbiSequenceGroupTip()
+                    model.tip = sequence_group
+                    model.save()
+
         self._kwargs = {'hmm_name': hmm_name,
                         'region_name': region_name,
                         'chromosome': chromosome,
@@ -233,7 +261,10 @@ class ViterbiComputeForm(ComputeFormBase):
                         'no_wag_seq_file': no_wag_seq_file,
                         "chromosome_index": region.chromosome_index,
                         "remove_dirs": checkbox,
-                        "use_spade": use_spade}
+                        "use_spade": use_spade,
+                        "sequence_group": sequence_group}
+
+        return OK
 
 
 class SequenceComparisonComputeForm(ComputeFormBase):

@@ -11,6 +11,7 @@ from hmmtuf_home.models import Computation
 from .tasks import compute_viterbi_path_task
 from .tasks import compute_mutliple_viterbi_path_task
 from .tasks import compute_group_viterbi_path_task
+from .tasks import compute_compare_viterbi_sequence_task
 
 
 class GroupViterbiComputation(Computation):
@@ -224,7 +225,8 @@ class ViterbiComputation(Computation):
                                                    no_wga_seq_file=no_wga_seq_file,
                                                    wga_seq_file=wga_seq_file,
                                                    remove_dirs=data["remove_dirs"],
-                                                   use_spade=data["use_spade"])
+                                                   use_spade=data["use_spade"],
+                                                   sequence_group=data["sequence_group"])
             return task.id
         else:
 
@@ -237,7 +239,7 @@ class ViterbiComputation(Computation):
                                  hmm_filename=hmm_filename, sequence_size=None, n_sequences=1,
                                  ref_seq_file=ref_seq_file, no_wga_seq_file=no_wga_seq_file,
                                  wga_seq_file=wga_seq_file, remove_dirs=data["remove_dirs"],
-                                 use_spade=data["use_spade"])
+                                 use_spade=data["use_spade"], sequence_group=data["sequence_group"])
             return task_id
 
     @staticmethod
@@ -383,3 +385,59 @@ class MultiViterbiComputation(Computation):
         data_map["n_regions"] = result["n_regions"]
         data_map["hmm_path_img"] = result["hmm_path_img"]
         return data_map
+
+
+class CompareViterbiSequenceComputation(Computation):
+
+    # the file holding the result of the computation
+    file_result = models.FileField(null=True)
+
+    class Meta(Computation.Meta):
+        db_table = 'compare_viterbi_sequence_computation'
+
+    @staticmethod
+    def compute(data):
+
+        if USE_CELERY:
+
+            # schedule the computation
+            task = compute_compare_viterbi_sequence_task.delay(distance_metric=data["distance_metric"],
+                                                               max_num_seqs=data["max_num_seqs"],
+                                                               group_tip=data['group_tip'])
+
+            return task.id
+        else:
+
+            import uuid
+            from .tasks import compute_compare_viterbi_sequence
+            task_id = str(uuid.uuid4())
+            compute_compare_viterbi_sequence(task_id=task_id, distance_metric=data["distance_metric"],
+                                             max_num_seqs=data["max_num_seqs"], group_tip=data['group_tip'])
+            return task_id
+
+    @staticmethod
+    def get_as_map(model):
+        return {"task_id": model.task_id, "result": model.result,
+                "error_explanation": model.error_explanation,
+                "computation_type": model.computation_type,
+                "file_result": model.file_result.name}
+
+    @staticmethod
+    def get_invalid_map(task, result):
+        data_map = dict()
+        data_map["task_id"] = task.id
+        data_map["result"] = JobResultEnum.FAILURE.name
+        data_map["error_explanation"] = str(result)
+        data_map["computation_type"] = JobType.MULTI_VITERBI.name
+        data_map["file_viterbi_path"] = result["file_viterbi_path"]
+        data_map["hmm_filename"] = result["hmm_filename"]
+        data_map["chromosome"] = result["chromosome"]
+        data_map["ref_seq_filename"] = result["ref_seq_filename"]
+        data_map["wga_seq_filename"] = result["wga_seq_filename"]
+        data_map["no_wag_seq_filename"] = result["no_wga_seq_filename"]
+        data_map["window_type"] = result["window_type"]
+        data_map["n_regions"] = result["n_regions"]
+        data_map["hmm_path_img"] = result["hmm_path_img"]
+        return data_map
+
+

@@ -111,6 +111,10 @@ if DEBUG:
     VITERBI_SEQ_FILES_ROOT = '%s/computations/viterbi_seqs/' % BASE_DIR
     VITERBI_SEQ_FILES_URL = '%s/computations/viterbi_seqs/' % BASE_DIR
 
+    # path to where to store the computed comparison of Viterbi paths
+    VITERBI_SEQ_COMPARISON_FILES_ROOT = '%s/computations/viterbi_seqs_comparisons/' % BASE_DIR
+    VITERBI_SEQ_COMPARISON_FILES_URL = '%s/computations/viterbi_seqs_comparisons/' % BASE_DIR
+
 elif LOCAL_DEPLOY:
 
     STATIC_URL = '/static/'

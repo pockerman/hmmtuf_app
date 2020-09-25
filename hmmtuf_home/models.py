@@ -161,13 +161,19 @@ class ViterbiSequenceGroupTip(models.Model):
         return "%s" % self.tip
 
 
-class ViterbiSequenceModel(FilesModel):
+class ViterbiSequenceModel(models.Model):
 
     # the group tip
     group_tip = models.ForeignKey(ViterbiSequenceGroupTip, on_delete=models.CASCADE, null=False)
 
     # the file representing the region
-    file_region = models.FileField(upload_to=upload_region_file, null=False)
+    file_sequence = models.FileField(null=False)
+
+    class Meta:
+        db_table = 'viterbi_seq_model'
+
+    def __str__(self):
+        return "%s" % self.tip
 
 
 
