@@ -1,11 +1,15 @@
+from django.template import loader
+from django.http import HttpResponse
 
 from compute_engine.utils import get_sequence_name, get_tdf_file
 from compute_engine.job import JobResultEnum
 from compute_engine import INFO
 from hmmtuf.helpers import make_bed_path
 from hmmtuf.helpers import get_configuration
+from hmmtuf import INVALID_TASK_ID
 
 from .models import ViterbiComputation, MultiViterbiComputation, GroupViterbiComputation
+
 
 def get_result_view_context(task, task_id):
 
@@ -109,3 +113,18 @@ def view_viterbi_path_exception_context(task, task_id, model=ViterbiComputation.
             raise ValueError("Model name: {0} not found".format(INFO, model))
 
     return context
+
+
+def handle_success_view(request, template_html, task_id, **kwargs):
+
+    template = loader.get_template(template_html)
+
+    context = {"task_id": task_id}
+    if task_id == INVALID_TASK_ID:
+        error_msg = "Task does not exist"
+        context.update({"error_msg": error_msg})
+
+    if kwargs is not None:
+        context.update(kwargs)
+
+    return HttpResponse(template.render(context, request))

@@ -6,6 +6,7 @@
 - <a href="https://www.sqlite.org/index.html">SQLite</a>
 - <a href="https://pysam.readthedocs.io/en/latest/api.html">pysam</a>
 - <a href="https://biopython.org/">biopython</a>
+- <a href="https://pypi.org/project/textdistance/">textdistance</a>
 
 #### Note
 

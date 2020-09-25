@@ -6,7 +6,7 @@ from django.core.exceptions import ObjectDoesNotExist
 
 from compute_engine.windows import WindowType
 from compute_engine import OK
-from compute_engine.utils import extract_file_names
+
 
 from hmmtuf import INVALID_TASK_ID, INVALID_ITEM, ENABLE_SPADE
 from hmmtuf.helpers import get_configuration
@@ -16,19 +16,16 @@ from hmmtuf_home.models import HMMModel, RegionModel, RegionGroupTipModel
 # Create your views here.
 from . import models
 from . import forms
-from . view_helpers import get_result_view_context, view_viterbi_path_exception_context
+from . view_helpers import get_result_view_context
+from . view_helpers import view_viterbi_path_exception_context
+from . view_helpers import handle_success_view
 
 
 def success_schedule_group_viterbi_compute_view(request, task_id):
 
     template_html = 'hmmtuf_compute/success_schedule_group_viterbi_compute_view.html'
-    template = loader.get_template(template_html)
-
-    context = {"task_id": task_id}
-    if task_id == INVALID_TASK_ID:
-        error_msg = "Task does not exist"
-        context.update({"error_msg": error_msg})
-    return HttpResponse(template.render(context, request))
+    return handle_success_view(request=request,
+                               template_html=template_html, task_id=task_id)
 
 
 def schedule_group_viterbi_compute_view(request):
@@ -105,13 +102,8 @@ def view_group_viterbi_path(request, task_id):
 def success_schedule_multi_viterbi_compute_view(request, task_id):
 
     template_html = 'hmmtuf_compute/success_schedule_multi_viterbi_compute_view.html'
-    template = loader.get_template(template_html)
-
-    context = {"task_id": task_id}
-    if task_id == INVALID_TASK_ID:
-        error_msg = "Task does not exist"
-        context.update({"error_msg": error_msg})
-    return HttpResponse(template.render(context, request))
+    return handle_success_view(request=request,
+                               template_html=template_html, task_id=task_id)
 
 
 def schedule_multi_viterbi_compute_view(request):
@@ -121,8 +113,6 @@ def schedule_multi_viterbi_compute_view(request):
 
     template_html = 'hmmtuf_compute/schedule_multi_viterbi_compute_view.html'
     configuration = get_configuration()
-    reference_files_names, wga_files_names, \
-    nwga_files_names = extract_file_names(configuration=configuration)
 
     # get the hmms we have
     hmms = HMMModel.objects.all()
@@ -198,13 +188,8 @@ def success_schedule_viterbi_compute_view(request, task_id):
     """
 
     template_html = 'hmmtuf_compute/success_schedule_viterbi_compute_view.html'
-    template = loader.get_template(template_html)
-
-    context = {"task_id": task_id}
-    if task_id == INVALID_TASK_ID:
-        error_msg = "Task does not exist"
-        context.update({"error_msg": error_msg})
-    return HttpResponse(template.render(context, request))
+    return handle_success_view(request=request,
+                               template_html=template_html, task_id=task_id)
 
 
 def schedule_hmm_viterbi_compute_view(request):
@@ -281,10 +266,31 @@ def view_viterbi_path(request, task_id):
         return HttpResponse(template.render(context, request))
 
 
+def success_schedule_compare_sequences_compute_view(request, task_id):
+
+    template_html = 'hmmtuf_compute/success_schedule_compare_sequences_compute_view.html'
+    return handle_success_view(request=request,
+                               template_html=template_html, task_id=task_id)
+
+
 def schedule_compare_sequences_compute_view(request):
+
     template_html = 'hmmtuf_compute/schedule_compare_sequences_compute_view.html'
     template = loader.get_template(template_html)
-    context = {}
+    context = {"metrics": forms.SequenceComparisonComputeForm.NAMES}
+
+    if request.method == 'POST':
+
+        form = forms.SequenceComparisonComputeForm(template_html=template_html,
+                                                   context=context, configuration=None)
+        
+        if form.check(request=request) is not OK:
+            return form.response
+
+        # return the id for the computation
+        return redirect('success_schedule_compare_sequences_compute_view', task_id="0")
+
+
     return HttpResponse(template.render(context, request))
 
 

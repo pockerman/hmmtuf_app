@@ -18,20 +18,39 @@
         {% if no_seq_chromosome %}
         <p>ERROR: {{ no_seq_chromosome }}. <a href="/load_file/load_region">Load region.</a></p>
         {% else %}
-        <p>ERROR: {{ error_found }}.</a></p>
+        <p>ERROR: {{ error_msg }}.</a></p>
         {% endif %}
     {% endif %}
     <h4>Schedule group Viterbi path computation</h4>
     <hr/>
 <form method="post" enctype="multipart/form-data">
     {% csrf_token %}
-    
+
     <div class="control-group form-group">
         <div class="controls">
             <label>Sequence  tip:</label><br/>
             <select name="group_tip">
-                {% for group in group_tips %}
+                {% for group in sequence_tips %}
                     <option value="{{ group.tip }}">{{ group.tip }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+    <br/>
+
+    <div class="control-group form-group">
+        <div class="controls">
+            <label>Max number of sequences in group:</label><br/>
+            <input type="number" name="max_num_seqs" value="-1">
+        </div>
+    </div>
+
+    <div class="control-group form-group">
+        <div class="controls">
+            <label>Distance  metric:</label><br/>
+            <select name="distance_metric">
+                {% for name in metrics %}
+                    <option value="{{ name }}">{{ name }}</option>
                 {% endfor %}
             </select>
         </div>
