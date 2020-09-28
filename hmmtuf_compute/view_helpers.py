@@ -1,11 +1,16 @@
+from django.template import loader
+from django.http import HttpResponse
 
 from compute_engine.utils import get_sequence_name, get_tdf_file
-from compute_engine.job import JobResultEnum
+from compute_engine.job import JobResultEnum, JobType
 from compute_engine import INFO
+from compute_engine.string_sequence_calculator import TextDistanceCalculator
 from hmmtuf.helpers import make_bed_path
 from hmmtuf.helpers import get_configuration
+from hmmtuf import INVALID_TASK_ID
 
 from .models import ViterbiComputation, MultiViterbiComputation, GroupViterbiComputation
+
 
 def get_result_view_context(task, task_id):
 
@@ -23,6 +28,18 @@ def get_result_view_context(task, task_id):
         return context
 
     else:
+
+        if task.computation_type == JobType.VITERBI_SEQUENCE_COMPARE.name:
+            context = {'task_status': task.result,
+                       "computation": task}
+
+            similarity_map = TextDistanceCalculator.read_sequence_comparison_file(filename=task.file_result.name,
+                                                                                  strip_path=True,
+                                                                                  delim=',',
+                                                                                  commment_delim='#')
+            context['similarity_map'] = similarity_map
+            context['distance_metric'] = task.distance_metric
+            return context
 
         configuration = get_configuration()
         wga_name = task.wga_seq_filename.split("/")[-1]
@@ -47,6 +64,11 @@ def get_result_view_context(task, task_id):
                    "repeats_bed_url": make_bed_path(task_id=task_id, bed_name="rep.bed"),
                    "quad_bed_url": make_bed_path(task_id=task_id, bed_name="quad.bed"),
                    "tdt_bed_url": make_bed_path(task_id=task_id, bed_name="tdt.bed")}
+
+
+
+
+
         return context
 
 
@@ -109,3 +131,18 @@ def view_viterbi_path_exception_context(task, task_id, model=ViterbiComputation.
             raise ValueError("Model name: {0} not found".format(INFO, model))
 
     return context
+
+
+def handle_success_view(request, template_html, task_id, **kwargs):
+
+    template = loader.get_template(template_html)
+
+    context = {"task_id": task_id}
+    if task_id == INVALID_TASK_ID:
+        error_msg = "Task does not exist"
+        context.update({"error_msg": error_msg})
+
+    if kwargs is not None:
+        context.update(kwargs)
+
+    return HttpResponse(template.render(context, request))

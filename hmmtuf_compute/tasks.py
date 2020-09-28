@@ -8,15 +8,22 @@ from celery.utils.log import get_task_logger
 from compute_engine import INFO, DEFAULT_ERROR_EXPLANATION
 from compute_engine.job import JobType, JobResultEnum
 from compute_engine import hmm_loader
+from compute_engine import tufdel
 from compute_engine import viterbi_calculation_helpers as viterbi_helpers
 from compute_engine.windows import WindowType
 from compute_engine.region import Region
-from compute_engine import tufdel
+from compute_engine.string_sequence_calculator import TextDistanceCalculator
+
 
 from hmmtuf import INVALID_ITEM
-from hmmtuf.settings import VITERBI_PATHS_FILES_ROOT
-from hmmtuf.helpers import make_viterbi_path_filename, make_viterbi_path, make_tuf_del_tuf_path_filename
-from hmmtuf_home.models import RegionModel, HMMModel
+from hmmtuf.helpers import make_viterbi_path_filename
+from hmmtuf.helpers import make_viterbi_path
+from hmmtuf.helpers import make_tuf_del_tuf_path_filename
+from hmmtuf.helpers import make_viterbi_sequence_path_filename
+from hmmtuf.helpers import make_viterbi_sequence_path
+from hmmtuf.helpers import make_viterbi_sequence_comparison_path_filename
+from hmmtuf.helpers import make_viterbi_sequence_comparison_path
+from hmmtuf_home.models import RegionModel, HMMModel, ViterbiSequenceModel, ViterbiSequenceGroupTip
 
 logger = get_task_logger(__name__)
 
@@ -86,7 +93,7 @@ def compute_group_viterbi_path(task_id, hmm_name, window_type,  group_tip, remov
 
     # change to underscore to create dir
     task_id = task_id.replace('-', '_')
-    hmm_path_img = VITERBI_PATHS_FILES_ROOT + task_id
+    hmm_path_img =  task_path
 
     try:
         os.mkdir(hmm_path_img)
@@ -270,7 +277,7 @@ def compute_mutliple_viterbi_path(task_id, hmm_name, chromosome,
 
     # change to underscore to create dir
     task_id = task_id.replace('-', '_')
-    hmm_path_img = VITERBI_PATHS_FILES_ROOT + task_id
+    hmm_path_img = task_path
 
     try:
         os.mkdir(hmm_path_img)
@@ -385,7 +392,7 @@ def compute_viterbi_path_task(hmm_name, chromosome, chromosome_index,
                               window_type, region_filename, hmm_filename,
                               sequence_size, n_sequences,
                               ref_seq_file, wga_seq_file, no_wga_seq_file,
-                              remove_dirs, use_spade):
+                              remove_dirs, use_spade, sequence_group):
 
     task_id = compute_viterbi_path_task.request.id
     return compute_viterbi_path(task_id=task_id, hmm_name=hmm_name,
@@ -394,14 +401,15 @@ def compute_viterbi_path_task(hmm_name, chromosome, chromosome_index,
                                 hmm_filename=hmm_filename, sequence_size=sequence_size,
                                 n_sequences=n_sequences, ref_seq_file=ref_seq_file,
                                 wga_seq_file=wga_seq_file, no_wga_seq_file=no_wga_seq_file,
-                                remove_dirs=remove_dirs, use_spade=use_spade)
+                                remove_dirs=remove_dirs, use_spade=use_spade,
+                                sequence_group=sequence_group)
 
 
 def compute_viterbi_path(task_id, hmm_name, chromosome,
                          chromosome_index, window_type, region_filename,
                          hmm_filename, sequence_size, n_sequences,
                          ref_seq_file, wga_seq_file, no_wga_seq_file,
-                         remove_dirs, use_spade):
+                         remove_dirs, use_spade, sequence_group):
 
     logger.info("Computing Viterbi path")
     from .models import ViterbiComputation
@@ -457,7 +465,7 @@ def compute_viterbi_path(task_id, hmm_name, chromosome,
         return result
 
     task_id = task_id.replace('-', '_')
-    hmm_path_img = VITERBI_PATHS_FILES_ROOT + task_id
+    hmm_path_img = task_path
 
     try:
         os.mkdir(hmm_path_img)
@@ -506,10 +514,20 @@ def compute_viterbi_path(task_id, hmm_name, chromosome,
         viterbi_helpers.save_segments(segments=segments, chromosome=chromosome, filename=filename)
 
         if use_spade:
+
+            os.mkdir(make_viterbi_sequence_path(task_id=task_id))
+
             # get the TUF-DEL-TUF
             tufdel.main(path=task_path, fas_file_name=ref_seq_file,
                         chromosome=chromosome, chr_idx=chromosome_index,
-                        viterbi_file=viterbi_path_filename, remove_dirs=remove_dirs)
+                        viterbi_file=viterbi_path_filename,
+                        nucleods_path=make_viterbi_sequence_path(task_id=task_id), remove_dirs=remove_dirs)
+
+            sequence = ViterbiSequenceModel()
+            group = ViterbiSequenceGroupTip.objects.get(tip=sequence_group)
+            sequence.group_tip = group
+            sequence.file_sequence = make_viterbi_sequence_path_filename(task_id=task_id)
+            sequence.save()
 
         wga_obs = []
         no_wga_obs = []
@@ -540,6 +558,77 @@ def compute_viterbi_path(task_id, hmm_name, chromosome,
         computation.error_explanation = str(e)
         computation.save()
         return result
+
+
+@task(name="compute_compare_viterbi_sequence_task")
+def compute_compare_viterbi_sequence_task(distance_metric, max_num_seqs, group_tip):
+    task_id = compute_compare_viterbi_sequence_task.request.id
+    return compute_compare_viterbi_sequence(task_id=task_id,
+                                            distance_metric=distance_metric,
+                                            max_num_seqs=max_num_seqs,
+                                            group_tip=group_tip)
+
+
+def compute_compare_viterbi_sequence(task_id, distance_metric,
+                                     max_num_seqs, group_tip):
+    logger.info("Computing Viterbi sequence comparison")
+    from .models import CompareViterbiSequenceComputation
+
+    computation = CompareViterbiSequenceComputation()
+    computation.task_id = task_id
+    computation.result = JobResultEnum.PENDING.name
+    computation.error_explanation = DEFAULT_ERROR_EXPLANATION
+    computation.computation_type = JobType.VITERBI_SEQUENCE_COMPARE.name
+    computation.distance_metric = distance_metric
+    computation.save()
+
+    result = CompareViterbiSequenceComputation.get_as_map(model=computation)
+
+    tip = ViterbiSequenceGroupTip.objects.get(tip=group_tip)
+    seqs = ViterbiSequenceModel.objects.filter(group_tip__tip=tip)
+
+    if max_num_seqs != -1:
+
+        # limit the number of sequences to do work
+        seqs = seqs[0: max_num_seqs]
+
+    seqs_filenames = []
+
+    # collect all the sequence files
+    for seq in seqs:
+        seqs_filenames.append(seq.file_sequence.name)
+
+    try:
+
+        calculator = TextDistanceCalculator(dist_type=distance_metric)
+
+        os.mkdir(make_viterbi_sequence_comparison_path(task_id=task_id))
+        calculator.calculate_from_files(fileslist=seqs_filenames,
+                                        save_at=make_viterbi_sequence_comparison_path_filename(task_id=task_id),
+                                        delim='\t')
+
+        result["result"] = computation.result = JobResultEnum.SUCCESS.name
+        result["file_result"] = make_viterbi_sequence_comparison_path_filename(task_id=task_id)
+        computation.result = JobResultEnum.SUCCESS.name
+        computation.file_result = make_viterbi_sequence_comparison_path_filename(task_id=task_id)
+        computation.save()
+        return result
+    except Exception as e:
+
+        result["error_explanation"] = str(e)
+        result["result"] = computation.result = JobResultEnum.FAILURE.name
+        computation.result = JobResultEnum.FAILURE.name
+        computation.error_explanation = str(e)
+        computation.save()
+        return result
+
+
+
+
+
+
+
+
 
 
 

@@ -26,6 +26,7 @@ from .config import MEDIA_ROOT
 from .config import REGIONS_FILES_ROOT
 from .config import HMM_FILES_ROOT
 from .config import VITERBI_PATHS_FILES_ROOT
+from .config import VITERBI_SEQ_FILES_ROOT
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.1/howto/deployment/checklist/

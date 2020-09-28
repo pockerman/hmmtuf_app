@@ -104,8 +104,16 @@ if DEBUG:
     HMM_FILES_URL = '%s/hmm_files/' % BASE_DIR
 
     # path to where to store the computed Viterbi paths
-    VITERBI_PATHS_FILES_ROOT = '%s/viterbi_paths/' % BASE_DIR
-    VITERBI_PATHS_FILES_URL = '%s/viterbi_paths/' % BASE_DIR
+    VITERBI_PATHS_FILES_ROOT = '%s/computations/viterbi_paths/' % BASE_DIR
+    VITERBI_PATHS_FILES_URL = '%s/computations/viterbi_paths/' % BASE_DIR
+
+    # path to where to store the computed Viterbi paths
+    VITERBI_SEQ_FILES_ROOT = '%s/computations/viterbi_seqs/' % BASE_DIR
+    VITERBI_SEQ_FILES_URL = '%s/computations/viterbi_seqs/' % BASE_DIR
+
+    # path to where to store the computed comparison of Viterbi paths
+    VITERBI_SEQ_COMPARISON_FILES_ROOT = '%s/computations/viterbi_seqs_comparisons/' % BASE_DIR
+    VITERBI_SEQ_COMPARISON_FILES_URL = '%s/computations/viterbi_seqs_comparisons/' % BASE_DIR
 
 elif LOCAL_DEPLOY:
 
