@@ -31,4 +31,7 @@ urlpatterns = [
          views.success_schedule_compare_sequences_compute_view,
          name='success_schedule_compare_sequences_compute_view'),
 
+    path('view_sequence_comparison/<str:task_id>/', views.view_sequence_comparison,
+         name='view_sequence_comparison'),
+
 ]

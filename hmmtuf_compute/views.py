@@ -317,5 +317,27 @@ def schedule_compare_sequences_compute_view(request):
     return HttpResponse(template.render(context, request))
 
 
+def view_sequence_comparison(request, task_id):
+
+    template_html = 'hmmtuf_compute/sequence_comparison_view.html'
+    template = loader.get_template(template_html)
+    try:
+
+        # if the task exists do not ask celery. This means
+        # that either the task failed or succeed
+        task = models.CompareViterbiSequenceComputation.objects.get(task_id=task_id)
+        context = get_result_view_context(task=task, task_id=task_id)
+        return HttpResponse(template.render(context, request))
+    except ObjectDoesNotExist:
+
+        # try to ask celery
+        # check if the computation is ready
+        # if yes collect the results
+        # otherwise return the html
+        task = celery_app.AsyncResult(task_id)
+        context = view_viterbi_path_exception_context(task=task, task_id=task_id)
+        return HttpResponse(template.render(context, request))
+
+
 
 

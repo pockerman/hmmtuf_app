@@ -66,7 +66,6 @@ def make_viterbi_sequence_comparison_path(task_id, extra_path=None):
         return VITERBI_SEQ_COMPARISON_FILES_ROOT + task_id.replace('-', '_') + "/" + extra_path + "/"
 
 
-
 def make_viterbi_path(task_id):
     return VITERBI_PATHS_FILES_ROOT + task_id.replace('-', '_') + "/"
 

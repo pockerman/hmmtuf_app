@@ -2,8 +2,9 @@ from django.template import loader
 from django.http import HttpResponse
 
 from compute_engine.utils import get_sequence_name, get_tdf_file
-from compute_engine.job import JobResultEnum
+from compute_engine.job import JobResultEnum, JobType
 from compute_engine import INFO
+from compute_engine.string_sequence_calculator import TextDistanceCalculator
 from hmmtuf.helpers import make_bed_path
 from hmmtuf.helpers import get_configuration
 from hmmtuf import INVALID_TASK_ID
@@ -28,6 +29,18 @@ def get_result_view_context(task, task_id):
 
     else:
 
+        if task.computation_type == JobType.VITERBI_SEQUENCE_COMPARE.name:
+            context = {'task_status': task.result,
+                       "computation": task}
+
+            similarity_map = TextDistanceCalculator.read_sequence_comparison_file(filename=task.file_result.name,
+                                                                                  strip_path=True,
+                                                                                  delim=',',
+                                                                                  commment_delim='#')
+            context['similarity_map'] = similarity_map
+            context['distance_metric'] = task.distance_metric
+            return context
+
         configuration = get_configuration()
         wga_name = task.wga_seq_filename.split("/")[-1]
         wga_seq_name = get_sequence_name(configuration=configuration, seq=wga_name)
@@ -51,6 +64,11 @@ def get_result_view_context(task, task_id):
                    "repeats_bed_url": make_bed_path(task_id=task_id, bed_name="rep.bed"),
                    "quad_bed_url": make_bed_path(task_id=task_id, bed_name="quad.bed"),
                    "tdt_bed_url": make_bed_path(task_id=task_id, bed_name="tdt.bed")}
+
+
+
+
+
         return context
 
 

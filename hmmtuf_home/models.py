@@ -173,7 +173,7 @@ class ViterbiSequenceModel(models.Model):
         db_table = 'viterbi_seq_model'
 
     def __str__(self):
-        return "%s" % self.tip
+        return "%s" % self.group_tip
 
 
 

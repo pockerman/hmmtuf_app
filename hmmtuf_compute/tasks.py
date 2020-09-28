@@ -579,6 +579,7 @@ def compute_compare_viterbi_sequence(task_id, distance_metric,
     computation.result = JobResultEnum.PENDING.name
     computation.error_explanation = DEFAULT_ERROR_EXPLANATION
     computation.computation_type = JobType.VITERBI_SEQUENCE_COMPARE.name
+    computation.distance_metric = distance_metric
     computation.save()
 
     result = CompareViterbiSequenceComputation.get_as_map(model=computation)
@@ -593,14 +594,18 @@ def compute_compare_viterbi_sequence(task_id, distance_metric,
 
     seqs_filenames = []
 
+    # collect all the sequence files
     for seq in seqs:
-        seqs_filenames.apped(seq.file_sequence)
+        seqs_filenames.append(seq.file_sequence.name)
 
     try:
 
         calculator = TextDistanceCalculator(dist_type=distance_metric)
+
+        os.mkdir(make_viterbi_sequence_comparison_path(task_id=task_id))
         calculator.calculate_from_files(fileslist=seqs_filenames,
-                                        save_at=make_viterbi_sequence_comparison_path_filename(task_id=task_id))
+                                        save_at=make_viterbi_sequence_comparison_path_filename(task_id=task_id),
+                                        delim='\t')
 
         result["result"] = computation.result = JobResultEnum.SUCCESS.name
         result["file_result"] = make_viterbi_sequence_comparison_path_filename(task_id=task_id)

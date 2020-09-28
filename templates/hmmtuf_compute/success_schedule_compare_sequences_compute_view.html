@@ -8,7 +8,7 @@
     {% if error_msg %}
     <p>ERROR: {{ error_msg }}</p><br/>
     {% endif %}
-<p>Successfully scheduled sequence comparison computation. <a href="#" target="_blank">View task state</a></p><br/>
+<p>Successfully scheduled sequence comparison computation. <a href="/compute/view_sequence_comparison/{{task_id}}" target="_blank">View task state</a></p><br/>
 </div>
 </div>
 {% endblock inner_body %}

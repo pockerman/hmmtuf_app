@@ -392,6 +392,9 @@ class CompareViterbiSequenceComputation(Computation):
     # the file holding the result of the computation
     file_result = models.FileField(null=True)
 
+    # the metric used for the comparison
+    distance_metric = models.CharField(max_length=100, null=True)
+
     class Meta(Computation.Meta):
         db_table = 'compare_viterbi_sequence_computation'
 
@@ -420,7 +423,8 @@ class CompareViterbiSequenceComputation(Computation):
         return {"task_id": model.task_id, "result": model.result,
                 "error_explanation": model.error_explanation,
                 "computation_type": model.computation_type,
-                "file_result": model.file_result.name}
+                "file_result": model.file_result.name,
+                "distance_metric": model.distance_metric}
 
     @staticmethod
     def get_invalid_map(task, result):
