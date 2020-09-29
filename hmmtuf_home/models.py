@@ -169,6 +169,9 @@ class ViterbiSequenceModel(models.Model):
     # the file representing the region
     file_sequence = models.FileField(null=False)
 
+    # region name
+    region = models.ForeignKey(RegionModel, on_delete=models.CASCADE, null=False)
+
     class Meta:
         db_table = 'viterbi_seq_model'
 

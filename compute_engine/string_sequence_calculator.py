@@ -69,7 +69,7 @@ class TextDistanceCalculator(object):
 
         sequences = []
         for file in fileslist:
-            sequences.append(read_sequence_bed_file(filename=file, delim=delim))
+            sequences.append(read_sequence_bed_file(filename=file[1], delim=delim))
 
         calculator = TextDistanceCalculator.build_calculator(name=self._dist_type)
         similarity_map = {}
@@ -77,7 +77,7 @@ class TextDistanceCalculator(object):
             for seqj in range(len(sequences)):
                 if seqi != seqj:
                     result = calculator.similarity(sequences[seqi], sequences[seqj])
-                    similarity_map[(fileslist[seqi], fileslist[seqj])] = result
+                    similarity_map[(fileslist[seqi][0], fileslist[seqj][0])] = result
 
         if save_at is not None:
             with open(save_at, 'w') as f:

@@ -9,7 +9,7 @@ from hmmtuf.helpers import make_bed_path
 from hmmtuf.helpers import get_configuration
 from hmmtuf import INVALID_TASK_ID
 
-from .models import ViterbiComputation, MultiViterbiComputation, GroupViterbiComputation
+from .models import ViterbiComputation, MultiViterbiComputation, GroupViterbiComputation, CompareViterbiSequenceComputation
 
 
 def get_result_view_context(task, task_id):
@@ -93,10 +93,15 @@ def view_viterbi_path_exception_context(task, task_id, model=ViterbiComputation.
         elif model == GroupViterbiComputation.__name__:
             computation = GroupViterbiComputation.build_from_map(result, save=True)
             context.update({"computation": computation})
+        elif model == CompareViterbiSequenceComputation.__name__:
+            computation = CompareViterbiSequenceComputation.build_from_map(result, save=True)
+            context.update({"computation": computation})
         else:
             raise ValueError("Model name: {0} not found".format(INFO, model))
     elif task.status == JobResultEnum.FAILURE.name:
 
+        import pdb
+        pdb.set_trace()
         result = task.get(propagate=False)
 
         if model == ViterbiComputation.__name__:
