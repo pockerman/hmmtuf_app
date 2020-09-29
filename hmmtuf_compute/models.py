@@ -167,6 +167,25 @@ class ViterbiComputation(Computation):
         db_table = 'viterbi_computation'
 
     @staticmethod
+    def get_as_map(model):
+        return {"task_id": model.task_id, "result": model.result,
+                "error_explanation": model.error_explanation,
+                "computation_type": model.computation_type,
+                "viterbi_path_filename": model.file_viterbi_path,
+                "region_filename": model.region_filename,
+                "ref_seq_filename": model.ref_seq_filename,
+                "wga_seq_filename": model.wga_seq_filename,
+                "no_wag_seq_filename": model.no_wag_seq_filename,
+                "hmm_filename": model.hmm_filename,
+                "chromosome": model.chromosome,
+                "seq_size": model.seq_size,
+                "number_of_gaps": model.number_of_gaps,
+                "hmm_path_img": model.hmm_path_img,
+                "extracted_sequences": model.extracted_sequences,
+                "n_mixed_windows": model.n_mixed_windows,
+                "window_type": model.window_type}
+
+    @staticmethod
     def build_from_map(map, save):
 
         try:

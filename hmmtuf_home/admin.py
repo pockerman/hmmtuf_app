@@ -31,7 +31,7 @@ class ViterbiSequenceGroupTipModelAdmin(admin.ModelAdmin):
 
 class ViterbiSequenceModelAdmin(admin.ModelAdmin):
     fields = ['group_tip', 'file_sequence']
-    list_display = ('id', 'group_tip', 'file_sequence')
+    list_display = ('id', 'group_tip', 'file_sequence', 'region')
 
 
 admin.site.register(HMMModel, HMMModelAdmin)

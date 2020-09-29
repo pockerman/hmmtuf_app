@@ -411,8 +411,12 @@ def compute_viterbi_path(task_id, hmm_name, chromosome,
                          ref_seq_file, wga_seq_file, no_wga_seq_file,
                          remove_dirs, use_spade, sequence_group):
 
+    #import pdb
+    #pdb.set_trace()
     logger.info("Computing Viterbi path")
     from .models import ViterbiComputation
+
+    region_model = RegionModel.objects.get(file_region=region_filename)
 
     viterbi_path_filename = make_viterbi_path_filename(task_id=task_id)
     task_path = make_viterbi_path(task_id=task_id)
@@ -436,22 +440,7 @@ def compute_viterbi_path(task_id, hmm_name, chromosome,
     computation.extracted_sequences = 1
     computation.save()
 
-    result = {"hmm_filename": hmm_name,
-              "region_filename": region_filename,
-              "task_id": task_id,
-              "result": JobResultEnum.PENDING.name,
-              "error_explanation": DEFAULT_ERROR_EXPLANATION,
-              "computation_type": JobType.VITERBI.name,
-              "chromosome": chromosome,
-              "ref_seq_filename": ref_seq_file,
-              "wga_seq_filename": wga_seq_file,
-              "no_wag_seq_filename": no_wga_seq_file,
-              "viterbi_path_filename": viterbi_path_filename,
-              "n_seqs": n_sequences,
-              "seq_size": 0,
-              "number_of_gaps": 0,
-              "extracted_sequences": 1,
-              "n_mixed_windows": 0}
+    result = ViterbiComputation.get_as_map(model=computation)
 
     print("{0} Window type {1}".format(INFO, window_type))
     result["window_type"] = 'BOTH'
@@ -527,6 +516,7 @@ def compute_viterbi_path(task_id, hmm_name, chromosome,
             group = ViterbiSequenceGroupTip.objects.get(tip=sequence_group)
             sequence.group_tip = group
             sequence.file_sequence = make_viterbi_sequence_path_filename(task_id=task_id)
+            sequence.region = region_model
             sequence.save()
 
         wga_obs = []
@@ -596,7 +586,7 @@ def compute_compare_viterbi_sequence(task_id, distance_metric,
 
     # collect all the sequence files
     for seq in seqs:
-        seqs_filenames.append(seq.file_sequence.name)
+        seqs_filenames.append((seq.region.name, seq.file_sequence.name))
 
     try:
 
