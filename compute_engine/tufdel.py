@@ -244,7 +244,6 @@ def spade(repseq, chrom, start, stop, type):
     # outrep file
     directories = os.listdir(path=SPADE_OUTPATH)
 
-
     for name in directories:
 
         # if this is a nucl_ directory
@@ -280,12 +279,12 @@ def spade(repseq, chrom, start, stop, type):
                             nucleod = nucleods[nucleod_idx]
                             seq += nucleod
 
-                if len(seq) != 0:
-                    nucl_out.write(chrom + '\t' + str(start) + '\t' + str(stop) + '\t' + seq + '\n')
-
                 # TODO: Make this application defined?
                 if count > 12:
                     outrep.write(chrom + '\t' + str(start) + '\t' + str(stop) + '\n')
+
+                    if len(seq) != 0:
+                        nucl_out.write(chrom + '\t' + str(start) + '\t' + str(stop) + '\t' + seq + '\n')
 
 
 def createbed(line, ccheck):
@@ -366,6 +365,7 @@ def remove_directories(chromosome):
         if name.startswith(chromosome + '_'):
             if os.path.isdir(SPADE_OUTPATH + name):
                 shutil.rmtree(os.path.join(SPADE_OUTPATH, name))
+
         # if this is a nucl_ directory
         if name.startswith('nucl_'):
             files = os.listdir(path=SPADE_OUTPATH + name)
@@ -397,7 +397,6 @@ def main(path, fas_file_name, chromosome,
     global SPADE_OUTPATH
 
     NUCL_FILENAME = 'nucl_out.bed'
-
     PATH = path
 
     if ENABLE_SPADE:
@@ -417,15 +416,11 @@ def main(path, fas_file_name, chromosome,
             'Duplication': 50,
             'GAP_STATE': 0}
 
-    files_created = ["viterbi.bedgraph",
-                     "tuf.bed",
-                     "normal.bed",
-                     "deletion.bed",
-                     "duplication.bed",
-                     "gap.bed",
+    files_created = ["viterbi.bedgraph", "tuf.bed",
+                     "normal.bed", "deletion.bed",
+                     "duplication.bed", "gap.bed",
                      "tdt.bed", "quad.bed",
-                     "rep.bed", 'gquads.txt',
-                     "nucl_out.bed"]
+                     "rep.bed", 'gquads.txt', NUCL_FILENAME]
 
     # Open global files
     outbedgraph = open(path + "viterbi.bedgraph", "w")
@@ -564,10 +559,8 @@ def main(path, fas_file_name, chromosome,
     nucl_out.close()
 
     if remove_dirs:
+        print("{0} Removing directories".format(INFO))
         remove_directories(chromosome=chromosome)
-
-    # create directory for storing the sequence file
-    #os.mkdir(nucleods_path)
 
     # copy the nucleods file produced
     shutil.copyfile(path + NUCL_FILENAME, nucleods_path + NUCL_FILENAME)

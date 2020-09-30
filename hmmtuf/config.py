@@ -9,7 +9,7 @@ LOCAL_DEPLOY = False
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 
-USE_CELERY = False
+USE_CELERY = True
 ENABLE_SPADE = True
 SPADE_PATH = "%s/compute_engine/SPADE/" % BASE_DIR
 DATA_PATH = "%s/data/" % BASE_DIR
