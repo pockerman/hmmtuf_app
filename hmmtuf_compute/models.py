@@ -171,7 +171,7 @@ class ViterbiComputation(Computation):
         return {"task_id": model.task_id, "result": model.result,
                 "error_explanation": model.error_explanation,
                 "computation_type": model.computation_type,
-                "viterbi_path_filename": model.file_viterbi_path,
+                "viterbi_path_filename": model.file_viterbi_path.name,
                 "region_filename": model.region_filename,
                 "ref_seq_filename": model.ref_seq_filename,
                 "wga_seq_filename": model.wga_seq_filename,
@@ -232,20 +232,13 @@ class ViterbiComputation(Computation):
         if USE_CELERY:
 
             # schedule the computation
-            task = compute_viterbi_path_task.delay(hmm_name=hmm_name,
-                                                   chromosome=chromosome,
+            task = compute_viterbi_path_task.delay(hmm_name=hmm_name, chromosome=chromosome,
                                                    chromosome_index=data["chromosome_index"],
-                                                   window_type=window_type,
-                                                   region_filename=region_filename,
-                                                   hmm_filename=hmm_filename,
-                                                   sequence_size=None,
-                                                   n_sequences=1,
-                                                   ref_seq_file=ref_seq_file,
-                                                   no_wga_seq_file=no_wga_seq_file,
-                                                   wga_seq_file=wga_seq_file,
-                                                   remove_dirs=data["remove_dirs"],
-                                                   use_spade=data["use_spade"],
-                                                   sequence_group=data["sequence_group"])
+                                                   window_type=window_type, region_filename=region_filename,
+                                                   hmm_filename=hmm_filename, sequence_size=None, n_sequences=1,
+                                                   ref_seq_file=ref_seq_file, no_wga_seq_file=no_wga_seq_file,
+                                                   wga_seq_file=wga_seq_file, remove_dirs=data["remove_dirs"],
+                                                   use_spade=data["use_spade"], sequence_group=data["sequence_group"])
             return task.id
         else:
 

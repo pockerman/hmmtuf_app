@@ -411,8 +411,6 @@ def compute_viterbi_path(task_id, hmm_name, chromosome,
                          ref_seq_file, wga_seq_file, no_wga_seq_file,
                          remove_dirs, use_spade, sequence_group):
 
-    #import pdb
-    #pdb.set_trace()
     logger.info("Computing Viterbi path")
     from .models import ViterbiComputation
 
