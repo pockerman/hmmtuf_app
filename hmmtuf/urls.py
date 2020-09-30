@@ -16,23 +16,27 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from django.urls import include
-
 from django.conf.urls.static import static
 from django.conf import settings
+
+from .config import REGIONS_FILES_ROOT
+from .config import REGIONS_FILES_URL
+from .config import VITERBI_PATHS_FILES_URL
+from .config import VITERBI_PATHS_FILES_ROOT
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('hmmtuf_home.urls')),
     path('load_file/', include('file_loader.urls')),
-    # path('compute/', include('hmmtuf_compute.urls')),
+    path('compute/', include('hmmtuf_compute.urls')),
+
     #path('region_extractor/', include('region_extractor.urls')),
     path('hmm_creator/', include('hmm_creator.urls')),
 ]
 
-if settings.DEBUG:
-    urlpatterns += static(settings.REGIONS_FILES_URL, document_root=settings.REGIONS_FILES_ROOT)
-    urlpatterns += static(settings.VITERBI_PATHS_FILES_URL,
-                          document_root=settings.VITERBI_PATHS_FILES_ROOT)
 
-    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+urlpatterns += static(REGIONS_FILES_URL, document_root=REGIONS_FILES_ROOT)
+urlpatterns += static(VITERBI_PATHS_FILES_URL, document_root=VITERBI_PATHS_FILES_ROOT)
+
 

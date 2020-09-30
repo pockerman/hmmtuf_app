@@ -225,26 +225,3 @@ def main(configuration):
 
 if __name__ == '__main__':
     raise ValueError("You should not call this as main script")
-
-    """
-    print("{0} Start clustering...".format(INFO))
-    total_start = time.perf_counter()
-    description = "Check the README file for "
-    "information on how to use the script"
-    parser = argparse.ArgumentParser(description=description)
-    parser.add_argument('--config', type=str, default='config.json',
-                        help="You must specify a json "
-                             "formatted configuration file")
-
-    print("{0} Read configuration file".format(INFO))
-    args = parser.parse_args()
-    configuration = read_configuration_file(args.config)
-    print("{0} Done...".format(INFO))
-    sys.stdout.flush()
-
-    main(configuration=configuration)
-    total_end = time.perf_counter()
-    print("{0} Finished clustering. "
-          "Total execution time {1} secs".format(INFO, total_end - total_start))
-    sys.stdout.flush()
-    """

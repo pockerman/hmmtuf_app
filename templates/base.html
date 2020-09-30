@@ -40,23 +40,35 @@
       </button>
       <div class="collapse navbar-collapse" id="navbarResponsive">
         <ul class="navbar-nav ml-auto">
-          <li class="nav-item">
+          <!--<li class="nav-item">
             <a class="nav-link" href="/admin/">Admin</a>
+          </li>-->
+
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownAdmin" data-toggle="dropdown"
+              aria-haspopup="true" aria-expanded="false">
+              Administration
+            </a>
+            <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdownBlog">
+              <a class="dropdown-item" href="/admin/">Admin Site</a>
+              <a class="dropdown-item" href="/delete_task_directories">Delete Task Directories</a>
+            </div>
           </li>
+
           <li class="nav-item">
             <a class="nav-link" href="/hmm_creator/create_hmm">Create HMM</a>
           </li>
-          <li class="nav-item">
+          <!--<li class="nav-item">
             <a class="nav-link" href="/region_extractor/extract_region">Extract Region</a>
-          </li>
+          </li>-->
           <li class="nav-item dropdown">
             <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownPortfolio" data-toggle="dropdown"
               aria-haspopup="true" aria-expanded="false">
               Load
             </a>
             <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdownPortfolio">
-              <a class="dropdown-item" href="/load_file/load_region">Load region file</a>
-              <a class="dropdown-item" href="/load_file/load_hmm">Load HMM file</a>
+              <a class="dropdown-item" href="/load_file/load_region">Load Region File</a>
+              <a class="dropdown-item" href="/load_file/load_hmm">Load HMM File</a>
             </div>
           </li>
           <li class="nav-item dropdown">
@@ -65,9 +77,10 @@
               Compute
             </a>
             <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdownBlog">
-              <a class="dropdown-item" href="/compute/hmm_viterbi">Compute Viterbi path</a>
-              <a class="dropdown-item" href="/compute/hmm_multi_viterbi">Compute Multiple Viterbi path</a>
-              <a class="dropdown-item" href="/compute/hmm_group_viterbi">Compute Group Viterbi path</a>
+              <a class="dropdown-item" href="/compute/hmm_viterbi">Compute Viterbi Path</a>
+              <a class="dropdown-item" href="/compute/hmm_multi_viterbi">Compute Multiple Viterbi Path</a>
+              <a class="dropdown-item" href="/compute/hmm_group_viterbi">Compute Group Viterbi Path</a>
+              <a class="dropdown-item" href="/compute/compare_sequence_viterbi">Compute Viterbi Sequence Comparison</a>
             </div>
           </li>
         </ul>

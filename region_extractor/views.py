@@ -12,6 +12,7 @@ from compute_engine.utils import extract_file_names
 from hmmtuf.settings import BASE_DIR
 from hmmtuf.settings import USE_CELERY
 from hmmtuf.settings import REGIONS_FILES_ROOT
+from hmmtuf.helpers import get_configuration
 from hmmtuf_home.models import RegionModel
 
 from .forms import ExtractRegionForm
@@ -29,9 +30,7 @@ def extract_region_success_view(request, task_id):
 
 def extract_region_view(request):
 
-    # read the files
-    config_file = '%s/config.json' % BASE_DIR
-    configuration = read_json(filename=config_file)
+    configuration = get_configuration()
     reference_files_names, wga_files_names, nwga_files_names = extract_file_names(configuration=configuration)
     template = loader.get_template('region_extractor/extract_region_view.html')
 
@@ -59,8 +58,6 @@ def extract_region_view(request):
             context.update({"has_errors": True, "errors": "Region with name: {0} already exists".format(form.region_name)})
             return HttpResponse(template.render(context, request))
         except ObjectDoesNotExist:
-
-            #if USE_CELERY:
 
                 configuration = {'processing': {"type": "serial"}}
 

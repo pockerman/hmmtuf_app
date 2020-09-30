@@ -10,23 +10,29 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.1/ref/settings/
 """
 
-import os
 from pathlib import Path
 from .config import BASE_DIR
 from .config import DEBUG
 from .config import USE_CELERY
 from .config import DATABASES
-
-#process_manager = None
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
-#BASE_DIR = Path(__file__).resolve(strict=True).parent.parent
+from .config import SESSION_COOKIE_SECURE
+from .config import CSRF_COOKIE_SECURE
+from .config import ALLOWED_HOSTS
+from .config import STATIC_URL
+from .config import STATIC_ROOT
+from .config import STATICFILES_DIRS
+from .config import MEDIA_URL
+from .config import MEDIA_ROOT
+from .config import REGIONS_FILES_ROOT
+from .config import HMM_FILES_ROOT
+from .config import VITERBI_PATHS_FILES_ROOT
+from .config import VITERBI_SEQ_FILES_ROOT
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'y=ujo$_)gjwj$*k!v@2ihj@u)s0od%37)m6m)01)k6pc0siqsg'
-
 
 
 # Application definition
@@ -40,9 +46,9 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'hmmtuf_home',
     'file_loader',
-    # 'hmmtuf_compute',
-    #'region_extractor',
-    'hmm_creator'
+    'hmmtuf_compute',
+     #'region_extractor',
+     'hmm_creator'
 ]
 
 MIDDLEWARE = [
@@ -106,24 +112,3 @@ USE_I18N = True
 USE_L10N = True
 
 USE_TZ = True
-
-
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/3.1/howto/static-files/
-
-STATIC_URL = '/static/'
-DEV_STATIC_FILES = '%s/static/' % BASE_DIR
-STATICFILES_DIRS = [DEV_STATIC_FILES, ]
-
-
-# path to where to store the region files
-REGIONS_FILES_ROOT = '%s/regions/' % BASE_DIR
-REGIONS_FILES_URL = '%s/regions/' % BASE_DIR
-
-# path to where to store the HMM files
-HMM_FILES_ROOT = '%s/hmm_files/' % BASE_DIR
-HMM_FILES_URL = '%s/hmm_files/' % BASE_DIR
-
-# path to where to store the computed Viterbi paths
-VITERBI_PATHS_FILES_ROOT = '%s/viterbi_paths/' % BASE_DIR
-VITERBI_PATHS_FILES_URL = '%s/viterbi_paths/' % BASE_DIR

@@ -72,5 +72,18 @@ def get_tdf_file(configuration, seq):
     return configuration["tdf_files"][seq]
 
 
+def read_sequence_bed_file(filename, delim='\t'):
+
+    sequence = ''
+    with open(filename, 'r') as f:
+        for line in f:
+            line = line.split(delim)
+            sequence += line[-1].strip('\n')
+
+    return sequence
+
+
+
+
 
 

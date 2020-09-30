@@ -1,14 +1,12 @@
-from django.shortcuts import render
 from django.shortcuts import redirect
 from django.http import HttpResponse
 from django.template import loader
 from django.core.exceptions import ObjectDoesNotExist
-from django.core.files.storage import FileSystemStorage
 
 
-from hmmtuf.settings import BASE_DIR
+from hmmtuf.helpers import get_configuration
 from hmmtuf_home.models import HMMModel, RegionModel, RegionGroupTipModel
-from compute_engine.utils import read_json, extract_file_names, extract_path
+from compute_engine.utils import extract_file_names, extract_path
 from compute_engine import OK
 from .forms import ErrorHandler, RegionLoadForm
 
@@ -66,10 +64,7 @@ def load_region_view(request):
     The view for loading a region file
     """
 
-    #import pdb
-    #pdb.set_trace()
-    configuration = read_json(filename="%s/config.json" % BASE_DIR)
-
+    configuration = get_configuration()
     reference_files_names, wga_files_names, nwga_files_names = extract_file_names(configuration=configuration)
     path = extract_path(configuration=configuration, ref_file=reference_files_names[0])
 
