@@ -15,6 +15,7 @@ class JobType(Enum):
     MULTI_VITERBI = 2
     GROUP_VITERBI = 3
     VITERBI_SEQUENCE_COMPARE = 4
+    SCHEDULE_VITERBI_GROUP_ALL_COMPUTATION = 5
 
 
 class Job(object):

@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}HMMtuf-View Group Viterbi Path{% endblock title %}
+{%block inner_body %}
+{% load static %}
+
+<br/>
+
+{% if show_get_results_button %}
+
+<div class="row">
+    <div class="col-lg-8 mb-4">
+            <h4>Viterbi Group all path calculation task submitted</h4>
+            <h5>Task id: {{ task_id }}</h5>
+            <h5>Computation  status: {{ task_status }}</h5>
+
+        <a href="/compute/view_group_viterbi_all/{{ task_id }}" class="btn btn-primary">Get Results</a>
+    </div>
+
+</div>
+{% elif  error_task_failed %}
+<div class="row">
+    <div class="col-lg-8 mb-4">
+        <h4>Viterbi path calculation task FAILED</h4>
+        <h5>Task id: {{ task_id }}</h5>
+        <h5>ERROR: Task {{ task_id }} failed</h5>
+        <h5>MESSAGE: {{ computation.error_explanation }}</h5>
+    </div>
+</div>
+{% else %}
+
+<ul class="row">
+
+    {% for task in tasks %}
+    <ul>
+        <li>Task: <a href="/compute/view_group_viterbi_path/{{ task.task_id }}">{{task.task_id}}</a></li>
+    </ul>
+    {% endfor %}
+</div>
+<br/>
+
+{% endif %}
+{% endblock inner_body %}

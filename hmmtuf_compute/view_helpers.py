@@ -9,7 +9,8 @@ from hmmtuf.helpers import make_bed_path
 from hmmtuf.helpers import get_configuration
 from hmmtuf import INVALID_TASK_ID
 
-from .models import ViterbiComputation, MultiViterbiComputation, GroupViterbiComputation, CompareViterbiSequenceComputation
+from .models import ViterbiComputation, MultiViterbiComputation, \
+    GroupViterbiComputation, CompareViterbiSequenceComputation
 
 
 def get_result_view_context(task, task_id):
@@ -41,6 +42,16 @@ def get_result_view_context(task, task_id):
             context['distance_metric'] = task.distance_metric
             return context
 
+        if task.computation_type == JobType.SCHEDULE_VITERBI_GROUP_ALL_COMPUTATION.name:
+
+            tasks = GroupViterbiComputation.objects.filter(scheduler_id=task_id)
+
+            context = {'task_status': task.result,
+                       "computation": task,
+                       "tasks": tasks}
+
+            return context
+
         configuration = get_configuration()
         wga_name = task.wga_seq_filename.split("/")[-1]
         wga_seq_name = get_sequence_name(configuration=configuration, seq=wga_name)
@@ -64,10 +75,6 @@ def get_result_view_context(task, task_id):
                    "repeats_bed_url": make_bed_path(task_id=task_id, bed_name="rep.bed"),
                    "quad_bed_url": make_bed_path(task_id=task_id, bed_name="quad.bed"),
                    "tdt_bed_url": make_bed_path(task_id=task_id, bed_name="tdt.bed")}
-
-
-
-
 
         return context
 

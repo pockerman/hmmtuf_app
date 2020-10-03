@@ -9,9 +9,24 @@ from hmmtuf.settings import USE_CELERY
 from hmmtuf_home.models import Computation
 
 from .tasks import compute_viterbi_path_task
-from .tasks import compute_mutliple_viterbi_path_task
+#from .tasks import compute_mutliple_viterbi_path_task
 from .tasks import compute_group_viterbi_path_task
 from .tasks import compute_compare_viterbi_sequence_task
+from .tasks import compute_group_viterbi_path_all_task
+
+
+class ScheduleComputation(Computation):
+
+    class Meta(Computation.Meta):
+        db_table = 'schedule_computation_map'
+
+    @staticmethod
+    def get_as_map(model):
+        return {"task_id": model.task_id,
+                "result": model.result,
+                "error_explanation": model.error_explanation,
+                "computation_type": model.computation_type,
+                "scheduler_id": model.scheduler_id}
 
 
 class GroupViterbiComputation(Computation):
@@ -42,6 +57,27 @@ class GroupViterbiComputation(Computation):
     # the reference sequence filename
     no_wag_seq_filename = models.CharField(max_length=1000, null=True)
 
+    # number of regions
+    number_regions = models.IntegerField(null=True)
+
+    class Meta(Computation.Meta):
+        db_table = 'group_viterbi_computation'
+
+    @staticmethod
+    def get_as_map(model):
+        return {"task_id": model.task_id,
+                "result": model.result,
+                "error_explanation": model.error_explanation,
+                "computation_type": model.computation_type,
+                "group_tip": model.group_tip,
+                "hmm_filename": model.hmm_filename,
+                "hmm_path_img": model.hmm_path_img,
+                "ref_seq_filename": model.ref_seq_filename,
+                "wga_seq_filename": model.wga_seq_filename,
+                "no_wag_seq_filename": model.no_wag_seq_filename,
+                "scheduler_id": model.scheduler_id,
+                "number_regions": model.number_regions}
+
     @staticmethod
     def build_from_map(map_data, save):
 
@@ -62,6 +98,8 @@ class GroupViterbiComputation(Computation):
             computation.ref_seq_filename = map_data["ref_seq_file"]
             computation.wga_seq_filename = map_data["wga_seq_file"]
             computation.no_wag_seq_filename = map_data["no_wag_seq_file"]
+            computation.scheduler_id = map_data["scheduler_id"]
+            computation.number_regions = map_data["number_regions"]
 
             if save:
                 computation.save()
@@ -76,24 +114,38 @@ class GroupViterbiComputation(Computation):
 
         if USE_CELERY:
 
-            # schedule the computation
-            task = compute_group_viterbi_path_task.delay(hmm_name=hmm_name,
-                                                         window_type=window_type,
-                                                         group_tip=data["group_tip"],
-                                                         remove_dirs=data["remove_dirs"],
-                                                         use_spade=data["use_spade"])
+            if data["group_tip"] == 'all':
+                task = compute_group_viterbi_path_all_task.delay(hmm_name=hmm_name,
+                                                                 window_type=window_type,
+                                                                 remove_dirs=data["remove_dirs"],
+                                                                 use_spade=data["use_spade"],
+                                                                 sequence_group=data['sequence_group'])
+            else:
+                # schedule the computation
+                task = compute_group_viterbi_path_task.delay(hmm_name=hmm_name,
+                                                             window_type=window_type,
+                                                             group_tip=data["group_tip"],
+                                                             remove_dirs=data["remove_dirs"],
+                                                             use_spade=data["use_spade"],
+                                                             sequence_group=data["sequence_group"])
             return task.id
         else:
 
             import uuid
             from .tasks import compute_group_viterbi_path
+
+            if data["group_tip"] == 'all':
+                raise ValueError("Not Implemented")
+
             task_id = str(uuid.uuid4())
             compute_group_viterbi_path(task_id=task_id,
                                        hmm_name=hmm_name,
                                        window_type=window_type,
                                        group_tip=data["group_tip"],
                                        remove_dirs=data["remove_dirs"],
-                                       use_spade=data["use_spade"])
+                                       use_spade=data["use_spade"],
+                                       scheduler_id=data["scheduler_id"],
+                                       sequence_group=data["sequence_group"])
             return task_id
 
     @staticmethod
@@ -111,6 +163,9 @@ class GroupViterbiComputation(Computation):
         data_map["ref_seq_file"] = result["ref_seq_file"]
         data_map["wga_seq_file"] = result["wga_seq_file"]
         data_map["no_wag_seq_file"] = result["no_wag_seq_file"]
+        data_map["scheduler_id"] = result["scheduler_id"]
+        data_map["number_regions"] = result["number_regions"]
+        data_map["sequence_group"] = result["sequence_group"]
         return data_map
 
 
@@ -183,7 +238,8 @@ class ViterbiComputation(Computation):
                 "hmm_path_img": model.hmm_path_img,
                 "extracted_sequences": model.extracted_sequences,
                 "n_mixed_windows": model.n_mixed_windows,
-                "window_type": model.window_type}
+                "window_type": model.window_type,
+                "scheduler_id": model.scheduler_id}
 
     @staticmethod
     def build_from_map(map, save):
@@ -211,6 +267,7 @@ class ViterbiComputation(Computation):
             computation.extracted_sequences = map["extracted_sequences"]
             computation.n_mixed_windows = map["n_mixed_windows"]
             computation.window_type = map["window_type"]
+            computation.scheduler_id = map["scheduler_id"]
 
             if save:
                 computation.save()
@@ -238,7 +295,8 @@ class ViterbiComputation(Computation):
                                                    hmm_filename=hmm_filename, sequence_size=None, n_sequences=1,
                                                    ref_seq_file=ref_seq_file, no_wga_seq_file=no_wga_seq_file,
                                                    wga_seq_file=wga_seq_file, remove_dirs=data["remove_dirs"],
-                                                   use_spade=data["use_spade"], sequence_group=data["sequence_group"])
+                                                   use_spade=data["use_spade"], sequence_group=data["sequence_group"],
+                                                   scheduler_id=data["scheduler_id"])
             return task.id
         else:
 
@@ -251,7 +309,8 @@ class ViterbiComputation(Computation):
                                  hmm_filename=hmm_filename, sequence_size=None, n_sequences=1,
                                  ref_seq_file=ref_seq_file, no_wga_seq_file=no_wga_seq_file,
                                  wga_seq_file=wga_seq_file, remove_dirs=data["remove_dirs"],
-                                 use_spade=data["use_spade"], sequence_group=data["sequence_group"])
+                                 use_spade=data["use_spade"], sequence_group=data["sequence_group"],
+                                 scheduler_id=data["scheduler_id"])
             return task_id
 
     @staticmethod
@@ -275,6 +334,7 @@ class ViterbiComputation(Computation):
         data_map["extracted_sequences"] = 0
         data_map["n_mixed_windows"] = 0
         data_map["window_type"] = INVALID_STR
+        data_map["scheduler_id"] = result["scheduler_id"]
         return data_map
 
 
@@ -351,7 +411,9 @@ class MultiViterbiComputation(Computation):
         ref_seq_file = data["ref_seq_filename"]
         wga_seq_file = data["wga_seq_filename"]
         no_wag_seq_file = data["no_wga_seq_filename"]
+        raise ValueError("Not Implemented")
 
+        """
         if USE_CELERY:
 
             # schedule the computation
@@ -377,6 +439,7 @@ class MultiViterbiComputation(Computation):
                                           wga_seq_file=wga_seq_file, no_wga_seq_file=no_wag_seq_file,
                                           remove_dirs=data["remove_dirs"], use_spade=data["use_spade"])
             return task_id
+        """
 
 
     @staticmethod

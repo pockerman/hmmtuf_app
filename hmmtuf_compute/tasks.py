@@ -15,7 +15,7 @@ from compute_engine.region import Region
 from compute_engine.string_sequence_calculator import TextDistanceCalculator
 
 
-from hmmtuf import INVALID_ITEM
+from hmmtuf import INVALID_ITEM, USE_CELERY
 from hmmtuf.helpers import make_viterbi_path_filename
 from hmmtuf.helpers import make_viterbi_path
 from hmmtuf.helpers import make_tuf_del_tuf_path_filename
@@ -23,43 +23,83 @@ from hmmtuf.helpers import make_viterbi_sequence_path_filename
 from hmmtuf.helpers import make_viterbi_sequence_path
 from hmmtuf.helpers import make_viterbi_sequence_comparison_path_filename
 from hmmtuf.helpers import make_viterbi_sequence_comparison_path
-from hmmtuf_home.models import RegionModel, HMMModel, ViterbiSequenceModel, ViterbiSequenceGroupTip
+from hmmtuf_home.models import RegionModel, \
+    HMMModel, ViterbiSequenceModel, \
+    ViterbiSequenceGroupTip, RegionGroupTipModel
 
 logger = get_task_logger(__name__)
 
 
+@task(name="compute_group_viterbi_path_all_task")
+def compute_group_viterbi_path_all_task(hmm_name, window_type,
+                                        remove_dirs, use_spade, sequence_group):
+    task_scheduler_id = compute_group_viterbi_path_all_task.request.id
+
+    from .models import ScheduleComputation
+    computation = ScheduleComputation()
+    computation.task_id = task_scheduler_id
+    computation.computation_type = JobType.SCHEDULE_VITERBI_GROUP_ALL_COMPUTATION.name
+    computation.result = JobResultEnum.PENDING.name
+    computation.error_explanation = DEFAULT_ERROR_EXPLANATION
+    computation.scheduler_id = None
+    computation.save()
+
+    tips = RegionGroupTipModel.objects.all()
+    result = ScheduleComputation.get_as_map(model=computation)
+    result["ids"] = []
+    import uuid
+
+    try:
+        for tip in tips:
+            print("{0} working with tip: {1}".format(INFO, tip.tip))
+            new_task_id = str(uuid.uuid4())
+            result["ids"].append(new_task_id)
+
+            compute_group_viterbi_path(task_id=new_task_id, hmm_name=hmm_name,
+                                        window_type=window_type, group_tip=tip.tip,
+                                        remove_dirs=remove_dirs, use_spade=use_spade,
+                                        scheduler_id=task_scheduler_id, sequence_group=sequence_group)
+
+    except Exception as e:
+        computation.result = JobResultEnum.SUCCESS.name
+        computation.save()
+        result["result"] = JobResultEnum.SUCCESS.name
+        return result
+
+    result["result"] = JobResultEnum.SUCCESS.name
+    computation.result = JobResultEnum.SUCCESS.name
+    computation.save()
+    return result
+
+
 @task(name="compute_group_viterbi_path_task")
 def compute_group_viterbi_path_task(hmm_name, window_type, group_tip,
-                                    remove_dirs, use_spade):
+                                    remove_dirs, use_spade, sequence_group):
 
-    task_id = compute_mutliple_viterbi_path_task.request.id
+    task_id = compute_group_viterbi_path_task.request.id
     return compute_group_viterbi_path(task_id=task_id, hmm_name=hmm_name,
                                       window_type=window_type, group_tip=group_tip,
-                                      remove_dirs=remove_dirs, use_spade=use_spade)
+                                      remove_dirs=remove_dirs, use_spade=use_spade,
+                                      sequence_group=sequence_group, scheduler_id=None)
 
 
-def compute_group_viterbi_path(task_id, hmm_name, window_type,  group_tip, remove_dirs, use_spade):
+def compute_group_viterbi_path(task_id, hmm_name, window_type,  group_tip,
+                               remove_dirs, use_spade, sequence_group, scheduler_id=None):
 
     logger.info("Computing Group Viterbi path")
     from .models import GroupViterbiComputation
+
+    print("{0} task_id: {1}".format(INFO, task_id))
+    print("{0} group_tip: {1}".format(INFO, group_tip))
+    print("{0} scheduler_id {1}".format(INFO, scheduler_id))
+    print("{0} use_spade {1}".format(INFO, use_spade))
+    print("{0} remove_dirs {1}".format(INFO, remove_dirs))
 
     task_path = make_viterbi_path(task_id=task_id)
 
     # load the regions belonging to the same group
     # TODO: sort the w.r.t chr and region start-end
     regions = RegionModel.objects.filter(group_tip__tip=group_tip).order_by('chromosome', 'start_idx')
-
-    result = {"task_id": task_id,
-              "result": JobResultEnum.PENDING.name,
-              "error_explanation": DEFAULT_ERROR_EXPLANATION,
-              "computation_type": JobType.GROUP_VITERBI.name,
-              "hmm_filename": hmm_name,
-              "window_type": 'BOTH',
-              'hmm_path_img': INVALID_ITEM,
-              'group_tip': group_tip,
-              "ref_seq_file": regions[0].ref_seq_file,
-              "wga_seq_file": regions[0].wga_seq_file,
-              "no_wag_seq_file": regions[0].no_wga_seq_file}
 
     # create a computation instance
     computation = GroupViterbiComputation()
@@ -73,7 +113,11 @@ def compute_group_viterbi_path(task_id, hmm_name, window_type,  group_tip, remov
     computation.ref_seq_file = regions[0].ref_seq_file
     computation.wga_seq_filename = regions[0].wga_seq_file
     computation.no_wag_seq_filename = regions[0].no_wga_seq_file
+    computation.scheduler_id = scheduler_id
+    computation.number_regions = len(regions)
     computation.save()
+
+    result = GroupViterbiComputation.get_as_map(model=computation)
 
     window_type = WindowType.from_string(window_type)
     db_hmm_model = HMMModel.objects.get(name=hmm_name)
@@ -91,9 +135,7 @@ def compute_group_viterbi_path(task_id, hmm_name, window_type,  group_tip, remov
         result["error_explanation"] = "Could not build HMM model"
         return result
 
-    # change to underscore to create dir
-    task_id = task_id.replace('-', '_')
-    hmm_path_img =  task_path
+    hmm_path_img = task_path
 
     try:
         os.mkdir(hmm_path_img)
@@ -108,7 +150,7 @@ def compute_group_viterbi_path(task_id, hmm_name, window_type,  group_tip, remov
         result["error_explanation"] = "Could not create dir: {0}".format(hmm_path_img)
         return result
 
-    hmm_path_img = hmm_path_img + '/' + hmm_name + '.png'
+    hmm_path_img = hmm_path_img + hmm_name + '.png'
     hmm_loader.save_hmm_image(hmm_model=hmm_model, path=hmm_path_img)
     computation.hmm_path_img = hmm_path_img
     result['hmm_path_img'] = hmm_path_img
@@ -158,11 +200,23 @@ def compute_group_viterbi_path(task_id, hmm_name, window_type,  group_tip, remov
             viterbi_helpers.save_segments(segments=segments, chromosome=chromosome, filename=tuf_del_tuf_filename)
 
             if use_spade:
+
+                os.mkdir(make_viterbi_sequence_path(task_id=task_id, extra_path=region_model.name))
+
                 # get the TUF-DEL-TUF this is for every chromosome and region
                 path = task_path + chromosome + "/" + region_model.name + "/"
                 files_created = tufdel.main(path=path, fas_file_name=ref_seq_file, chromosome=chromosome,
-                                            chr_idx=chromosome_index, viterbi_file=viterbi_path_filename,
+                                            chr_idx=chromosome_index,
+                                            viterbi_file=viterbi_path_filename,
+                                            nucleods_path=make_viterbi_sequence_path(task_id=task_id, extra_path=region_model.name),
                                             remove_dirs=remove_dirs)
+
+                sequence = ViterbiSequenceModel()
+                group = ViterbiSequenceGroupTip.objects.get(tip=sequence_group)
+                sequence.group_tip = group
+                sequence.file_sequence = make_viterbi_sequence_path_filename(task_id=task_id, extra_path=region_model.name)
+                sequence.region = region_model
+                sequence.save()
 
                 for name in files_created:
                     if name in files_created_map:
@@ -201,6 +255,7 @@ def compute_group_viterbi_path(task_id, hmm_name, window_type,  group_tip, remov
     return result
 
 
+"""
 @task(name="compute_mutliple_viterbi_path_task")
 def compute_mutliple_viterbi_path_task(hmm_name, chromosome,
                                        window_type,  group_tip,
@@ -385,7 +440,7 @@ def compute_mutliple_viterbi_path(task_id, hmm_name, chromosome,
     computation.result = JobResultEnum.SUCCESS.name
     computation.save()
     return result
-
+"""
 
 @task(name="compute_viterbi_path_task")
 def compute_viterbi_path_task(hmm_name, chromosome, chromosome_index,

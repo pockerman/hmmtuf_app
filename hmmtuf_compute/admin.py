@@ -6,6 +6,7 @@ from django.contrib import admin
 from .models import ViterbiComputation
 from .models import MultiViterbiComputation
 from .models import GroupViterbiComputation
+from .models import ScheduleComputation
 
 
 class ViterbiComputationAdmin(admin.ModelAdmin):
@@ -23,10 +24,16 @@ class MultiViterbiComputationAdmin(admin.ModelAdmin):
 
 class GroupViterbiComputationAdmin(admin.ModelAdmin):
     fields = ['task_id', 'hmm_filename', 'result', 'error_explanation', 'group_tip', ]
-    list_display = ('task_id', 'result', 'error_explanation', 'group_tip')
+    list_display = ('task_id', 'result', 'error_explanation', 'group_tip', 'scheduler_id', 'number_regions')
+
+
+class ScheduleComputationAdmin(admin.ModelAdmin):
+    fields = ['task_id', 'result', 'error_explanation', ]
+    list_display = ('task_id', 'result', 'error_explanation', )
 
 
 admin.site.register(ViterbiComputation, ViterbiComputationAdmin)
 admin.site.register(MultiViterbiComputation, MultiViterbiComputationAdmin)
 admin.site.register(GroupViterbiComputation, GroupViterbiComputationAdmin)
+admin.site.register(ScheduleComputation, ScheduleComputationAdmin)
 

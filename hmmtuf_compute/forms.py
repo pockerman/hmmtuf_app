@@ -56,29 +56,36 @@ class GroupViterbiComputeForm(ComputeFormBase):
         self._hmm_name = INVALID_ITEM
         self._remove_dirs = INVALID_ITEM
         self._use_spade = INVALID_ITEM
+        self._sequence_group = INVALID_ITEM
+        self._scheduler_id = INVALID_ITEM
 
     def as_map(self):
         return {"hmm_name": self._hmm_name,
                 "group_tip": self._group_tip,
                 "remove_dirs": self._remove_dirs,
-                "use_spade": self._use_spade}
+                "use_spade": self._use_spade,
+                "sequence_group": self._sequence_group,
+                "scheduler_id": self._scheduler_id}
 
     def check(self, request):
 
-        # do we have regions for this
         self._hmm_name = request.POST.get("hmm", "")
         if self._hmm_name == "":
             return not OK
 
         self._group_tip = request.POST.get("group_tip")
-        objects = RegionModel.objects.filter(group_tip__tip=self._group_tip)
 
-        if len(objects) == 0:
-            template = loader.get_template(self._template_html)
-            self.context.update({"error_found": True,
-                                  "no_seq_chromosome": "No regions for group {0}".format(self._group_tip )})
-            self.response = HttpResponse(template.render(self.context, request))
-            return not OK
+        if self._group_tip != "all":
+
+            objects = RegionModel.objects.filter(group_tip__tip=self._group_tip)
+
+            if len(objects) == 0:
+                template = loader.get_template(self._template_html)
+                self.context.update({"error_found": True,
+                                      "no_seq_chromosome": "No regions for group {0}".format(self._group_tip)})
+
+                self.response = HttpResponse(template.render(self.context, request))
+                return not OK
 
         self._remove_dirs = request.POST.get('remove_dirs', False)
         if self._remove_dirs == 'True':
@@ -88,9 +95,30 @@ class GroupViterbiComputeForm(ComputeFormBase):
         if self._use_spade == 'True':
             self._use_spade = True
 
+        self._sequence_group = request.POST.get("sequence_group", "None")
+        if self._sequence_group == "None":
+            self._sequence_group = request.POST.get("new_sequence_group", "")
+
+            if self._sequence_group == "":
+                template = loader.get_template(self.template_html)
+                self.context.update({"error_found": True,
+                                     "no_seq_group": "No sequence group specified"})
+
+                self.response = HttpResponse(template.render(self._context, request))
+                return not OK
+            else:
+
+                try:
+
+                    group_tip = ViterbiSequenceGroupTip.objects.get(tip=self._sequence_group)
+                except ObjectDoesNotExist as e:
+                    model = ViterbiSequenceGroupTip()
+                    model.tip = self._sequence_group
+                    model.save()
+
         return OK
 
-
+"""
 class MultipleViterbiComputeForm(ComputeFormBase):
 
     def __init__(self, template_html, configuration, context):
@@ -164,7 +192,7 @@ class MultipleViterbiComputeForm(ComputeFormBase):
             self._use_spade = True
 
         return OK
-
+"""
 
 class ViterbiComputeForm(ComputeFormBase):
 
@@ -188,7 +216,8 @@ class ViterbiComputeForm(ComputeFormBase):
                         'chromosome_index': INVALID_ITEM,
                         "remove_dirs": INVALID_ITEM,
                         "use_spade": INVALID_ITEM,
-                        "sequence_group": INVALID_ITEM}
+                        "sequence_group": INVALID_ITEM,
+                        "scheduler_id": INVALID_ITEM}
 
     def as_map(self):
         return self._kwargs
@@ -262,7 +291,8 @@ class ViterbiComputeForm(ComputeFormBase):
                         "chromosome_index": region.chromosome_index,
                         "remove_dirs": checkbox,
                         "use_spade": use_spade,
-                        "sequence_group": sequence_group}
+                        "sequence_group": sequence_group,
+                        "scheduler_id": INVALID_ITEM}
 
         return OK
 
@@ -279,7 +309,8 @@ class SequenceComparisonComputeForm(ComputeFormBase):
 
         self._kwargs = {'distance_metric': INVALID_ITEM,
                         'max_num_seqs': INVALID_ITEM,
-                        'group_tip': INVALID_ITEM,}
+                        'group_tip': INVALID_ITEM,
+                        "scheduler_id": INVALID_ITEM}
 
     def as_map(self):
             return self._kwargs
