@@ -3,7 +3,7 @@
 {%block inner_body %}
 {% load static %}
 <br />
-<div class="row p-4">
+<div class="row p-5">
     <div class="col mb-2">
         <div class="text-center mt-0">
             <h4>Create HMM</h4>
@@ -28,12 +28,10 @@
                     <label for="hmm-name">Name of HMM:</label>
                     <input type="text" class="form-control mb-2" name="hmm-name">
                     <div id="state-group" name="State[]" class="mb-2 mt-2"></div>
-
                     <fieldset id="TPM-group" class="mb-2 p-2 mt-2 prob-group">
                         <legend>Transition Probability Matrix</legend>
                         <div class="st-group pb-2" name="State_M[]"></div>
                     </fieldset>
-                    
                     <fieldset id="IPV-group" class="p-2 mb-2 mt-2  prob-group">
                         <legend>Initial Probability Vector</legend>
                         <div class="field-group"></div>

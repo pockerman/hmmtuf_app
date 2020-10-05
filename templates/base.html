@@ -90,7 +90,7 @@
   <br />
   {% endblock navigation %}
 
-  <div class="container content">
+  <div {% if index_view %}class="container"{% else %}class="container content" {% endif %}>
     {%block inner_body %}
     {% endblock inner_body %}
   </div>

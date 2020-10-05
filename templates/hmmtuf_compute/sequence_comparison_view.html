@@ -7,19 +7,19 @@
 
 {% if show_get_results_button %}
 
-<div class="row">
-    <div class="col-lg-8 mb-4">
-            <h4>Sequence comparison calculation task submitted</h4>
-            <h5>Task id: {{ task_id }}</h5>
-            <h5>Computation  status: {{ task_status }}</h5>
+<div class="row p-5">
+    <div class="col mb-4">
+            <h4 class="text-center">Sequence comparison calculation task submitted</h4>
+            <h5 class="text-center">Task id: {{ task_id }}</h5>
+            <h5 class="text-center">Computation  status: {{ task_status }}</h5>
 
         <a href="/compute/view_viterbi_path/{{ task_id }}" class="btn btn-primary">Get Results</a>
     </div>
 
 </div>
 {% elif  error_task_failed %}
-<div class="row">
-    <div class="col-lg-8 mb-4">
+<div class="row p-0">
+    <div class="col text-center mb-4">
         <h4>Sequence comparison calculation task FAILED</h4>
         <h5>Task id: {{ task_id }}</h5>
         <h5>ERROR: Task {{ task_id }} failed</h5>
@@ -28,7 +28,7 @@
 </div>
 {% else %}
 
-<div class="row">
+<div class="row p-5">
 
     <p>Metric type: {{computation.distance_metric}}</p>
 
