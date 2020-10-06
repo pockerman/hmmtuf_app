@@ -93,7 +93,7 @@ def view_group_viterbi_all(request, task_id):
         #pdb.set_trace()
         # if the task exists do not ask celery. This means
         # that either the task failed or succeed
-        task = models.ScheduleComputation.objects.get(task_id=task_id)
+        task = models.GroupViterbiComputation.objects.get(task_id=task_id)
         context = get_result_view_context(task=task, task_id=task_id)
         return HttpResponse(template.render(context, request))
 

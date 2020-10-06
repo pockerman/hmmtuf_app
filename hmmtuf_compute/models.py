@@ -147,21 +147,32 @@ class GroupViterbiComputation(Computation):
         else:
 
             import uuid
-            from .tasks import compute_group_viterbi_path
 
             if data["group_tip"] == 'all':
-                raise ValueError("Not Implemented")
 
-            task_id = str(uuid.uuid4())
-            compute_group_viterbi_path(task_id=task_id,
-                                       hmm_name=hmm_name,
-                                       window_type=window_type,
-                                       group_tip=data["group_tip"],
-                                       remove_dirs=data["remove_dirs"],
-                                       use_spade=data["use_spade"],
-                                       scheduler_id=data["scheduler_id"],
-                                       sequence_group=data["sequence_group"])
-            return task_id
+                from .tasks import compute_group_viterbi_path_all
+                task_id = str(uuid.uuid4())
+                compute_group_viterbi_path_all(task_id=task_id,
+                                               hmm_name=hmm_name,
+                                               window_type=window_type,
+                                               remove_dirs=data["remove_dirs"],
+                                               use_spade=data["use_spade"],
+                                               sequence_group=data["sequence_group"])
+                return task_id
+
+
+            else:
+                from .tasks import compute_group_viterbi_path
+                task_id = str(uuid.uuid4())
+                compute_group_viterbi_path(task_id=task_id,
+                                           hmm_name=hmm_name,
+                                           window_type=window_type,
+                                           group_tip=data["group_tip"],
+                                           remove_dirs=data["remove_dirs"],
+                                           use_spade=data["use_spade"],
+                                           scheduler_id=data["scheduler_id"],
+                                           sequence_group=data["sequence_group"])
+                return task_id
 
     @staticmethod
     def get_invalid_map(task, result):

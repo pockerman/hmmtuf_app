@@ -81,7 +81,10 @@ class HMMModel(FilesModel):
 class RegionGroupTipModel(models.Model):
 
     # tip used to group region models
-    tip = models.CharField(max_length=100)
+    tip = models.CharField(max_length=100, null=False, unique=True)
+
+    # chromosome of the region group
+    chromosome = models.CharField(max_length=10, null=False, unique=True)
 
     class Meta:
         db_table = 'region_group_tip'

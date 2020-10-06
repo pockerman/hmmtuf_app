@@ -448,109 +448,111 @@ def main(path, fas_file_name, chromosome,
     ptemp = True
     chrlistsorted = {chr_idx: viterbi_file}
 
-    for i in sorted(chrlistsorted):
+    test_me = False
+    if not test_me:
+        for i in sorted(chrlistsorted):
 
-        flist = []
-        viterbisorted = chrlistsorted
+            flist = []
+            viterbisorted = chrlistsorted
 
-        for f in flist:
-            # if 'tuf_delete_tuf' in f and '._' not in f:
-            #     tdtsorted[int(f.split('_')[6])] = f
-            if 'viterbi' in f and '._' not in f:
-                viterbisorted[int(f.split('_')[5])] = f
+            for f in flist:
+                # if 'tuf_delete_tuf' in f and '._' not in f:
+                #     tdtsorted[int(f.split('_')[6])] = f
+                if 'viterbi' in f and '._' not in f:
+                    viterbisorted[int(f.split('_')[5])] = f
 
-        tdtcheck = ''
-        tdtlist = []
+            tdtcheck = ''
+            tdtlist = []
 
-        for j in sorted(viterbisorted):
-            print("{0} working with file: {1}".format(INFO, viterbisorted[j]))
-            with open(viterbisorted[j]) as vfile:
+            for j in sorted(viterbisorted):
+                print("{0} working with file: {1}".format(INFO, viterbisorted[j]))
+                with open(viterbisorted[j]) as vfile:
 
-                ccheck = chrlistsorted[i].split('_')[2].rstrip()
+                    ccheck = chrlistsorted[i].split('_')[2].rstrip()
 
-                for line in vfile:
-                    vdata = createbed(line, ccheck)
+                    for line in vfile:
+                        vdata = createbed(line, ccheck)
 
-                    if len(vdata) == 0:
-                        continue
+                        if len(vdata) == 0:
+                            continue
 
-                    outbedgraph.write(vdata['chr']+'\t' + str(int(float(vdata['loc'][0]))) +
-                                      '\t'+str(int(float(vdata['loc'][1]))) + '\t'+str(conv[vdata['state']])+'\n')
-                    curstate = vdata['state']
+                        outbedgraph.write(vdata['chr']+'\t' + str(int(float(vdata['loc'][0]))) +
+                                          '\t'+str(int(float(vdata['loc'][1]))) + '\t'+str(conv[vdata['state']])+'\n')
+                        curstate = vdata['state']
 
-                    if curstate == 'TUFDUP':
-                        curstate = 'TUF'
-                    elif curstate == 'Normal-II':
-                        curstate = 'Normal-I'
-                    if prevstate == "":
-                        prevstate = curstate
-                        chr = vdata['chr']
-                        start = int(float(vdata['loc'][0]))
-                        end = int(float(vdata['loc'][1]))
-                    if curstate == prevstate and chr == vdata['chr'] and (int(float(vdata['loc'][0])) == end+1 or ptemp):
-                        end = int(float(vdata['loc'][1]))
-                    if curstate != prevstate or chr != vdata['chr'] or (int(float(vdata['loc'][0])) != end+1 and not ptemp):
-                        if prevstate == 'TUF':
-                            tdtcheck = tdtcheck + 'T'
-                            tdtlist.append({"chr": chr, "start": start, "end": end, "type": 'TUF'})
-                            print(chr+'\t'+str(start)+'\t'+str(end)+'TUF')
-                            outtuf.write(chr+'\t'+str(start)+'\t'+str(end)+'\n')
-                        if prevstate == 'Normal-I':
-                            if 'TDT' in tdtcheck:
-                                print("{0} Processing TDT file".format(INFO))
-                                doTDT(tdtlist, quadout)
-                                print("{0} Done Processing TDT file".format(INFO))
+                        if curstate == 'TUFDUP':
+                            curstate = 'TUF'
+                        elif curstate == 'Normal-II':
+                            curstate = 'Normal-I'
+                        if prevstate == "":
+                            prevstate = curstate
+                            chr = vdata['chr']
+                            start = int(float(vdata['loc'][0]))
+                            end = int(float(vdata['loc'][1]))
+                        if curstate == prevstate and chr == vdata['chr'] and (int(float(vdata['loc'][0])) == end+1 or ptemp):
+                            end = int(float(vdata['loc'][1]))
+                        if curstate != prevstate or chr != vdata['chr'] or (int(float(vdata['loc'][0])) != end+1 and not ptemp):
+                            if prevstate == 'TUF':
+                                tdtcheck = tdtcheck + 'T'
+                                tdtlist.append({"chr": chr, "start": start, "end": end, "type": 'TUF'})
+                                print(chr+'\t'+str(start)+'\t'+str(end)+'TUF')
+                                outtuf.write(chr+'\t'+str(start)+'\t'+str(end)+'\n')
+                            if prevstate == 'Normal-I':
+                                if 'TDT' in tdtcheck:
+                                    print("{0} Processing TDT file".format(INFO))
+                                    doTDT(tdtlist, quadout)
+                                    print("{0} Done Processing TDT file".format(INFO))
 
-                            tdtcheck = ''
-                            tdtlist = []
-                            print("{0} {1}".format(INFO, chr+'\t'+str(start)+'\t'+str(end)+'Normal'))
-                            outnor.write(chr+'\t'+str(start)+'\t'+str(end)+'\n')
-                            if (end-start) > 1000:
-                                p = random.randint(1,10)
-                                print("{0} normal >1000, rand: {1}".format(INFO, p))
-                                if p == 7:
-                                    print("{0} processing random 1000 from normal region".format(INFO))
-                                    n = random.randint(start, end-1000)
-                                    nseq = fas.fetch(chr, n, n+1000)
-                                    # print("calculating random normal G Quad")
-                                    gquad, mscore = gquadcheck(nseq)
-                                    quadout.write(chr + ':' + str(n) + '-'+str(n+1000) + '_' +
-                                                  'Normal' + '_'+gcpercent(nseq) + '\t' +
-                                                  str(gquad)+str(mscore)+'\n')
+                                tdtcheck = ''
+                                tdtlist = []
+                                print("{0} {1}".format(INFO, chr+'\t'+str(start)+'\t'+str(end)+'Normal'))
+                                outnor.write(chr+'\t'+str(start)+'\t'+str(end)+'\n')
+                                if (end-start) > 1000:
+                                    p = random.randint(1,10)
+                                    print("{0} normal >1000, rand: {1}".format(INFO, p))
+                                    if p == 7:
+                                        print("{0} processing random 1000 from normal region".format(INFO))
+                                        n = random.randint(start, end-1000)
+                                        nseq = fas.fetch(chr, n, n+1000)
+                                        # print("calculating random normal G Quad")
+                                        gquad, mscore = gquadcheck(nseq)
+                                        quadout.write(chr + ':' + str(n) + '-'+str(n+1000) + '_' +
+                                                      'Normal' + '_'+gcpercent(nseq) + '\t' +
+                                                      str(gquad)+str(mscore)+'\n')
 
-                                    if ENABLE_SPADE:
-                                        spade(nseq, chr, n, n+1000, 'Normal')
-                            else:
-                                print("{0} normal too short".format(INFO))
-                        if prevstate == 'Deletion':
-                            if len(tdtcheck) > 0 and tdtcheck[0] == 'T':
-                                tdtcheck = tdtcheck+'D'
-                                tdtlist.append({"chr": chr, "start": start, "end": end, "type": 'Deletion'})
+                                        if ENABLE_SPADE:
+                                            spade(nseq, chr, n, n+1000, 'Normal')
+                                else:
+                                    print("{0} normal too short".format(INFO))
+                            if prevstate == 'Deletion':
+                                if len(tdtcheck) > 0 and tdtcheck[0] == 'T':
+                                    tdtcheck = tdtcheck+'D'
+                                    tdtlist.append({"chr": chr, "start": start, "end": end, "type": 'Deletion'})
 
-                            print("{0} {1}".format(INFO, chr+'\t'+str(start)+'\t'+str(end)+'Deletion'))
-                            outdel.write(chr+'\t'+str(start)+'\t'+str(end)+'\n')
-                        if prevstate == 'Duplication':
-                            if 'TDT' in tdtcheck:
-                                print("{0} Processing TDT file".format(INFO))
-                                doTDT(tdtlist, quadout)
-                                print("{0} Done Processing TDT file".format(INFO))
-                            tdtcheck = ''
-                            tdtlist = []
-                            print(chr+'\t'+str(start)+'\t'+str(end)+'Duplication')
-                            outdup.write(chr+'\t'+str(start)+'\t'+str(end)+'\n')
-                        if prevstate == 'GAP_STATE':
-                            if 'TDT' in tdtcheck:
-                                print("{0} Processing TDT file".format(INFO))
-                                doTDT(tdtlist, quadout)
-                                print("{0} Done Processing TDT file".format(INFO))
-                            tdtcheck = ''
-                            tdtlist = []
-                            print(chr+'\t'+str(start)+'\t'+str(end)+'GAP')
-                            outgap.write(chr+'\t'+str(start)+'\t'+str(end)+'\n')
-                        chr = vdata['chr']
-                        start = int(float(vdata['loc'][0]))
-                        end = int(float(vdata['loc'][1]))
-                        prevstate = curstate
+                                print("{0} {1}".format(INFO, chr+'\t'+str(start)+'\t'+str(end)+'Deletion'))
+                                outdel.write(chr+'\t'+str(start)+'\t'+str(end)+'\n')
+                            if prevstate == 'Duplication':
+                                if 'TDT' in tdtcheck:
+                                    print("{0} Processing TDT file".format(INFO))
+                                    doTDT(tdtlist, quadout)
+                                    print("{0} Done Processing TDT file".format(INFO))
+                                tdtcheck = ''
+                                tdtlist = []
+                                print(chr+'\t'+str(start)+'\t'+str(end)+'Duplication')
+                                outdup.write(chr+'\t'+str(start)+'\t'+str(end)+'\n')
+                            if prevstate == 'GAP_STATE':
+                                if 'TDT' in tdtcheck:
+                                    print("{0} Processing TDT file".format(INFO))
+                                    doTDT(tdtlist, quadout)
+                                    print("{0} Done Processing TDT file".format(INFO))
+                                tdtcheck = ''
+                                tdtlist = []
+                                print(chr+'\t'+str(start)+'\t'+str(end)+'GAP')
+                                outgap.write(chr+'\t'+str(start)+'\t'+str(end)+'\n')
+                            chr = vdata['chr']
+                            start = int(float(vdata['loc'][0]))
+                            end = int(float(vdata['loc'][1]))
+                            prevstate = curstate
 
     quadout.close()
     outbedgraph.close()
@@ -580,7 +582,7 @@ def main(path, fas_file_name, chromosome,
 
 def concatenate_bed_files(bedfiles, outfile):
 
-    with open(outfile, 'w') as total_f:
+    with open(outfile, 'a') as total_f:
         for file_name in bedfiles:
             with open(file_name, 'r') as f:
 

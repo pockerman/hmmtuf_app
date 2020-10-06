@@ -20,8 +20,8 @@ class RegionModelAdmin(admin.ModelAdmin):
 
 
 class RegionGroupTipModelAdmin(admin.ModelAdmin):
-    fields = ['tip']
-    list_display = ('id', 'tip')
+    fields = ['tip', 'chromosome']
+    list_display = ('id', 'tip', 'chromosome')
 
 
 class ViterbiSequenceGroupTipModelAdmin(admin.ModelAdmin):
