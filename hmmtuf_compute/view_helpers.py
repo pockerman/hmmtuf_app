@@ -61,6 +61,23 @@ def get_result_view_context(task, task_id):
         no_wga_seq_name = get_sequence_name(configuration=configuration, seq=no_wga_name)
         no_wga_tdf_file = get_tdf_file(configuration=configuration, seq=no_wga_name)
 
+        if task.computation_type == JobType.GROUP_VITERBI.name:
+            context = {'task_status': task.result,
+                       "computation": task,
+                       "wga_seq_name": wga_seq_name,
+                       "no_wga_seq_name": no_wga_seq_name,
+                       "wga_tdf_file": wga_tdf_file,
+                       "no_wga_tdf_file": no_wga_tdf_file,
+                       "normal_bed_url": make_bed_path(task_id=task_id, bed_name=task.chromosome + '/normal.bed'),
+                       "tuf_bed_url": make_bed_path(task_id=task_id, bed_name=task.chromosome + '/tuf.bed'),
+                       "deletion_bed_url": make_bed_path(task_id=task_id, bed_name=task.chromosome + "/deletion.bed"),
+                       "duplication_bed_url": make_bed_path(task_id=task_id, bed_name=task.chromosome + "/duplication.bed"),
+                       "gap_bed_url": make_bed_path(task_id=task_id, bed_name=task.chromosome + "/gap.bed"),
+                       "repeats_bed_url": make_bed_path(task_id=task_id, bed_name=task.chromosome + "/rep.bed"),
+                       "quad_bed_url": make_bed_path(task_id=task_id, bed_name=task.chromosome + "/quad.bed"),
+                       "tdt_bed_url": make_bed_path(task_id=task_id, bed_name=task.chromosome + "/tdt.bed")}
+            return context
+
         context = {'task_status': task.result,
                    "computation": task,
                    "wga_seq_name": wga_seq_name,

@@ -60,6 +60,8 @@ class GroupViterbiComputation(Computation):
     # number of regions
     number_regions = models.IntegerField(null=True)
 
+    chromosome = models.CharField(max_length=100, null=True)
+
     class Meta(Computation.Meta):
         db_table = 'group_viterbi_computation'
 
@@ -76,7 +78,8 @@ class GroupViterbiComputation(Computation):
                 "wga_seq_filename": model.wga_seq_filename,
                 "no_wag_seq_filename": model.no_wag_seq_filename,
                 "scheduler_id": model.scheduler_id,
-                "number_regions": model.number_regions}
+                "number_regions": model.number_regions,
+                "chromosome": model.chromosome}
 
     @staticmethod
     def build_from_map(map_data, save):
@@ -100,6 +103,7 @@ class GroupViterbiComputation(Computation):
             computation.no_wag_seq_filename = map_data["no_wag_seq_file"]
             computation.scheduler_id = map_data["scheduler_id"]
             computation.number_regions = map_data["number_regions"]
+            computation.chromosome = map_data["chromosome"]
 
             if save:
                 computation.save()
@@ -166,6 +170,7 @@ class GroupViterbiComputation(Computation):
         data_map["scheduler_id"] = result["scheduler_id"]
         data_map["number_regions"] = result["number_regions"]
         data_map["sequence_group"] = result["sequence_group"]
+        data_map["chromosome"] = result["chromosome"]
         return data_map
 
 

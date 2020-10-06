@@ -416,11 +416,17 @@ def main(path, fas_file_name, chromosome,
             'Duplication': 50,
             'GAP_STATE': 0}
 
-    files_created = ["viterbi.bedgraph", "tuf.bed",
-                     "normal.bed", "deletion.bed",
-                     "duplication.bed", "gap.bed",
-                     "tdt.bed", "quad.bed",
-                     "rep.bed", 'gquads.txt', NUCL_FILENAME]
+    files_created = ["viterbi.bedgraph",
+                     "tuf.bed",
+                     "normal.bed",
+                     "deletion.bed",
+                     "duplication.bed",
+                     "gap.bed",
+                     "tdt.bed",
+                     "quad.bed",
+                     "rep.bed",
+                     'gquads.txt',
+                     NUCL_FILENAME]
 
     # Open global files
     outbedgraph = open(path + "viterbi.bedgraph", "w")
@@ -562,8 +568,11 @@ def main(path, fas_file_name, chromosome,
         print("{0} Removing directories".format(INFO))
         remove_directories(chromosome=chromosome)
 
-    # copy the nucleods file produced
-    shutil.copyfile(path + NUCL_FILENAME, nucleods_path + NUCL_FILENAME)
+    if path + NUCL_FILENAME != nucleods_path + NUCL_FILENAME:
+        print("{0} Copying {1} to {2}".format(INFO, path + NUCL_FILENAME, nucleods_path + NUCL_FILENAME))
+
+        # copy the nucleods file produced
+        shutil.copyfile(path + NUCL_FILENAME, nucleods_path + NUCL_FILENAME)
 
     print("{0} END TUF-DEL-TUF".format(INFO))
     return files_created
