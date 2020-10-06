@@ -27,6 +27,7 @@ class Computation(models.Model):
     result = models.CharField(max_length=50, choices=RESULT_OPTIONS)
     error_explanation = models.CharField(max_length=500, default=DEFAULT_ERROR_EXPLANATION)
     computation_type = models.CharField(max_length=100)
+    scheduler_id = models.CharField(max_length=200, null=True)
 
     class Meta:
         abstract = True
@@ -80,7 +81,10 @@ class HMMModel(FilesModel):
 class RegionGroupTipModel(models.Model):
 
     # tip used to group region models
-    tip = models.CharField(max_length=100)
+    tip = models.CharField(max_length=100, null=False, unique=True)
+
+    # chromosome of the region group
+    chromosome = models.CharField(max_length=10, null=False, unique=True)
 
     class Meta:
         db_table = 'region_group_tip'

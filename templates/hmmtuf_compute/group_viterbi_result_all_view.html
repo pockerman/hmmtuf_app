@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}HMMtuf-View Group Viterbi Path{% endblock title %}
+{% block title %}HMMtuf-View Group All Viterbi Path{% endblock title %}
 {%block inner_body %}
 {% load static %}
 
@@ -9,11 +9,11 @@
 
 <div class="row">
     <div class="col-lg-8 mb-4">
-            <h4>Viterbi path calculation task submitted</h4>
+            <h4>Viterbi Group all path calculation task submitted</h4>
             <h5>Task id: {{ task_id }}</h5>
             <h5>Computation  status: {{ task_status }}</h5>
 
-        <a href="/compute/view_group_viterbi_path/{{ task_id }}" class="btn btn-primary">Get Results</a>
+        <a href="/compute/view_group_viterbi_all/{{ task_id }}" class="btn btn-primary">Get Results</a>
     </div>
 
 </div>
@@ -32,49 +32,6 @@
     <div class="col-lg-12" id="igv-browser">
     </div>
 </div>
-<br/>
-<!--<div class="row">
-
-    <h3>Task data</h3>
-    <hr/>
-    <div id="task_data" class="col-lg-12 float-left" style="display:none;">
-        <ul>
-            <li>HMM filename:  </li>
-            <li>Region filename: </li>
-            <li>Region window type: </li>
-            <li>Sequence size: </li>
-            <li>Number of sequences: </li>
-        </ul>
-    </div>
-    <div class="col-lg-12">
-        <button type="button" class="btn btn-primary" onclick="hideShowDiv('task_data')">Show Task Data</button>
-    </div>
-</div>-->
-
-<!--<div class="row">
-    <h3>HMM Model</h3>
-    <hr/>
-    <div id="hmm_div" class="col-lg-12" style="display:none;">
-        <img src="{{ computation.hmm_path_img }}" width="700"/>
-    </div>
-    <div class="col-lg-12">
-        <button id="show_hmm_model_button" type="button" class="btn btn-primary" onclick="hideShowDiv('hmm_div')">Show HMM Model</button>
-    </div>
-</div>-->
-
-<!--hide me-->
-<!--<div class="row">
-    <h3>Windows labels</h3>
-    <hr/>
-
-    <div id="hmm_labels_div" class="col-lg-12" style="display:none;">
-        <svg id="canvas" width="800" height="500"></svg>
-    </div>
-
-    <div class="col-lg-12">
-        <button type="button" class="btn btn-primary" onclick="hideShowDiv('hmm_labels_div')">Show Windows Labels</button>
-    </div>
-</div>-->
 <br/>
 
 <script>
