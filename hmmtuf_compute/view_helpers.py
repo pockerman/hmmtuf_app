@@ -76,7 +76,9 @@ def get_result_view_context(task, task_id):
                        "repeats_bed_url": make_bed_path(task_id=task_id, bed_name=task.chromosome + "/rep.bed"),
                        "quad_bed_url": make_bed_path(task_id=task_id, bed_name=task.chromosome + "/quad.bed"),
                        "tdt_bed_url": make_bed_path(task_id=task_id, bed_name=task.chromosome + "/tdt.bed"),
-                       "locus":task.chromosome}
+                       "locus": task.chromosome,
+                       "start_region_idx": task.start_region_idx,
+                       "end_region_idx": task.end_region_idx}
             return context
 
         context = {'task_status': task.result,

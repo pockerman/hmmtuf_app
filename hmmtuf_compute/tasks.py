@@ -116,6 +116,8 @@ def compute_group_viterbi_path(task_id, hmm_name, window_type,  group_tip,
     computation.scheduler_id = scheduler_id
     computation.number_regions = len(regions)
     computation.chromosome = regions[0].chromosome
+    computation.start_region_idx = regions[0].start_idx
+    computation.end_region_idx = regions[0].end_idx
     computation.save()
 
     result = GroupViterbiComputation.get_as_map(model=computation)
@@ -163,16 +165,11 @@ def compute_group_viterbi_path(task_id, hmm_name, window_type,  group_tip,
     counter_region_id = 0
     for region_model in regions:
 
-        if counter_region_id > 1:
-            continue
-
         region_filename = region_model.file_region.name
         region = Region.load(filename=region_filename)
         region.get_mixed_windows()
 
         files_created_map[counter_region_id] = {}
-
-        #chromosome = region_model.chromosome
         chromosome_index = region_model.chromosome_index
         ref_seq_file = region_model.ref_seq_file
 
