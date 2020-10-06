@@ -205,6 +205,12 @@ class ViterbiComputation(Computation):
     # chromosome
     chromosome = models.CharField(max_length=10, null=True)
 
+    # start index of the region
+    start_region_idx = models.IntegerField(null=True)
+
+    # end index of the region
+    end_region_idx = models.IntegerField(null=True)
+
     # sequence size
     seq_size = models.IntegerField(null=True)
 
@@ -244,7 +250,9 @@ class ViterbiComputation(Computation):
                 "extracted_sequences": model.extracted_sequences,
                 "n_mixed_windows": model.n_mixed_windows,
                 "window_type": model.window_type,
-                "scheduler_id": model.scheduler_id}
+                "scheduler_id": model.scheduler_id,
+                "start_region_idx": model.start_region_idx,
+                "end_region_idx": model.end_region_idx}
 
     @staticmethod
     def build_from_map(map, save):
@@ -273,6 +281,8 @@ class ViterbiComputation(Computation):
             computation.n_mixed_windows = map["n_mixed_windows"]
             computation.window_type = map["window_type"]
             computation.scheduler_id = map["scheduler_id"]
+            computation.start_region_idx = map["start_region_idx"]
+            computation.end_region_idx = map["end_region_idx"]
 
             if save:
                 computation.save()
@@ -340,6 +350,8 @@ class ViterbiComputation(Computation):
         data_map["n_mixed_windows"] = 0
         data_map["window_type"] = INVALID_STR
         data_map["scheduler_id"] = result["scheduler_id"]
+        data_map["start_region_idx"] = result["start_region_idx"]
+        data_map["end_region_idx"] = result["end_region_idx"]
         return data_map
 
 

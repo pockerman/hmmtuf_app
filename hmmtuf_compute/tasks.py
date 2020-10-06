@@ -323,6 +323,8 @@ def compute_viterbi_path(task_id, hmm_name, chromosome,
     computation.seq_size = 0
     computation.n_mixed_windows = 0
     computation.extracted_sequences = 1
+    computation.start_region_idx = region_model.start_idx
+    computation.end_region_idx = region_model.end_idx
     computation.save()
 
     result = ViterbiComputation.get_as_map(model=computation)
