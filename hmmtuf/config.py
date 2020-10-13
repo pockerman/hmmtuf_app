@@ -9,7 +9,7 @@ LOCAL_DEPLOY = False
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 
-USE_CELERY = False
+USE_CELERY = True
 ENABLE_SPADE = True
 SPADE_PATH = "%s/compute_engine/SPADE/" % BASE_DIR
 DATA_PATH = "%s/data/" % BASE_DIR
@@ -60,7 +60,7 @@ elif LOCAL_DEPLOY:
     # deployment version locally
     ALLOWED_HOSTS = ['localhost', ]
 else:
-    ALLOWED_HOSTS = []
+    ALLOWED_HOSTS = ['www487.lamp.le.ac.uk']
 
 
 # Static files (CSS, JavaScript, Images)
@@ -159,16 +159,24 @@ else:
     MEDIA_URL = ''
 
     # path to where to store the region files
-    REGIONS_FILES_ROOT = ''
-    REGIONS_FILES_URL = ''
+    REGIONS_FILES_ROOT = '%s/regions/' % BASE_DIR
+    REGIONS_FILES_URL = '%s/regions/' % BASE_DIR
 
     # path to where to store the HMM files
-    HMM_FILES_ROOT = ''
-    HMM_FILES_URL = ''
+    HMM_FILES_ROOT = '%s/hmm_files/' % BASE_DIR
+    HMM_FILES_URL = '%s/hmm_files/' % BASE_DIR
 
     # path to where to store the computed Viterbi paths
-    VITERBI_PATHS_FILES_ROOT = ''
-    VITERBI_PATHS_FILES_URL = ''
+    VITERBI_PATHS_FILES_ROOT = '%s/computations/viterbi_paths/' % BASE_DIR
+    VITERBI_PATHS_FILES_URL = '%s/computations/viterbi_paths/' % BASE_DIR
+
+    # path to where to store the computed Viterbi paths
+    VITERBI_SEQ_FILES_ROOT = '%s/computations/viterbi_seqs/' % BASE_DIR
+    VITERBI_SEQ_FILES_URL = '%s/computations/viterbi_seqs/' % BASE_DIR
+
+    # path to where to store the computed comparison of Viterbi paths
+    VITERBI_SEQ_COMPARISON_FILES_ROOT = '%s/computations/viterbi_seqs_comparisons/' % BASE_DIR
+    VITERBI_SEQ_COMPARISON_FILES_URL = '%s/computations/viterbi_seqs_comparisons/' % BASE_DIR
 
 if DEBUG is False and LOCAL_DEPLOY is False:
     if STATIC_URL == '' or STATIC_ROOT == '':
