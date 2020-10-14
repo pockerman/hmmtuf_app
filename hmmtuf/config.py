@@ -144,7 +144,7 @@ else:
     # these fields depend on where/how we actually
     # want to deploy
 
-    STATIC_URL = ''
+    STATIC_URL = '/static/'
 
     # This is the absolute path to a directory
     # where Django's "collectstatic" tool will gather
@@ -152,7 +152,7 @@ else:
     # This is not where the static files are already at.
     # Once collected, these can then be uploaded as a group to
     # # wherever the files are to be hosted.
-    STATIC_ROOT = '' #'%s/%s/' % (BASE_DIR, STATIC_URL)
+    STATIC_ROOT = '%s/%s/' % (BASE_DIR, STATIC_URL)
     STATICFILES_DIRS = []
 
     MEDIA_ROOT = ''
