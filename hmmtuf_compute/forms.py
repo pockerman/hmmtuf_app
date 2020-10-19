@@ -3,14 +3,13 @@ from django.http import HttpResponse
 from django.template import loader
 from django.core.exceptions import ObjectDoesNotExist
 
-from compute_engine.utils import extract_path
-from compute_engine.string_sequence_calculator import TextDistanceCalculator
+from compute_engine.src.string_sequence_calculator import TextDistanceCalculator
 from compute_engine import OK
 
 from hmmtuf import VITERBI_PATH_FILENAME
 from hmmtuf import INVALID_ITEM
 from hmmtuf.settings import VITERBI_PATHS_FILES_ROOT
-from hmmtuf_home.models import HMMModel, RegionModel, ViterbiSequenceModel, ViterbiSequenceGroupTip
+from hmmtuf_home.models import HMMModel, RegionModel, ViterbiSequenceGroupTip
 
 
 class ComputeFormBase(object):

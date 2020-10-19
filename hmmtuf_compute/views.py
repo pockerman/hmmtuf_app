@@ -1,10 +1,9 @@
-from django.shortcuts import render
 from django.http import HttpResponse
 from django.template import loader
 from django.shortcuts import redirect
 from django.core.exceptions import ObjectDoesNotExist
 
-from compute_engine.windows import WindowType
+from compute_engine.src.windows import WindowType
 from compute_engine import OK
 
 

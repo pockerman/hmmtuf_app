@@ -1,12 +1,11 @@
 import array
-from .windows import WindowType, MixedWindowView, Window
+from compute_engine.src.windows import WindowType, MixedWindowView, Window
 
-from .exceptions import Error
-from .preprocess_utils import remove_outliers, compute_statistic
-from .analysis_helpers import save_windows_statistic
-from .bam_helpers import extract_windows
-from . constants import TREAT_ERRORS_AS_WARNINGS, PRINT_WARNINGS
-from . constants import WARNING, INFO
+from compute_engine.src.exceptions import Error
+from compute_engine.src.preprocess_utils import remove_outliers, compute_statistic
+from compute_engine.src.analysis_helpers import save_windows_statistic
+from compute_engine.src.constants import TREAT_ERRORS_AS_WARNINGS, PRINT_WARNINGS
+from compute_engine.src.constants import WARNING, INFO
 
 
 class RegionIterator(object):

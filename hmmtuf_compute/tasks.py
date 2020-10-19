@@ -6,16 +6,14 @@ from celery.decorators import task
 from celery.utils.log import get_task_logger
 
 from compute_engine import INFO, DEFAULT_ERROR_EXPLANATION
-from compute_engine.job import JobType, JobResultEnum
-from compute_engine import hmm_loader
-from compute_engine import tufdel
-from compute_engine import viterbi_calculation_helpers as viterbi_helpers
-from compute_engine.windows import WindowType
-from compute_engine.region import Region
-from compute_engine.string_sequence_calculator import TextDistanceCalculator
+from compute_engine.src.job import JobType, JobResultEnum
+from compute_engine.src import hmm_loader, tufdel, viterbi_calculation_helpers as viterbi_helpers
+from compute_engine.src.windows import WindowType
+from compute_engine.src.region import Region
+from compute_engine.src.string_sequence_calculator import TextDistanceCalculator
 
 
-from hmmtuf import INVALID_ITEM, USE_CELERY
+from hmmtuf import INVALID_ITEM
 from hmmtuf.helpers import make_viterbi_path_filename
 from hmmtuf.helpers import make_viterbi_path
 from hmmtuf.helpers import make_tuf_del_tuf_path_filename
@@ -48,7 +46,6 @@ def concatenate_files(files_created_map, out_path):
                                                             out_path + name))
             # concatenate the files
             tufdel.concatenate_bed_files(files_created_map[idx][name], outfile=out_path + name)
-
 
 
 @task(name="compute_group_viterbi_path_all_task")

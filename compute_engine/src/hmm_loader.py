@@ -1,7 +1,7 @@
 from pomegranate import *
 import matplotlib.pyplot as plt
 
-from .constants import INFO
+from compute_engine.src.constants import INFO
 
 def build_hmm(hmm_file):
 

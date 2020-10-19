@@ -1,15 +1,12 @@
-import argparse
-import logging
-import time
 import sys
 
 #from helpers import read_configuration_file
 #from helpers import set_up_logger
-from .windows import WindowType
-from .constants import INFO, WARNING
-from .utils import timefn
-from .region import Region
-from .exceptions import Error
+from compute_engine.src.windows import WindowType
+from compute_engine.src.constants import INFO, WARNING
+from compute_engine.src.utils import timefn
+from compute_engine.src.region import Region
+
 
 @timefn
 def make_window_regions(configuration):

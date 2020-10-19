@@ -1,22 +1,15 @@
-
-from django.shortcuts import render
 from django.http import HttpResponse
 from django.template import loader
 from django.shortcuts import redirect
 from django.core.exceptions import ObjectDoesNotExist
 
-from compute_engine.utils import read_json
-from compute_engine.create_regions import main as extract_region
-from compute_engine.utils import extract_file_names
+from compute_engine.src.utils import extract_file_names
 
-from hmmtuf.settings import BASE_DIR
-from hmmtuf.settings import USE_CELERY
 from hmmtuf.settings import REGIONS_FILES_ROOT
 from hmmtuf.helpers import get_configuration
 from hmmtuf_home.models import RegionModel
 
 from .forms import ExtractRegionForm
-from .tasks import extract_region_task
 from .models import ExtractRegionComputation
 
 

@@ -1,11 +1,8 @@
 import json
-import time
 from functools import wraps
-from enum import Enum
-import logging
 import time
 
-from .constants import INFO
+from compute_engine.src.constants import INFO
 
 def timefn(fn):
     @wraps(fn)

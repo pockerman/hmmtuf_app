@@ -6,8 +6,8 @@ import pysam
 import numpy as np
 import re
 
-from .windows import Window
-from .constants import INFO
+from compute_engine.src.windows import Window
+from compute_engine.src.constants import INFO
 
 
 def extract_windows(chromosome, ref_filename, bam_filename, **args):

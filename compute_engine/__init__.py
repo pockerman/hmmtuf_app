@@ -1,4 +1,4 @@
-from .constants import *
+from compute_engine.src.constants import *
 
 
 

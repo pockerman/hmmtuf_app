@@ -1,10 +1,10 @@
 from django.template import loader
 from django.http import HttpResponse
 
-from compute_engine.utils import get_sequence_name, get_tdf_file
-from compute_engine.job import JobResultEnum, JobType
+from compute_engine.src.utils import get_sequence_name, get_tdf_file
+from compute_engine.src.job import JobResultEnum, JobType
 from compute_engine import INFO
-from compute_engine.string_sequence_calculator import TextDistanceCalculator
+from compute_engine.src.string_sequence_calculator import TextDistanceCalculator
 from hmmtuf.helpers import make_bed_path
 from hmmtuf.helpers import get_configuration
 from hmmtuf import INVALID_TASK_ID

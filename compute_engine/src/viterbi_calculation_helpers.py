@@ -2,13 +2,11 @@
 Helpers for HMM
 """
 
-import json
-from enum import Enum
 import csv
 import numpy as np
 from pomegranate import *
 
-from .constants import INFO
+from compute_engine.src.constants import INFO
 
 
 def get_window_ids_from_viterbi_path(path, wstate, limit_state):

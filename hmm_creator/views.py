@@ -1,13 +1,10 @@
 import json
-from django.shortcuts import render
 from django.shortcuts import redirect
 from django.http import HttpResponse
 from django.template import loader
-from django.core.exceptions import ObjectDoesNotExist
-from django.core.files.storage import FileSystemStorage
 
-from compute_engine.constants import OK
-from compute_engine.hmm_builder import create_hmm_model_from_form
+from compute_engine.src.constants import OK
+from compute_engine.src.hmm_builder import create_hmm_model_from_form
 
 from hmmtuf.helpers import make_hmm_file_path
 from hmmtuf_home.models import HMMModel

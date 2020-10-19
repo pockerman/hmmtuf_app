@@ -8,9 +8,9 @@ import numpy as np
 import copy
 
 
-from . windows import WindowType
-from . constants import INFO
-from . exceptions import Error
+from compute_engine.src.windows import WindowType
+from compute_engine.src.constants import INFO
+from compute_engine.src.exceptions import Error
 
 VALID_DISTS = ['normal', 'uniform',
                'poisson', 'discrete', ]

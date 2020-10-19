@@ -2,7 +2,7 @@
 Various helpers to be used in the analysis module
 """
 
-from .windows import WindowType
+from compute_engine.src.windows import WindowType
 
 
 def save_cluster(filename, cluster, statistic, wtype):

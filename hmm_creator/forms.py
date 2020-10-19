@@ -1,6 +1,6 @@
 from django.http import HttpResponse
 from django.template import loader
-from compute_engine.constants import OK
+from compute_engine.src.constants import OK
 from hmmtuf import INVALID_ITEM
 from hmmtuf_home.models import HMMModel
 

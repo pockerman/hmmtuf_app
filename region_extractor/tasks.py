@@ -4,9 +4,9 @@ from celery.utils.log import get_task_logger
 
 from hmmtuf_home.models import RegionModel
 
-from compute_engine.job import Job
-from compute_engine.create_regions import main as extract_region
-from compute_engine.job import JobType, JobResultEnum
+from compute_engine.src.job import Job
+from compute_engine.src.create_regions import main as extract_region
+from compute_engine.src.job import JobType, JobResultEnum
 from compute_engine import DEFAULT_ERROR_EXPLANATION
 
 

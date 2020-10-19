@@ -1,6 +1,6 @@
 import numpy as np
 from pomegranate import *
-from .exceptions import Error
+from compute_engine.src.exceptions import Error
 
 def create_hmm_model_from_form(form):
 

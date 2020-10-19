@@ -6,8 +6,8 @@ import random
 
 from hmmtuf import ENABLE_SPADE, SPADE_PATH
 
-from . constants import INFO, WARNING
-from . constants import TREAT_ERRORS_AS_WARNINGS
+from compute_engine.src.constants import INFO, WARNING
+from compute_engine.src.constants import TREAT_ERRORS_AS_WARNINGS
 
 fas = None
 outbedgraph = None

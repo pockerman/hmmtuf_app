@@ -1,7 +1,7 @@
 import textdistance
 
-from .exceptions import Error
-from .utils import read_sequence_bed_file
+from compute_engine.src.exceptions import Error
+from compute_engine.src.utils import read_sequence_bed_file
 
 
 class TextDistanceCalculator(object):

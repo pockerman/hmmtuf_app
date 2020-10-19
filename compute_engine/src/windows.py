@@ -1,5 +1,5 @@
 from enum import Enum
-from .exceptions import Error
+from compute_engine.src.exceptions import Error
 
 class WindowType(Enum):
     WGA = 0
