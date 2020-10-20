@@ -1,6 +1,7 @@
 import json
 import argparse
 import textdistance
+import os
 from pathlib import Path
 
 
@@ -107,8 +108,17 @@ def read_weblogos(file_dir, filenames):
     Read a list of weblogo files
     """
 
+    dir_folder = Path(file_dir)
+
+    if len(filenames) == 0:
+        # get all filenames in the path
+        filenames = os.listdir(path=dir_folder)
+
+    if len(filenames) == 0:
+        raise ValueError("Empty weblogo file list")
+
     print("{0} Processing weblogo files in {1}".format(INFO, file_dir))
-    print("{0} Nunber of weblogo files given {1}".format(INFO, len(filenames)))
+    print("{0} Number of weblogo files given {1}".format(INFO, len(filenames)))
     seq_dict = dict()
 
     dir_folder = Path(file_dir)
@@ -163,12 +173,6 @@ if __name__ == '__main__':
     print("{0} Done...".format(INFO))
 
     print("{0} Starting...".format(INFO))
-
-    weblogos_files = configuration['weblogos_files']
-
-    if len(weblogos_files) == 0:
-        raise ValueError("Empty weblogo file list")
-
     main(configuration=configuration)
     print("{0} Finished...".format(INFO))
 
