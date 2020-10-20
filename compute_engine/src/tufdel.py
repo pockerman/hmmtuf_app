@@ -508,7 +508,7 @@ def main(path, fas_file_name, chromosome,
                                 print("{0} {1}".format(INFO, chr+'\t'+str(start)+'\t'+str(end)+'Normal'))
                                 outnor.write(chr+'\t'+str(start)+'\t'+str(end)+'\n')
                                 if (end-start) > 1000:
-                                    p = random.randint(1,10)
+                                    p = random.randint(1, 10)
                                     print("{0} normal >1000, rand: {1}".format(INFO, p))
                                     if p == 7:
                                         print("{0} processing random 1000 from normal region".format(INFO))
