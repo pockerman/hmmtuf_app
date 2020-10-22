@@ -3,9 +3,9 @@ import numpy as np
 import os
 import shutil
 import random
+from pathlib import Path
 
 from hmmtuf import ENABLE_SPADE, SPADE_PATH
-
 from compute_engine.src.constants import INFO, WARNING
 from compute_engine.src.constants import TREAT_ERRORS_AS_WARNINGS
 
@@ -64,8 +64,8 @@ def BaseScore(line):
                 liste[item] = -2
                 liste.append(-2)
                 if item+2 < len(line) and (line[item+2] == "C" or line[item+2] == "c"):
-                    liste[item+1]=-3
-                    liste[item]=-3
+                    liste[item+1] = -3
+                    liste[item] = -3
                     liste.append(-3)
                     if item+3 < len(line) and (line[item+3] == "C" or line[item+3] == "c"):
                         liste[item] = -4
@@ -193,7 +193,7 @@ def gcpercent(cseq):
     return count
 
 
-def spade(repseq, chrom, start, stop, type):
+def spade(repseq, chrom, start, stop, region_type):
 
     """
     Call SPADE application in the SPADE_PATH
@@ -227,35 +227,42 @@ def spade(repseq, chrom, start, stop, type):
             else:
                 raise e
 
+    #import pdb
+    #pdb.set_trace()
+
     fasta = open(PATH + 'repeats/tdtseq.fasta', 'w')
 
-    folder = chrom + '_'+str(start) + '-' + str(stop) + '_' + type + '_' + gcpercent(repseq)
+    folder = chrom + '_'+str(start) + '-' + str(stop) + '_' + region_type + '_' + gcpercent(repseq)
+    working_dir = Path(SPADE_OUTPATH + folder)
+
+    os.mkdir(working_dir)
 
     fasta.write('>'+folder+'\n')
     fasta.write(repseq+'\n')
     fasta.close()
     str_cmd = 'python3 {0} -in {1} -out_dir {2}'.format(SPADE_PATH + 'SPADE.py',
                                                         PATH + 'repeats/tdtseq.fasta',
-                                                        SPADE_OUTPATH)
+                                                        SPADE_OUTPATH + folder + "/")
     print("{0} str_cmd {1}".format(INFO, str_cmd))
     os.system(str_cmd)
 
     # open the nucl files and attempt to write the
     # outrep file
-    directories = os.listdir(path=SPADE_OUTPATH)
+    directories = os.listdir(path=working_dir)
 
     for name in directories:
 
         # if this is a nucl_ directory
         if name.startswith('nucl_'):
 
-            files = os.listdir(path=SPADE_OUTPATH + name)
+            files = os.listdir(path=working_dir / name)
             if 'weblogo.txt' in files:
 
                 nucleods = ['A', 'C', 'G', 'T']
                 count = 0
                 seq = ''
-                with open(SPADE_OUTPATH + name + '/' + 'weblogo.txt', 'r') as f:
+                weblogo_file = Path(working_dir / name)
+                with open(weblogo_file / 'weblogo.txt', 'r') as f:
                     for line in f:
                         count += 1
 
@@ -284,7 +291,7 @@ def spade(repseq, chrom, start, stop, type):
                     outrep.write(chrom + '\t' + str(start) + '\t' + str(stop) + '\n')
 
                     if len(seq) != 0:
-                        nucl_out.write(chrom + '\t' + str(start) + '\t' + str(stop) + '\t' + seq + '\n')
+                        nucl_out.write(chrom + '\t' + str(start) + '\t' + str(stop) + '\t' + seq + '\t' + region_type + '\n')
 
 
 def createbed(line, ccheck):
@@ -335,7 +342,7 @@ def doTDT(tdtarray, outfile):
         # print(tdt)
         seq = fas.fetch(tdt['chr'], tdt['start'], tdt['end'])
         if ENABLE_SPADE:
-            spade(seq, tdt['chr'], tdt['start'], tdt['end'], tdt['type'])
+            spade(seq, tdt['chr'], tdt['start'], tdt['end'], region_type=tdt['type'])
 
         if tdt['type'] == 'Deletion' and len(seq) < 2000:
             outtdt.write(tdt['chr'] + '\t' +
@@ -449,6 +456,9 @@ def main(path, fas_file_name, chromosome,
     chrlistsorted = {chr_idx: viterbi_file}
 
     test_me = False
+
+    #import pdb
+    #pdb.set_trace()
     if not test_me:
         for i in sorted(chrlistsorted):
 
@@ -489,9 +499,12 @@ def main(path, fas_file_name, chromosome,
                             chr = vdata['chr']
                             start = int(float(vdata['loc'][0]))
                             end = int(float(vdata['loc'][1]))
+
                         if curstate == prevstate and chr == vdata['chr'] and (int(float(vdata['loc'][0])) == end+1 or ptemp):
                             end = int(float(vdata['loc'][1]))
+
                         if curstate != prevstate or chr != vdata['chr'] or (int(float(vdata['loc'][0])) != end+1 and not ptemp):
+
                             if prevstate == 'TUF':
                                 tdtcheck = tdtcheck + 'T'
                                 tdtlist.append({"chr": chr, "start": start, "end": end, "type": 'TUF'})

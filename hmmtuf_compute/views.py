@@ -164,7 +164,7 @@ def schedule_hmm_viterbi_compute_view(request):
     template_html = 'hmmtuf_compute/schedule_viterbi_compute_view.html'
     template = loader.get_template(template_html)
 
-    db_group_tips = ViterbiSequenceGroupTip.objects.all()
+    db_group_tips = ViterbiSequenceGroupTip.objects.all().order_by('tip')
     group_tips = ["None"]
 
     for item in db_group_tips:
@@ -183,7 +183,7 @@ def schedule_hmm_viterbi_compute_view(request):
         hmm_names.append(item.name)
 
     # get the regions we have
-    regions = RegionModel.objects.all()
+    regions = RegionModel.objects.all().order_by('chromosome', 'name')
 
     if len(regions) == 0:
         context = {"error_empty_region_list": "Regions have not been created.", }
