@@ -252,7 +252,7 @@ if __name__ == '__main__':
 
     description = "No description"
     parser = argparse.ArgumentParser(description=description)
-    parser.add_argument('--config', type=str, default='config.json',
+    parser.add_argument('--config', type=str, default='config_with_bed.json',
                         help="You must specify a json "
                              "formatted configuration file")
 
