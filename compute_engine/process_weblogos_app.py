@@ -67,6 +67,63 @@ def compute_textdistances(seq_dict, distance_type):
     return similarity_map
 
 
+def read_bed_file(filename, concatenate):
+
+    with open(filename, 'r') as fh:
+
+        seq = ''
+        if concatenate:
+            pass
+        else:
+            seqs = dict()
+            for line in fh:
+                line_data = line.split('\t')
+                chr = line_data[0]
+                start = int(line_data[1])
+                end = int(line_data[2])
+                seq = line_data[3]
+
+                if chr in seqs.keys():
+                    seqs[chr].append((start, end, seq))
+                else:
+                    seqs[chr] = [(start, end, seq)]
+
+            return seqs
+
+
+def read_bed_files(file_dir, filenames, concatenate):
+
+    dir_folder = Path(file_dir)
+
+    if len(filenames) == 0:
+        # get all filenames in the path
+        filenames = os.listdir(path=dir_folder)
+
+    if len(filenames) == 0:
+        raise ValueError("Empty bed files list")
+
+    print("{0} Processing bed files in {1}".format(INFO, file_dir))
+    print("{0} Number of bed files given {1}".format(INFO, len(filenames)))
+
+    if not concatenate:
+
+        seqs_dict = dict()
+
+        for filename in filenames:
+            seqs = read_bed_file(filename=dir_folder / filename, concatenate=concatenate)
+
+            chr_key = seqs.keys()[0]
+
+            if chr_key not in seqs_dict:
+                seqs_dict[chr_key] = [seqs[chr_key]]
+            else:
+                seqs_dict[chr_key].append(seqs[chr_key])
+
+        return seqs_dict
+    else:
+        raise ValueError("Concatenation not implemented")
+
+
 def read_weblogo_file(filename):
     """
     Read the weblogo file and form the sequence
@@ -145,10 +202,16 @@ def save_distances(output_dir, output_file, dist_map, remove_existing):
 
 def main(configuration):
 
-    weblogos_file_dir = configuration["weblogo_dir"]
-    weblogos_files = configuration["weblogos_files"]
-    seq_dict = read_weblogos(file_dir=weblogos_file_dir,
-                             filenames=weblogos_files)
+    if not configuration["weblogo_dir"] == "":
+
+        seq_dict = read_weblogos(file_dir=configuration["weblogo_dir"],
+                                filenames=configuration["weblogos_files"])
+    elif not configuration["bedfile_dir"] == "":
+        seq_dict = read_bed_files(file_dir=configuration["bedfile_dir"],
+                                  filenames=configuration["bedfiles"],
+                                  concatenate=configuration["concatenate_seqs"])
+    else:
+        raise ValueError("Neither weblogos nor bed files have been specified")
 
     # compute distances...
     distance_type = configuration["distance_type"]
