@@ -7,6 +7,7 @@ from pathlib import Path
 
 EMPTY_SEQ = ''
 INFO = "INFO:"
+WARNING = "WARNING:"
 
 
 def read_configuration_file(config_file):
@@ -110,14 +111,35 @@ def read_bed_files(file_dir, filenames, concatenate):
         seqs_dict = dict()
 
         for filename in filenames:
+
+            print("Processing ", filename)
             seqs = read_bed_file(filename=dir_folder / filename, concatenate=concatenate)
 
-            chr_key = seqs.keys()[0]
+            if len(seqs.keys()) == 0:
+                print("{0} filename is empty".format(WARNING, filename))
+                continue
 
-            if chr_key not in seqs_dict:
-                seqs_dict[chr_key] = [seqs[chr_key]]
-            else:
-                seqs_dict[chr_key].append(seqs[chr_key])
+            chr_key = list(seqs.keys())[0]
+            seqs = seqs[chr_key]
+
+            for seq in seqs:
+                counter = 0
+                save_name = filename + '_' + chr_key + '_' + str(seq[0]) + '_' + str(seq[1]) + '_' + str(counter)
+
+                if save_name not in seqs_dict:
+                    seqs_dict[save_name] = seq[2]
+                else:
+                    counter += 1
+                    save_name = filename + '_' + chr_key + '_' + str(seq[0]) + '_' + str(seq[1]) + '_' + str(counter)
+                    while save_name in seqs_dict:
+                        print("WEIRD: ", filename, save_name)
+
+                        counter += 1
+                        save_name = filename + '_' + chr_key + '_' + \
+                                    str(seq[0]) + '_' + \
+                                    str(seq[1]) + '_' + str(counter)
+
+                    seqs_dict[save_name] = seq[2]
 
         return seqs_dict
     else:
@@ -188,9 +210,13 @@ def read_weblogos(file_dir, filenames):
 
 def save_distances(output_dir, output_file, dist_map, remove_existing):
     dir_folder = Path(output_dir)
+    files = os.listdir(dir_folder)
 
-    mode = 'a'
-    if remove_existing:
+    if output_file not in files:
+        mode = 'w'
+    elif output_file in files and not remove_existing:
+        mode = 'a'
+    else:
         mode = 'w'
 
     print("{0} Write output distances in {1}".format(INFO, dir_folder / output_file))
