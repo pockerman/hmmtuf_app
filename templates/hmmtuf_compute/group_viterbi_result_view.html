@@ -8,9 +8,9 @@
 {% if show_get_results_button %}
 
 <div class="row">
-    <div class="col-lg-8 mb-4">
-            <h4>Viterbi path calculation task submitted</h4>
-            <h5>Task id: {{ task_id }}</h5>
+    <div class="col mb-4">
+            <h4 class="text-center">Viterbi path calculation task submitted</h4>
+            <h5 class="text-center">Task id: {{ task_id }}</h5>
             <h5>Computation  status: {{ task_status }}</h5>
 
         <a href="/compute/view_group_viterbi_path/{{ task_id }}" class="btn btn-primary">Get Results</a>
