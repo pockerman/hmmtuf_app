@@ -120,12 +120,18 @@ class MbKMeans(object):
                 cluster.indexes = indexes1
                 cluster.centroid = dataset[init_centroids[0]]
 
+
                 # what happens if the centroids already exist?
                 new_cluster = Cluster(idx=len(self._clusters),
                                       centroid=dataset[init_centroids[1]],
                                       indexes=indexes2)
                 self._clusters.append(new_cluster)
+
+                # updates
                 old_centroid = cluster.centroid
+                current_indexes = cluster.indexes
+                indexes1 = []
+                indexes2 = []
 
     def _select_cluster_to_split(self, dataset):
 
