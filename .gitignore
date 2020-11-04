@@ -8,3 +8,4 @@ hmmtuf_compute/migrations/__pycache__/
 region_extractor/__pycache__/
 region_extractor/migrations/__pycache__/
 compute_engine/__pycache__/
+regions/
