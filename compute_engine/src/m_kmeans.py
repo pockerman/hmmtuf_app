@@ -62,6 +62,9 @@ class MbKMeans(object):
 
     def cluster(self, dataset):
 
+        if self._n_clusters > len(dataset):
+            raise ValueError("Number of clusters cannot be larger than data points")
+
         # create the first cluster
         # no centroid is chosen here. This is set up during
         # the first subclustering
@@ -119,7 +122,6 @@ class MbKMeans(object):
                 # indexes and centroid
                 cluster.indexes = indexes1
                 cluster.centroid = dataset[init_centroids[0]]
-
 
                 # what happens if the centroids already exist?
                 new_cluster = Cluster(idx=len(self._clusters),
