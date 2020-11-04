@@ -2,16 +2,15 @@
 {% block title %}HMMtuf-Delete Task Directories{% endblock title %}
 {%block inner_body %}
 
-
-<div class="row p-3">
-    <div class="col mb-4">
-    <h4 class="text-center">Delete all task directories</h4>
+<br/>
+<div class="row">
+    <div class="col-lg-8 mb-4">
+    <h4>Delete all task directories</h4>
     <hr/>
 <form method="post" enctype="multipart/form-data">
     {% csrf_token %}
 
-    <hr/>
-    <button type="submit" class="btn btn-danger float-right mt-0">Delete</button>
+    <button type="submit" class="btn btn-danger">Delete</button>
 </form>
 </div>
 </div>

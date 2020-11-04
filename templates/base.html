@@ -92,12 +92,12 @@
   <br />
   {% endblock navigation %}
 
-  <div {% if index_view %}class="container"{% else %}class="container content" {% endif %}>
+  <div class="container content">
     {%block inner_body %}
     {% endblock inner_body %}
   </div>
   <!-- Bootstrap core JavaScript -->
-  <script src="{% static 'vendor/jquery/jquery.min.js' %}"></script>
+  <script src="{% static "vendor/jquery/jquery.min.js" %}"></script>
   <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
 
 

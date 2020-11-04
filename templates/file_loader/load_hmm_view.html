@@ -4,40 +4,30 @@
 
 
 <br/>
-<div class="row p-3">
-    <div class="col ">
-        <h4 class="text-center">Upload JSON file describing an HMM.</h4>
+<div class="row">
+    <div class="col-lg-8 mb-4">
+        <h4>Upload JSON file describing an HMM</h4>
         <hr/>
 
-        {% if error_missing_name %}
-            <p>ERROR: {{ error_missing_name }}</p>
-        {% endif %}
-
-        {% if error_name_exist %}
-            <p>ERROR: {{ error_name_exist }}</p>
-        {% endif %}
-
-        {% if error_missing_file %}
-            <p>ERROR: {{ error_missing_file }}</p>
+        {% if error_found %}
+            <p>ERROR: {{ error_found }}</p>
         {% endif %}
 
         <form method="post" enctype="multipart/form-data">
             {% csrf_token %}
             <div class="control-group form-group">
                 <div class="controls">
-                    <label>HMM file:</label>
-                    <input class="form-control-file border" type="file" id="hmm_filename_id"  name="hmm_filename">
+                    <label>HMM file:</label><br/>
+                    <input type="file" id="hmm_filename_id" name="hmm_filename"><br/>
                 </div>
-                
             </div>
-            <div class="control-group form-group ">
+            <div class="control-group form-group">
                 <div class="controls">
                     <label>HMM name:</label>
-                    <input type="text" class="form-control" id="hmm_name_id" placeholder="Enter HMM name" name="hmm_name">
+                    <input type="text" class="form-control" id="hmm_name_id" name="hmm_name"><br/>
                 </div>
             </div>
-            <hr/>
-            <button type="submit" class="btn btn-primary float-right ">Upload</button>
+            <button type="submit" class="btn btn-primary">Upload</button>
         </form>
     </div>
 </div>
