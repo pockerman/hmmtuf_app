@@ -2,9 +2,9 @@
 {% block title %}HMMtuf-Compute Viterbi Path{% endblock title %}
 {%block inner_body %}
 
-<br/>
-<div class="row">
-    <div class="col-lg-8 mb-4">
+
+<div class="row p-3">
+    <div class="col mb-4">
 
 {% if error_empty_hmm_list %}
         <p>ERROR: {{ error_empty_hmm_list }} <a href="/load_file/load_hmm">Create HMM models</a></p>
@@ -17,52 +17,58 @@
         <p>ERROR: {{ error_found }}.</a></p>
         {% endif %}
     {% endif %}
-    <h4>Schedule multiple Viterbi path computation</h4>
+    <h4 class="text-center">Schedule multiple Viterbi path computation</h4>
     <hr/>
 <form method="post" enctype="multipart/form-data">
     {% csrf_token %}
 
     <div class="control-group form-group">
         <div class="controls">
-            <label>HMM file:</label><br/>
-            <select id="id_hmm" name="hmm">
+            <label>HMM file:</label>
+            <select id="id_hmm" name="hmm" class="form-control">
                 {% for hmm_name in hmm_names %}
                     <option value="{{ hmm_name }}">{{ hmm_name }}</option>
                 {% endfor %}
             </select>
         </div>
     </div>
-    <br/>
+    
 
     <div class="control-group form-group">
         <div class="controls">
             <label>Chromosome:</label>
-            <input type="text" class="form-control" name="chromosome"><br/>
+            <input type="text" class="form-control" name="chromosome">
         </div>
     </div>
-    <br/>
+    
 
     <div class="control-group form-group">
         <div class="controls">
-            <label>Group tip:</label><br/>
-            <select name="group_tip">
+            <label>Group tip:</label>
+            <select name="group_tip" class="form-control">
                 {% for group in group_tips %}
                     <option value="{{ group.tip }}">{{ group.tip }}</option>
                 {% endfor %}
             </select>
         </div>
     </div>
-    <br/>
+    
 
     {% if use_spade %}
-    <input type="checkbox" name="use_spade" value="True">
-    <label for="use_spade">Use SPADE</label><br><br>
-
-    <input type="checkbox" name="remove_dirs" value="True">
-    <label for="remove_dirs">Remove created directories</label><br><br>
+    <div class="form-row mb-4">
+        <div class="col-12 col-md-6 col-sm-6">
+            <input type="checkbox" name="use_spade" value="True">
+            <label for="use_spade">Use SPADE</label>
+        </div>
+        <div class="col-12 col-md-6 col-sm-6">
+            <input type="checkbox" name="remove_dirs" value="True">
+            <label for="remove_dirs">Remove created directories</label>
+        </div>
+    </div>
     {% endif %}
-
-    <button type="submit" class="btn btn-primary">Compute</button>
+     
+    <hr/>
+    <button type="submit" class="btn btn-primary mt-0 float-right">Compute</button>
 </form>
 </div>
     {% endif %}
