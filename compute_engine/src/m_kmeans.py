@@ -41,6 +41,9 @@ class Cluster(object):
 
     def compute_variance(self, distance_metric, dataset):
 
+        if len(self._indexes) == 0:
+            raise ValueError("Cluster is empty. Cannot compute variance")
+
         sum = 0.0
         for index in self._indexes:
             seq = dataset[index]
@@ -52,13 +55,23 @@ class Cluster(object):
 class MbKMeans(object):
 
     def __init__(self, distance_metric, iterations,
-                 tolerance, n_clusters, initializer):
+                 tolerance, n_clusters, initializer,
+                 use_largest_cluster_to_bisect=False,
+                 verbose=False,
+                 n_bisection_itrs=10):
         self._distance_metric = distance_metric
         self._iterations = iterations
         self._tolerance = tolerance
         self._n_clusters = n_clusters
         self._initializer = initializer
         self._clusters = []
+        self._use_largest_cluster_to_bisect = use_largest_cluster_to_bisect
+        self._verbose = verbose
+        self._n_bisection_itrs=n_bisection_itrs
+
+    @property
+    def clusters(self):
+        return self._clusters
 
     def cluster(self, dataset):
 
@@ -72,15 +85,25 @@ class MbKMeans(object):
         self._clusters.append(init_cluster)
 
         itr = 0
-        while len(self._clusters) != self._n_clusters and itr != self._iterations:
+        while itr != self._iterations:
 
             print("{0} At iteration {1} number of clusters {2}".format(INFO, itr, len(self._clusters)))
 
             # pick a cluster to split
             cluster = self._select_cluster_to_split(dataset=dataset)
+
+            if self._verbose:
+                print("{0} Sub-clustering cluster {0}".format(INFO, cluster.idx))
+                print("{0} Cluster centroid {0}".format(INFO, cluster.centroid))
+
             self._sub_cluster(cluster=cluster, dataset=dataset)
 
             itr += 1
+
+            if len(self._clusters) == self._n_clusters:
+                print("{0} Reached number of clusters stopping iterations".format(INFO))
+                print("{0} Number of iterations {1}".format(INFO, itr))
+                break
 
     def _sub_cluster(self, cluster, dataset):
         """
@@ -95,45 +118,57 @@ class MbKMeans(object):
         init_centroids = self._select_new_centroids(indices=current_indexes,
                                                     dataset=dataset)
 
-        indexes1 = []
-        indexes2 = []
-
         old_centroid = cluster.centroid
-        centroid_changed = True
-        while centroid_changed:
 
-            for seq_id in current_indexes:
-                seq = dataset[seq_id]
+        for bisect_itr in range(self._n_bisection_itrs):
 
-                # to which new centroid is this closer
-                dist1 = self._distance_metric(seq, dataset[init_centroids[0]])
-                dist2 = self._distance_metric(seq, dataset[init_centroids[1]])
+            if self._verbose:
+                print("{0} Bisection iteration {1} of {2}".format(INFO, bisect_itr, self._n_bisection_itrs))
 
-                if dist1 < dist2:
-                    indexes1.append(seq_id)
-                else:
-                    indexes2.append(seq_id)
+            indexes1, indexes2 = self._get_indices(dataset=dataset,
+                                                   current_indexes=current_indexes,
+                                                   init_centroids=init_centroids)
 
-            if old_centroid is not None and self._distance_metric(old_centroid, dataset[init_centroids[0]]) < self._tolerance:
-                centroid_changed = False
-            else:
+            # as long as we can add clusters
+            # ad the cluster
+            if len(self._clusters) < self._n_clusters:
 
                 # update the current cluster
                 # indexes and centroid
                 cluster.indexes = indexes1
                 cluster.centroid = dataset[init_centroids[0]]
 
+                if len(cluster.indexes) == 0:
+                    raise ValueError("indexes for given cluster are empty")
+
                 # what happens if the centroids already exist?
                 new_cluster = Cluster(idx=len(self._clusters),
                                       centroid=dataset[init_centroids[1]],
                                       indexes=indexes2)
+
+                if len(new_cluster.indexes) == 0:
+                    raise ValueError("indexes for created cluster are empty")
+
                 self._clusters.append(new_cluster)
 
                 # updates
                 old_centroid = cluster.centroid
                 current_indexes = cluster.indexes
-                indexes1 = []
-                indexes2 = []
+                init_centroids = self._select_new_centroids(indices=current_indexes,
+                                                            dataset=dataset)
+
+            elif old_centroid is not None and \
+                    self._distance_metric(old_centroid, dataset[init_centroids[0]]) < self._tolerance:
+
+                if self._verbose:
+                    print("{0} Cluster centroid did not change stopping bisection.".format(INFO))
+                break
+
+            elif len(self._clusters) == self._n_clusters:
+
+                if self._verbose:
+                    print("{0} Number of clusters reached.".format(INFO))
+                break
 
     def _select_cluster_to_split(self, dataset):
 
@@ -143,6 +178,21 @@ class MbKMeans(object):
         if len(self._clusters) == 1:
             return self._clusters[0]
 
+        if self._use_largest_cluster_to_bisect:
+
+            items = 0
+            cluster = None
+
+            for cls in self._clusters:
+
+                if len(cls.indexes) > items:
+                    items = len(cls.indexes)
+                    cluster = cls
+
+            if cluster is None:
+                raise ValueError("No cluster selected")
+            return cluster
+
         cluster_idx = -1
         cluster_variance = 0.0
 
@@ -150,6 +200,9 @@ class MbKMeans(object):
 
             var = cluster.compute_variance(distance_metric=self._distance_metric,
                                            dataset=dataset)
+
+            if self._verbose:
+                print("Cluster {0} variance {1}".format(cluster.idx, var))
 
             if var > cluster_variance:
                 cluster_variance = var
@@ -159,6 +212,27 @@ class MbKMeans(object):
             raise ValueError("Invalid cluster index")
 
         return self._clusters[cluster_idx]
+
+    def _get_indices(self, dataset, current_indexes, init_centroids):
+
+        indexes1 = []
+        indexes2 = []
+
+        centroid1 = dataset[init_centroids[0]]
+        centroid2 = dataset[init_centroids[1]]
+
+        for seq_id in current_indexes:
+            seq = dataset[seq_id]
+
+            # to which new centroid is this closer
+            dist1 = self._distance_metric(seq, centroid1)
+            dist2 = self._distance_metric(seq, centroid2)
+
+            if dist1 < dist2:
+                indexes1.append(seq_id)
+            else:
+                indexes2.append(seq_id)
+        return indexes1, indexes2
 
     def _select_new_centroids(self, indices, dataset):
 

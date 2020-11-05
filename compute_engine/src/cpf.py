@@ -222,8 +222,16 @@ def cpf(seq1, seq2, k=2):
 
 
 class CPF(object):
-    def __init__(self):
-        pass
+    def __init__(self, k=2):
+        self._feature_vectors = np.empty((0, 12), np.float)
+        self._k = k
+
+    def add_feature_vector(self, seq):
+        feature_vec = sequence_feature_vector(seq=seq, k=self._k)
+        self._feature_vectors = np.append(self._feature_vectors, np.array([feature_vec]), axis=0)
+
+    def get_feature_vectors(self):
+        return self._feature_vectors
 
     def similarity(self, seq1, seq2):
         return cpf(seq1=seq1, seq2=seq2)
