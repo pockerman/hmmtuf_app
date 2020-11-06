@@ -4,7 +4,7 @@ k-means algorithm discussed in
 A novel hierarchical clustering algorithm for gene
 sequences by Wei et all
 """
-
+import numpy as np
 from compute_engine.src.constants import INFO
 
 
@@ -58,7 +58,9 @@ class MbKMeans(object):
                  tolerance, n_clusters, initializer,
                  use_largest_cluster_to_bisect=False,
                  verbose=False,
-                 n_bisection_itrs=10):
+                 n_bisection_iterations=10,
+                 use_sklearn_kmeans=False):
+
         self._distance_metric = distance_metric
         self._iterations = iterations
         self._tolerance = tolerance
@@ -67,7 +69,8 @@ class MbKMeans(object):
         self._clusters = []
         self._use_largest_cluster_to_bisect = use_largest_cluster_to_bisect
         self._verbose = verbose
-        self._n_bisection_itrs=n_bisection_itrs
+        self._n_bisection_iterations = n_bisection_iterations
+        self._use_sklearn_kmeans  = use_sklearn_kmeans
 
     @property
     def clusters(self):
@@ -96,7 +99,14 @@ class MbKMeans(object):
                 print("{0} Sub-clustering cluster {0}".format(INFO, cluster.idx))
                 print("{0} Cluster centroid {0}".format(INFO, cluster.centroid))
 
-            self._sub_cluster(cluster=cluster, dataset=dataset)
+            if self._use_sklearn_kmeans:
+                if self._verbose:
+                    print("{0} Using sklearn k-means...".format(INFO))
+                self._apply_sklearn_kmeans(cluster=cluster, dataset=dataset)
+            else:
+                if self._verbose:
+                    print("{0} Using default k-means...".format(INFO))
+                self._sub_cluster(cluster=cluster, dataset=dataset)
 
             itr += 1
 
@@ -104,6 +114,59 @@ class MbKMeans(object):
                 print("{0} Reached number of clusters stopping iterations".format(INFO))
                 print("{0} Number of iterations {1}".format(INFO, itr))
                 break
+
+    def _apply_sklearn_kmeans(self, cluster, dataset):
+        from sklearn.cluster import KMeans
+
+        # get the data that belong in the cluster
+        # we sub-cluster only based on that
+
+        ncols = dataset[0].shape[0]
+        if len(dataset[0].shape) == 2:
+            ncols = dataset[0].shape[1]
+
+        new_data = np.empty((0, ncols), np.float)
+        cluster_idxs = cluster.indexes
+
+        for idx in cluster_idxs:
+            new_data = np.append(new_data, np.array([dataset[idx]]), axis=0)
+
+        kmeans = KMeans(n_clusters=2, algorithm="full",
+                        n_init=10, max_iter=20, random_state=0)
+        kmeans.fit(X=new_data)
+
+        if len(self._clusters) < self._n_clusters:
+
+            labels = kmeans.labels_
+            centroids = kmeans.cluster_centers_
+
+            if len(labels) != len(new_data):
+                raise ValueError("Invalid number of labels and data")
+
+            indexes1 = []
+            indexes2 = []
+            for l in range(len(labels)):
+                if labels[l] == 0:
+                    indexes1.append(cluster_idxs[l])
+                elif labels[l] == 1:
+                    indexes2.append(cluster_idxs[l])
+                else:
+                    raise ValueError("Invalid cluster index detected")
+
+            if len(indexes1) == 0:
+                raise ValueError("Indexes for cluster 0 are empty")
+
+            if len(indexes2) == 0:
+                raise ValueError("Indexes for cluster 1 are empty")
+
+            new_cluster = Cluster(idx=len(self._clusters),
+                                  centroid=centroids[1],
+                                  indexes=indexes2)
+
+            cluster.centroid = centroids[0]
+            cluster.indexes = indexes1
+
+            self._clusters.append(new_cluster)
 
     def _sub_cluster(self, cluster, dataset):
         """
@@ -120,10 +183,10 @@ class MbKMeans(object):
 
         old_centroid = cluster.centroid
 
-        for bisect_itr in range(self._n_bisection_itrs):
+        for bisect_itr in range(self._n_bisection_iterations):
 
             if self._verbose:
-                print("{0} Bisection iteration {1} of {2}".format(INFO, bisect_itr, self._n_bisection_itrs))
+                print("{0} Bisection iteration {1} of {2}".format(INFO, bisect_itr, self._n_bisection_iterations))
 
             indexes1, indexes2 = self._get_indices(dataset=dataset,
                                                    current_indexes=current_indexes,

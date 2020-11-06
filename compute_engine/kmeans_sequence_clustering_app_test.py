@@ -18,8 +18,8 @@ class L2Norm(object):
 if __name__ == '__main__':
     seqs = ['ATGGTGCACCTGACT', reverse_complement('ATGGTGCACCTGACT')]
 
-    kmeans = MbKMeans(distance_metric=CPF(), iterations=10, tolerance=1.0e-5,
-                      n_clusters=2, initializer=None)
+    #kmeans = MbKMeans(distance_metric=CPF(), iterations=10, tolerance=1.0e-5,
+    #                  n_clusters=2, initializer=None)
 
     #kmeans.cluster(dataset=seqs)
 
@@ -41,7 +41,7 @@ if __name__ == '__main__':
     kmeans = MbKMeans(distance_metric=L2Norm(), iterations=10, tolerance=1.0e-5,
                       n_clusters=5, initializer=None,
                       use_largest_cluster_to_bisect=False,
-                      verbose=True, n_bisection_itrs=1)
+                      verbose=True, n_bisection_iterations=1, use_sklearn_kmeans=True)
 
     kmeans.cluster(dataset=data)
 
