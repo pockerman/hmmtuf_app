@@ -1,4 +1,5 @@
 from compute_engine.src.constants import INFO
+from compute_engine.src.utils import read_bed_file_line
 from spark_integration.spark_manager import SparkManager
 
 if __name__ == '__main__':
@@ -11,4 +12,7 @@ if __name__ == '__main__':
     filenames = "region_1/nucl_out.bed"
 
     bed_rdd = manager.sc.textFile(file_dir + filenames)
+
+    seq_rdd = bed_rdd.map(lambda line: read_bed_file_line(line=line))
+
     print("{0} Finished ....".format(INFO))

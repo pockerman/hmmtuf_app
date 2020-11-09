@@ -30,6 +30,16 @@ def read_json(filename):
         json_input = json.load(json_file)
         return json_input
 
+def read_bed_file_line(line):
+
+    line_data = line.split('\t')
+    chr = line_data[0]
+    start = int(line_data[1])
+    end = int(line_data[2])
+    seq = line_data[3]
+
+    return start, end, seq
+
 
 def read_bed_file(filename, concatenate):
 
@@ -40,11 +50,7 @@ def read_bed_file(filename, concatenate):
         else:
             seqs = dict()
             for line in fh:
-                line_data = line.split('\t')
-                chr = line_data[0]
-                start = int(line_data[1])
-                end = int(line_data[2])
-                seq = line_data[3]
+                start, end, seq = read_bed_file_line(line=line)
 
                 if chr in seqs.keys():
                     seqs[chr].append((start, end, seq))
@@ -52,6 +58,8 @@ def read_bed_file(filename, concatenate):
                     seqs[chr] = [(start, end, seq)]
 
             return seqs
+
+
 
 
 def read_bed_files(file_dir, filenames, concatenate):

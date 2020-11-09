@@ -16,6 +16,8 @@ class L2Norm(object):
         return np.linalg.norm(args[0] - args[1])
 
 if __name__ == '__main__':
+
+    """
     seqs = ['ATGGTGCACCTGACT', reverse_complement('ATGGTGCACCTGACT')]
 
     kmeans = MbKMeans(distance_metric=CPF(), iterations=10, tolerance=1.0e-5,
@@ -59,6 +61,32 @@ if __name__ == '__main__':
             y.append(data[idx][1])
         plt.plot(x, y, colors[cluster.idx])
     plt.show()
+    """
+
+    seq1 = 'CTCCACGGCCTGTTGCCCCCTCTTTCTCAGCCCATGTGGGGCTCATGGACACGGCTCC'
+    seq2 = 'CGCCCCTGCCCTGGAGGCCC'
+
+    cpf = CPF()
+    cpf.add_feature_vector(seq=seq1)
+    cpf.add_feature_vector(seq=seq2)
+
+    print(cpf.get_feature_vectors()[0])
+    print(cpf.get_feature_vectors()[1])
+    norm = L2Norm()
+    print(norm(cpf.get_feature_vectors()[0], cpf.get_feature_vectors()[1]))
+
+    seq1 = 'CGCCCCTGCCCTGGAGGCCC'
+    seq2 = 'CGCCCCTGCCCTGGAGGCCC' + seq1 + seq1
+
+    cpf = CPF()
+    cpf.add_feature_vector(seq=seq1)
+    cpf.add_feature_vector(seq=seq2)
+
+    print(cpf.get_feature_vectors()[0])
+    print(cpf.get_feature_vectors()[1])
+    norm = L2Norm()
+    print(norm(cpf.get_feature_vectors()[0], cpf.get_feature_vectors()[1]))
+
 
 
 
