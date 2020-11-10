@@ -181,8 +181,6 @@ def sequence_feature_vector(seq, k=2):
                 feature_vec.append(0.0)
                 continue
 
-            # print(word)
-
             # compute the local frequency sequence
             lf_w = local_frequency(word=tuple_word, seq=words)
 

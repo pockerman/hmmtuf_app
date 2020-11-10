@@ -5,7 +5,7 @@ import os
 from pathlib import Path
 
 from compute_engine.src.constants import INFO, WARNING
-
+from compute_engine.src.exceptions import Error
 
 def timefn(fn):
     @wraps(fn)
@@ -18,6 +18,47 @@ def timefn(fn):
         return result
 
     return measure
+
+
+def min_size_partition_range(start, end, minsize):
+
+    if end <= start:
+        raise Error("Range end cannot be smaller than start: {0} < {1}".format(end, start))
+
+    if end - start <= minsize:
+        return [(start, end)]
+
+    chunks = []
+    npieces = (end - start) // minsize
+
+    start_c = start
+    end_p = start_c + minsize
+    for p in range(npieces - 1):
+        chunks.append((start_c, end_p))
+        start_c = end_p
+        end_p += minsize
+
+    chunks.append((start_c, end))
+    return chunks
+
+def partition_range(start, end, npieces):
+
+    if npieces == 0:
+        raise Error("Zero number of partitions")
+
+    load = (end - start) // npieces
+
+    chunks = []
+    start_p = start
+
+    end_p = start_p + load
+    for p in range(npieces - 1):
+        chunks.append((start_p, end_p))
+        start_p = end_p
+        end_p += load
+
+    chunks.append((start_p, end))
+    return chunks
 
 
 def read_json(filename):
@@ -116,7 +157,7 @@ def read_bed_files(file_dir, filenames, concatenate):
         raise ValueError("Concatenation not implemented")
 
 
-def compute_textdistances(seq_dict, distance_type, build_from_factory):
+def compute_textdistances(sequences, distance_type, build_from_factory, compute_self_distances):
     """
     Compute the
     """
@@ -127,15 +168,40 @@ def compute_textdistances(seq_dict, distance_type, build_from_factory):
     else:
         calculator = distance_type
 
-    seq_names = seq_dict.keys()
-
     similarity_map = dict()
-    for name1 in seq_names:
-        for name2 in seq_names:
+    if isinstance(sequences, dict):
 
-            if (name1, name2) not in similarity_map and (name2, name1) not in similarity_map:
-                result = calculator.similarity(seq_dict[name1], seq_dict[name2])
-                similarity_map[name1, name2] = result
+        seq_names = sequences.keys()
+
+        for i, name1 in enumerate(seq_names):
+            for j, name2 in enumerate(seq_names):
+
+                if compute_self_distances:
+
+                    if (name1, name2) not in similarity_map and (name2, name1) not in similarity_map:
+                        result = calculator.similarity(sequences[name1], sequences[name2])
+                        similarity_map[name1, name2] = result
+                else:
+
+                    if (name1, name2) not in similarity_map and (name2, name1) not in similarity_map and i != j:
+                        result = calculator.similarity(sequences[name1], sequences[name2])
+                        similarity_map[name1, name2] = result
+
+    else:
+
+        for i, name1 in enumerate(sequences):
+            for j, name2 in enumerate(sequences):
+
+                if compute_self_distances:
+                    if (name1, name2) not in similarity_map and (name2, name1) not in similarity_map:
+                        result = calculator.similarity(name1, name2)
+                        similarity_map[name1, name2] = result
+                else:
+
+                    if (name1, name2) not in similarity_map and (name2, name1) not in similarity_map and i != j:
+                        result = calculator.similarity(name1, name2)
+                        similarity_map[name1, name2] = result
+
 
     return similarity_map
 

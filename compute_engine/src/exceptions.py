@@ -1,11 +1,13 @@
 WARNING="WARNING: "
 
+
 class Error(Exception):
     """
     General error class to handle generic errors
     """
     def __init__(self, message):
         self.message = message
+
 
 class FullWindowException(Exception):
 
