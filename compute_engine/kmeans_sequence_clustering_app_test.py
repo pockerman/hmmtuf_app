@@ -88,7 +88,7 @@ if __name__ == '__main__':
             y.append(data[idx][1])
         plt.plot(x, y, colors[cluster.idx])
     plt.show()
-    
+
 
 
 
