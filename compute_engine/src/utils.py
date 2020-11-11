@@ -71,10 +71,10 @@ def read_json(filename):
         json_input = json.load(json_file)
         return json_input
 
+
 def read_bed_file_line(line):
 
     line_data = line.split('\t')
-    chr = line_data[0]
     start = int(line_data[1])
     end = int(line_data[2])
     seq = line_data[3]
@@ -99,8 +99,6 @@ def read_bed_file(filename, concatenate):
                     seqs[chr] = [(start, end, seq)]
 
             return seqs
-
-
 
 
 def read_bed_files(file_dir, filenames, concatenate):
@@ -157,7 +155,8 @@ def read_bed_files(file_dir, filenames, concatenate):
         raise ValueError("Concatenation not implemented")
 
 
-def compute_textdistances(sequences, distance_type, build_from_factory, compute_self_distances):
+def compute_textdistances(sequences, distance_type,
+                          build_from_factory, compute_self_distances):
     """
     Compute the
     """
@@ -201,7 +200,6 @@ def compute_textdistances(sequences, distance_type, build_from_factory, compute_
                     if (name1, name2) not in similarity_map and (name2, name1) not in similarity_map and i != j:
                         result = calculator.similarity(name1, name2)
                         similarity_map[name1, name2] = result
-
 
     return similarity_map
 
@@ -256,6 +254,12 @@ def read_sequence_bed_file(filename, delim='\t'):
             sequence += line[-1].strip('\n')
 
     return sequence
+
+
+def to_csv_line(data):
+    return ','.join(str(d) for d in data)
+
+
 
 
 
