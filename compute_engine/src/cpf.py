@@ -89,7 +89,7 @@ def local_frequency(word, seq):
     """
 
     # this the counter which tracks
-    # the occurences of the word in the
+    # the occurrences of the word in the
     # seq. 
     r = 1
 
@@ -102,7 +102,6 @@ def local_frequency(word, seq):
 
         if item == word:
             indexes.append(r)
-
         r += 1
 
     if len(indexes) == 0:
@@ -144,6 +143,10 @@ def calculate_p(s, z):
     probabilities = []
 
     for item in s:
+
+        if item >= 0.95:
+            print("item={0}, Z={1}".format(item, z))
+
         probabilities.append(item / z)
 
     return probabilities
@@ -165,7 +168,6 @@ def sequence_feature_vector(seq, k=2):
         # map the bases in seq into the groups
         # of the category
         new_seq = map_seq_to_category(categories[C], seq)
-        # print("New sequence is: ", new_seq)
 
         # collect the words in the sequence for
         # a sliding window of length k
@@ -181,7 +183,8 @@ def sequence_feature_vector(seq, k=2):
                 feature_vec.append(0.0)
                 continue
 
-            # compute the local frequency sequence
+            # compute the local frequencies
+            # of the word in the sequence
             lf_w = local_frequency(word=tuple_word, seq=words)
 
             # compute the partial sums of the sequence 
@@ -226,7 +229,8 @@ class CPF(object):
 
     def add_feature_vector(self, seq):
         feature_vec = sequence_feature_vector(seq=seq, k=self._k)
-        self._feature_vectors = np.append(self._feature_vectors, np.array([feature_vec]), axis=0)
+        self._feature_vectors = np.append(self._feature_vectors,
+                                          np.array([feature_vec]), axis=0)
 
     def get_feature_vectors(self):
         return self._feature_vectors

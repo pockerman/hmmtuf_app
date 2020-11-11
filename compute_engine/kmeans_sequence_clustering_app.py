@@ -7,6 +7,7 @@ import os
 
 from compute_engine.src.m_kmeans import MbKMeans
 from compute_engine.src.cpf import CPF
+from compute_engine.src.cpf import sequence_feature_vector
 from compute_engine.src.utils import compute_textdistances
 from compute_engine.src.utils import read_bed_files
 from compute_engine.src.constants import INFO
@@ -98,17 +99,31 @@ if __name__ == '__main__':
 
     print("{0} Number of bed sequences extracted from bed files: {1}".format(INFO, len(seqs)))
 
-    min_size, sequence = find_smallest_sequence(seqs=seqs)
-    sequences = bisect_seqs(seqs=seqs, size=min_size)
-    print("{0} Number of sequences for analysis {1}".format(INFO, len(sequences)))
+    for s in seqs:
+        #print("{0} seq={1}".format(INFO, seqs[s]))
+
+        if seqs[s] == 'TCCC':
+            print("{0} seq={1}".format(INFO, seqs[s]))
+            v = sequence_feature_vector(seq=seqs[s], k=2)
+            print("{0} v={1}".format(INFO, v))
+
+
+    #min_size, sequence = find_smallest_sequence(seqs=seqs)
+    #sequences = bisect_seqs(seqs=seqs, size=min_size)
+    #print("{0} Number of sequences for analysis {1}".format(INFO, len(sequences)))
     #print(sequnces)
 
-    distances = compute_textdistances(sequences=sequences, distance_type=CPF(),
+    """
+    distances = compute_textdistances(sequences=seqs, distance_type=CPF(),
                                       build_from_factory=False, compute_self_distances=False)
+    """
 
+    """
     save_distances(output_dir=output_dir, output_file=output_file,
                    dist_map=distances, remove_existing=True)
+    """
 
+    """
     with open(output_dir + output_file, 'r') as fh:
         reader = csv.reader(fh, delimiter=",")
 
@@ -122,6 +137,7 @@ if __name__ == '__main__':
         plt.title("Chr1 Regions sequences")
         plt.xlabel("L2-Norm")
         plt.show()
+    """
 
     """
     distances = compute_textdistances(seq_dict=seqs, distance_type=CPF(), build_from_factory=False)
