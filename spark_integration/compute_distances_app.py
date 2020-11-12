@@ -1,4 +1,7 @@
 import numpy as np
+from pyspark.sql.functions import lit
+from pyspark.sql.functions import udf
+from pyspark.sql.types import StringType, StructType, StructField, ArrayType, DoubleType
 from compute_engine.src.constants import INFO
 from compute_engine.src.utils import read_bed_file_line
 from compute_engine.src.utils import to_csv_line
@@ -25,13 +28,32 @@ if __name__ == '__main__':
 
     # get the sequences
     sequences = seq_rdd.map(lambda line: line[2])
-    feature_vectors = sequences.map(sequence_feature_vector)
-    #print(feature_vectors)
 
-    cartesian_seqs = feature_vectors.cartesian(feature_vectors)
-    #print(cartesian_seqs)
-    distances = cartesian_seqs.map(lambda pair: np.linalg.norm(np.array(pair[0]) - np.array(pair[1])))
-    lines = distances.map(to_csv_line)
-    lines.saveAsTextFile(OUTPUT_DIR + OUTPUT_FILE)
+    # create a schema
+    schema = StructType([StructField("Sequences", StringType(), True)])
+
+    # get a data frame
+    sequences_data_frame = manager.create_data_frame(rdd=sequences, schema=schema)
+
+    print(sequences_data_frame.schema)
+    sequences_data_frame.show()
+
+    # add the features vector column
+    #udfValueToCategory = udf(sequence_feature_vector, ArrayType(elementType=DoubleType()))
+    #sequences_data_frame = sequences_data_frame.withColumn('FeatureVector', udfValueToCategory("Sequence"))
+    #sequences_data_frame.show()
+
+    # compute the feature vectors for every sequence
+    #feature_vectors = sequences.map(sequence_feature_vector)
+
+    # take the cartesian product to form pairs
+    #cartesian_seqs = feature_vectors.cartesian(feature_vectors)
+
+    # compute distances between the pairs
+    #distances = cartesian_seqs.map(lambda pair: np.linalg.norm(np.array(pair[0]) - np.array(pair[1])))
+
+    # map it to CSV to save it
+    #lines = distances.map(to_csv_line)
+    #lines.saveAsTextFile(OUTPUT_DIR + OUTPUT_FILE)
 
     print("{0} Finished ....".format(INFO))
