@@ -27,16 +27,20 @@ if __name__ == '__main__':
     seq_rdd = bed_rdd.map(lambda line: read_bed_file_line(line=line))
 
     # get the sequences
-    sequences = seq_rdd.map(lambda line: line[2])
+    schema = StructType([StructField("Sequences", StringType(), True)])
+    sequences = seq_rdd.map(lambda line: line[2]).toDF(schema)
+
+    print("Sequences type: ", type(sequences))
+    sequences.show()
 
     # create a schema
-    schema = StructType([StructField("Sequences", StringType(), True)])
+    #schema = StructType([StructField("Sequences", StringType(), True)])
 
     # get a data frame
-    sequences_data_frame = manager.create_data_frame(rdd=sequences, schema=schema)
+    #sequences_data_frame = manager.create_data_frame(rdd=sequences, schema=schema)
 
-    print(sequences_data_frame.schema)
-    sequences_data_frame.show()
+    #print(sequences_data_frame.schema)
+    #sequences_data_frame.show()
 
     # add the features vector column
     #udfValueToCategory = udf(sequence_feature_vector, ArrayType(elementType=DoubleType()))
