@@ -77,9 +77,9 @@ def shannon_entropy(ps):
         if val < 1.0e-4:
             continue
 
-        entropy += -val * math.log(val, 2)
+        entropy += val * math.log(val, 2)
 
-    return entropy
+    return -1.0*entropy
 
 
 def local_frequency(word, seq):
@@ -144,8 +144,8 @@ def calculate_p(s, z):
 
     for item in s:
 
-        if item >= 0.95:
-            print("item={0}, Z={1}".format(item, z))
+        #if item >= 0.95:
+        #    print("item={0}, Z={1}".format(item, z))
 
         probabilities.append(item / z)
 
@@ -163,7 +163,7 @@ def sequence_feature_vector(seq, k=2):
 
     for C in categories:
 
-        # print("Working with category: ", C)
+        print("Working with category: ", C)
 
         # map the bases in seq into the groups
         # of the category
@@ -177,15 +177,24 @@ def sequence_feature_vector(seq, k=2):
         # each category can produce
         for word in categories_words[C]:
 
+            print("Working with word: {0}".format(word))
+
             tuple_word = (word[0], word[1])
 
-            if tuple_word not in words:
-                feature_vec.append(0.0)
-                continue
+            #if tuple_word not in words:
+            #    feature_vec.append(0.0)
+            #    continue
 
             # compute the local frequencies
             # of the word in the sequence
             lf_w = local_frequency(word=tuple_word, seq=words)
+
+            print("Local frequencies {0}".format(lf_w))
+
+            if tuple_word not in words:
+                print("Word {0} not in words".format(word))
+                feature_vec.append(0.0)
+                continue
 
             # compute the partial sums of the sequence 
             # which is basically the prefix sum
