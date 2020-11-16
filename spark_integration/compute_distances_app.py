@@ -7,11 +7,12 @@ from compute_engine.src.utils import read_bed_file_line
 from compute_engine.src.utils import to_csv_line
 from compute_engine.src.cpf import sequence_feature_vector
 from spark_integration.spark_manager import SparkManager
+from spark_integration.spark_tasks import compute_feature_vectors_task
 
 
 if __name__ == '__main__':
 
-    APP_NAME = "SparkReadFile"
+    APP_NAME = "ComputeDistancesApp"
     OUTPUT_DIR = "/home/alex/qi3/hmmtuf/computations/sequence_clusters/output/"
     OUTPUT_FILE = "distances.txt"
     print("{0} Running {1} application".format(INFO, APP_NAME))
@@ -20,18 +21,17 @@ if __name__ == '__main__':
     file_dir = "/home/alex/qi3/hmmtuf/computations/sequence_clusters/data/chr1_repeats/"
     filenames = "region_1/nucl_out.bed"
 
+    feature_vectors = compute_feature_vectors_task(spark_manager=manager, bedfilename=file_dir+filenames)
+
     # read the bed file
-    bed_rdd = manager.sc.textFile(file_dir + filenames)
+    #bed_rdd = manager.sc.textFile(file_dir + filenames)
 
     # get the RDD containing the lines
-    seq_rdd = bed_rdd.map(lambda line: read_bed_file_line(line=line))
+    #seq_rdd = bed_rdd.map(lambda line: read_bed_file_line(line=line))
+    #sequences = seq_rdd.map(lambda line: [line[2]])
 
-    # get the sequences
-    schema = StructType([StructField("Sequences", StringType(), True)])
-    sequences = seq_rdd.map(lambda line: line[2]).toDF(schema)
-
-    print("Sequences type: ", type(sequences))
-    sequences.show()
+    # compute
+    #feature_vectors = sequences.map(sequence_feature_vector)
 
     # create a schema
     #schema = StructType([StructField("Sequences", StringType(), True)])
@@ -39,13 +39,20 @@ if __name__ == '__main__':
     # get a data frame
     #sequences_data_frame = manager.create_data_frame(rdd=sequences, schema=schema)
 
-    #print(sequences_data_frame.schema)
-    #sequences_data_frame.show()
+    # register user defined function
+    #udf_value_to_category = udf(sequence_feature_vector, ArrayType(elementType=DoubleType()))
 
     # add the features vector column
-    #udfValueToCategory = udf(sequence_feature_vector, ArrayType(elementType=DoubleType()))
-    #sequences_data_frame = sequences_data_frame.withColumn('FeatureVector', udfValueToCategory("Sequence"))
+    #sequences_data_frame = sequences_data_frame.withColumn('FeatureVector', udf_value_to_category("Sequences"))
     #sequences_data_frame.show()
+
+
+
+    #cross_product = sequences_data_frame.crossJoin(sequences_data_frame).withColumnRenamed("FeatureVector", "V1")
+    #cross_product.show()
+
+    # compute the distances
+    #distances = sequences_data_frame.map(lambda pair: np.linalg.norm(np.array(pair[0]) - np.array(pair[1])))
 
     # compute the feature vectors for every sequence
     #feature_vectors = sequences.map(sequence_feature_vector)
