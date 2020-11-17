@@ -71,15 +71,65 @@ def read_json(filename):
         json_input = json.load(json_file)
         return json_input
 
+def find_smallest_sequence(seqs):
+
+    min_size = len(seqs[list(seqs.keys())[0]])
+    sequence = seqs[list(seqs.keys())[0]]
+    for seq in seqs:
+        if len(seqs[seq]) < min_size:
+            min_size = len(seqs[seq])
+            sequence = seqs[seq]
+    return min_size, sequence
+
+def chunck_sequence(seq, size):
+
+    chuncks = []
+    chunck_items = min_size_partition_range(start=0, end=len(seq), minsize=size)
+
+    for chunck_item in chunck_items:
+        start = chunck_item[0]
+        end = chunck_item[1]
+
+        cseq = ""
+        for i in range(start, end, 1):
+            cseq += seq[i]
+        chuncks.append(cseq)
+    return chuncks
+
+def bisect_seqs(seqs, size):
+
+    sequences = []
+    for s in seqs:
+        seq = seqs[s]
+
+        if len(seq) > size:
+            # break up the sequence into size chuncks
+            sequences.extend(chunck_sequence(seq=seq, size=size))
+        else:
+            sequences.append(seq)
+
+    return sequences
+
+
+def sequence_length(seq):
+    return len(seq)
+
+
+def read_sequences_csv_file_line(line, delimiter=","):
+    line_data = line.split(delimiter)
+    return line_data[0], line_data[1]
+
+
 
 def read_bed_file_line(line):
 
     line_data = line.split('\t')
+    chromosome = line_data[0]
     start = int(line_data[1])
     end = int(line_data[2])
     seq = line_data[3]
 
-    return start, end, seq
+    return chromosome, start, end, seq
 
 
 def read_bed_file(filename, concatenate):
@@ -91,12 +141,12 @@ def read_bed_file(filename, concatenate):
         else:
             seqs = dict()
             for line in fh:
-                start, end, seq = read_bed_file_line(line=line)
+                chromosome, start, end, seq = read_bed_file_line(line=line)
 
-                if chr in seqs.keys():
-                    seqs[chr].append((start, end, seq))
+                if chromosome in seqs.keys():
+                    seqs[chromosome].append((start, end, seq))
                 else:
-                    seqs[chr] = [(start, end, seq)]
+                    seqs[chromosome] = [(start, end, seq)]
 
             return seqs
 
@@ -121,7 +171,8 @@ def read_bed_files(file_dir, filenames, concatenate):
 
         for filename in filenames:
 
-            print("Processing ", filename)
+            print("{0} Processing {1}".format(INFO, filename))
+
             seqs = read_bed_file(filename=dir_folder / filename, concatenate=concatenate)
 
             if len(seqs.keys()) == 0:
