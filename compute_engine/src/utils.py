@@ -308,6 +308,13 @@ def read_sequence_bed_file(filename, delim='\t'):
 
 
 def to_csv_line(data):
+
+    if isinstance(data, float):
+        return str(data)
+
+    if isinstance(data, int):
+        return str(data)
+
     return ','.join(str(d) for d in data)
 
 
