@@ -10,3 +10,4 @@ region_extractor/migrations/__pycache__/
 compute_engine/__pycache__/
 regions/
 spark_integration/__pycache__/
+compute_engine/apps/__pycache__/
