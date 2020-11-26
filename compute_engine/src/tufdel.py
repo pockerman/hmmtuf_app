@@ -227,9 +227,6 @@ def spade(repseq, chrom, start, stop, region_type):
             else:
                 raise e
 
-    #import pdb
-    #pdb.set_trace()
-
     fasta = open(PATH + 'repeats/tdtseq.fasta', 'w')
 
     folder = chrom + '_'+str(start) + '-' + str(stop) + '_' + region_type + '_' + gcpercent(repseq)
@@ -457,8 +454,6 @@ def main(path, fas_file_name, chromosome,
 
     test_me = False
 
-    #import pdb
-    #pdb.set_trace()
     if not test_me:
         for i in sorted(chrlistsorted):
 
