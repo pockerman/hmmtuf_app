@@ -1,7 +1,21 @@
+import numpy as np
 import textdistance
 
 from compute_engine.src.exceptions import Error
 from compute_engine.src.utils import read_sequence_bed_file
+from compute_engine.src.cpf import CPF
+
+
+class L2Norm(object):
+    """
+    Simple wrapper for L2-norm calculation
+    to adapt to text similarity
+    """
+    def __init__(self):
+        pass
+
+    def similarity(self, seq1, seq2):
+        return np.linalg.norm(seq1 - seq2)
 
 
 class TextDistanceCalculator(object):
@@ -10,7 +24,7 @@ class TextDistanceCalculator(object):
              "Length distance", "Identity similarity",
              "Matrix similarity", "Longest common subsequence similarity",
              "Longest common substring similarity",
-             "Ratcliff-Obershelp similarity"]
+             "Ratcliff-Obershelp similarity", "L2Norm", 'CPF']
 
     @staticmethod
     def build_calculator(name):
@@ -34,6 +48,10 @@ class TextDistanceCalculator(object):
             return textdistance.algorithms.sequence_based.LCSStr()
         elif name == "Ratcliff-Obershelp similarity":
             return textdistance.algorithms.sequence_based.RatcliffObershelp()
+        elif name == "L2Norm":
+            return L2Norm()
+        elif name == 'CPF':
+            return CPF()
 
     @staticmethod
     def read_sequence_comparison_file(filename, strip_path, delim=',', commment_delim='#'):

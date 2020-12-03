@@ -46,8 +46,9 @@ def map_seq_to_category(category, seq):
 
 
 def get_sliding_window_sequence_words(seq, w):
-    "Returns a sliding window (of width n) over data from the iterable"
-    "   s -> (s0,s1,...s[n-1]), (s1,s2,...,sn), ...                   "
+    """Returns a sliding window (of width n) over data from the iterable
+       s -> (s0,s1,...s[n-1]), (s1,s2,...,sn), ...
+    """
     it = iter(seq)
     result = tuple(islice(it, w))
     if len(result) == w:
@@ -143,16 +144,12 @@ def calculate_p(s, z):
     probabilities = []
 
     for item in s:
-
-        #if item >= 0.95:
-        #    print("item={0}, Z={1}".format(item, z))
-
         probabilities.append(item / z)
 
     return probabilities
 
 
-def sequence_feature_vector(seq, k=2):
+def sequence_feature_vector(seq, use_partial_sums=True, k=2):
     """
     Build the feature vector for the given sequence using
     a word size k=2
@@ -162,8 +159,6 @@ def sequence_feature_vector(seq, k=2):
     feature_vec = []
 
     for C in categories:
-
-        print("Working with category: ", C)
 
         # map the bases in seq into the groups
         # of the category
@@ -177,28 +172,23 @@ def sequence_feature_vector(seq, k=2):
         # each category can produce
         for word in categories_words[C]:
 
-            print("Working with word: {0}".format(word))
-
             tuple_word = (word[0], word[1])
 
-            #if tuple_word not in words:
-            #    feature_vec.append(0.0)
-            #    continue
+            if tuple_word not in words:
+                feature_vec.append(0.0)
+                continue
 
             # compute the local frequencies
             # of the word in the sequence
             lf_w = local_frequency(word=tuple_word, seq=words)
 
-            print("Local frequencies {0}".format(lf_w))
-
-            if tuple_word not in words:
-                print("Word {0} not in words".format(word))
-                feature_vec.append(0.0)
-                continue
-
             # compute the partial sums of the sequence 
             # which is basically the prefix sum
-            S = partial_sums(seq=lf_w)
+
+            if use_partial_sums:
+                S = partial_sums(seq=lf_w)
+            else:
+                S = lf_w
 
             # compute the total sum of the sequence with the
             # prefix sums
@@ -219,9 +209,9 @@ def sequence_feature_vector(seq, k=2):
     return feature_vec
 
 
-def cpf(seq1, seq2, k=2):
-    feature_vec_1 = sequence_feature_vector(seq=seq1, k=k)
-    feature_vec_2 = sequence_feature_vector(seq=seq2, k=k)
+def cpf(seq1, seq2, use_partial_sums=True, k=2):
+    feature_vec_1 = sequence_feature_vector(seq=seq1, use_partial_sums=use_partial_sums, k=k)
+    feature_vec_2 = sequence_feature_vector(seq=seq2, use_partial_sums=use_partial_sums, k=k)
 
     # calculate Euclidean distance
     feature_vec_1 = np.array(feature_vec_1)
@@ -235,6 +225,7 @@ class CPF(object):
     def __init__(self, k=2):
         self._feature_vectors = np.empty((0, 12), np.float)
         self._k = k
+        self._use_partial_sums = True
 
     def add_feature_vector(self, seq):
         feature_vec = sequence_feature_vector(seq=seq, k=self._k)
@@ -245,7 +236,7 @@ class CPF(object):
         return self._feature_vectors
 
     def similarity(self, seq1, seq2):
-        return cpf(seq1=seq1, seq2=seq2)
+        return cpf(seq1=seq1, seq2=seq2, use_partial_sums=self._use_partial_sums)
 
     def __call__(self, *args, **kwargs):
         return self.similarity(seq1=args[0], seq2=args[1])

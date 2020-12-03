@@ -2,7 +2,6 @@ import numpy as np
 from compute_engine.src.constants import INFO
 
 from compute_engine.src.utils import to_csv_line
-from compute_engine.src.cpf import sequence_feature_vector
 from spark_integration.spark_manager import SparkManager
 
 

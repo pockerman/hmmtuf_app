@@ -7,12 +7,12 @@ from compute_engine.src.utils import INFO
 from compute_engine.apps.kde_approximation_app import app_kde_main
 
 
-def extract_sequnece(fasta_file, chromosomes, lengths):
+def extract_sequnece(fasta_file, chromosomes, length, chromosomes_lengths):
 
     # make a random choice for chromosome
     # and length
     chromosome = random.choice(chromosomes)
-    length = random.choice(lengths)
+    #length = random.choice(lengths)
 
     end_points = chromosomes_lengths[chromosome]
 
@@ -23,6 +23,11 @@ def extract_sequnece(fasta_file, chromosomes, lengths):
 
     start = random.randint(local_range[0], local_range[1])
     end = start + length
+
+    while end > local_range[1]:
+        start = random.randint(local_range[0], local_range[1])
+        end = start + length
+
     seq = fasta_file.fetch(chromosome, start, end)
 
     return seq
@@ -34,7 +39,7 @@ def extract_random_dna_sequences_app(data, kernel, bandwidth, chromosomes,
         kde_model = app_kde_main(data=data, kernel=kernel, bandwidth=bandwidth)
 
         print("{0} data shape={1}".format(INFO, data.shape))
-        lengths = kde_model.sample(n_samples=data.shape[0])
+        lengths = kde_model.sample(n_samples=data.shape[0]).flatten()
 
         # open the reference sequence file
         fasta_file = pysam.FastaFile(fasta_file_name)
@@ -45,37 +50,23 @@ def extract_random_dna_sequences_app(data, kernel, bandwidth, chromosomes,
 
             for i in range(len(lengths)):
 
+                print("{0} Working with length index {1} out of {2}".format(INFO, i, len(lengths)))
+                length = int(lengths[i]) #random.choice(lengths)
                 seq = extract_sequnece(fasta_file=fasta_file,
-                                       chromosomes=chromosomes, lengths=lengths)
+                                       chromosomes=chromosomes, length=int(length),
+                                       chromosomes_lengths=chromosomes_lengths)
 
-                while seq == " " or len(seq) == 0 or "N" in seq or "n" in seq:
+                while seq == " " or len(seq) == 0 or "N" in seq or "n" in seq or len(seq) != int(length):
+                    print("{0} Sequence={1} has length={2} and need {3}".format(INFO, seq, len(seq), int(length)))
                     seq = extract_sequnece(fasta_file=fasta_file,
-                                           chromosomes=chromosomes, lengths=lengths)
+                                           chromosomes=chromosomes, length=length,
+                                           chromosomes_lengths=chromosomes_lengths)
 
-                if seq == " " or len(seq) == 0 or "N" in seq or "n" in seq:
-
+                if seq == " " or len(seq) == 0 or "N" in seq or "n" in seq or len(seq) != int(length):
                     raise ValueError("Empty sequence string or sequence contains N")
-                # make a random choice for chromosome
-                # and length
-                #chromosome = random.choice(chromosomes)
-                #length = random.choice(lengths)
-
-                #end_points = chromosomes_lengths[chromosome]
-
-                # select which bit to work on
-                #item = random.choice([0, 1])
-
-                #local_range = end_points[item]
-
-                #start = random.randint(local_range[0], local_range[1])
-                #end = start + length
-                #seq = fasta_file.fetch(chromosome, start, end)
 
                 string_seq = ""
                 for s in seq:
-
-                    if s == 'N' or s == 'n':
-                        continue
                     string_seq += s
                 filewriter.writerow([string_seq])
 
@@ -119,4 +110,4 @@ if __name__ == '__main__':
                                          bandwidth=0.7, chromosomes=chromosomes,
                                          chromosomes_lengths=chromosomes_lengths,
                                          fasta_file_name="/home/alex/qi3/hmmtuf/data/GCA_000001405.15_GRCh38_no_alt_analysis_set.fna",
-                                         save_sequence_file="/home/alex/qi3/hmmtuf/computations/sequence_clusters/output/random_sequences.csv")
+                                         save_sequence_file="/home/alex/qi3/hmmtuf/computations/sequence_clusters/input/random_sequences_II.csv")
