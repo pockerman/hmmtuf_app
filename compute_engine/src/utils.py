@@ -120,16 +120,34 @@ def read_sequences_csv_file_line(line, delimiter=","):
     return line_data[0], line_data[1]
 
 
+def read_bed_file_line(line, extract_state=False, delimiter='\t'):
 
-def read_bed_file_line(line):
-
-    line_data = line.split('\t')
+    line_data = line.split(delimiter)
     chromosome = line_data[0]
     start = int(line_data[1])
     end = int(line_data[2])
     seq = line_data[3]
+    state = line_data[4]
+
+    if extract_state:
+        return chromosome, start, end, seq, state
 
     return chromosome, start, end, seq
+
+
+def extract_sequences_from_bed_file_with_state(filename, state_name, delimiter):
+
+    with open(filename, 'r') as fh:
+
+        seqs = []
+        for line in fh:
+            chromosome, start, end, seq, state = read_bed_file_line(line=line, extract_state=True, delimiter=delimiter)
+
+            state = state.strip("\n")
+            if state == state_name:
+                seqs.append(seq)
+
+        return seqs
 
 
 def read_bed_file(filename, concatenate):
@@ -316,6 +334,48 @@ def to_csv_line(data):
         return str(data)
 
     return ','.join(str(d) for d in data)
+
+
+def count_kmers(sequence, k):
+    """
+    Count kmer occurrences in a given read.
+
+    Parameters
+    ----------
+    read : string
+        A single DNA sequence.
+    k : int
+        The value of k for which to count kmers.
+
+    Returns
+    -------
+    counts : dictionary, {'string': int}
+        A dictionary of counts keyed by their individual kmers (strings
+        of length k).
+
+    Examples
+    --------
+    >>> count_kmers("GATGAT", 3)
+    {'ATG': 1, 'GAT': 2, 'TGA': 1}
+    """
+    # Start with an empty dictionary
+    counts = {}
+
+    # Calculate how many kmers of length k there are
+    num_kmers = len(sequence) - k + 1
+
+    # Loop over the kmer start positions
+    for i in range(num_kmers):
+        # Slice the string to get the kmer
+        kmer = sequence[i:i+k]
+
+        # Add the kmer to the dictionary if it's not there
+        if kmer not in counts:
+            counts[kmer] = 0
+        # Increment the count for this kmer
+        counts[kmer] += 1
+    # Return the final counts
+    return counts
 
 
 

@@ -37,7 +37,7 @@ def compute_distances(distance_type, sequences, use_partial_sums=True,
     calculator = TextDistanceCalculator.build_calculator(name=distance_type)
 
     if distance_type == 'CPF':
-        calculator._use_partial_sums = use_partial_sums
+        calculator._use_probability_counts_and_remove_zeros = True
 
     distances = []
     if store_average_length:
@@ -75,14 +75,15 @@ if __name__ == '__main__':
     STORE_AVERAGE_LENGTH = True
     STORE_TOTAL_LENGTH = False
 
-
     OUTPUT_DIR = "/home/alex/qi3/hmmtuf/computations/sequence_clusters/output/"
-    OUTPUT_FILE = "random_sequences_distances_with_average_length" + "_CPF.csv"
-    #OUTPUT_FILE = "full_sequences_distances_with_average_length" + "_CPF.csv"
+    OUTPUT_FILE = "random_deletion_sequences_distances_with_average_length" + "_CPF_PROBABILITY_COUNTS_REMOVE_ZEROS.csv"
+    #OUTPUT_FILE = "full_deletion_sequences_distances_with_average_length" + "_CPF_PROBABILITY_COUNTS_REMOVE_ZEROS.csv"
 
     INPUT_DIR = "/home/alex/qi3/hmmtuf/computations/sequence_clusters/input/"
     #INPUT_FILE = "full_sequences.csv"
-    INPUT_FILE = "random_sequences_II.csv"
+    #INPUT_FILE = "deletion_sequences.csv"
+    #INPUT_FILE = "random_sequences_II.csv"
+    INPUT_FILE = "random_sequences_deletion.csv"
 
     print("{0} Loading sequences from {1}".format(INFO, INPUT_DIR + INPUT_FILE))
 

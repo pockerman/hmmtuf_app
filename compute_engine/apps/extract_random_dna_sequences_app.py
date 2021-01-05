@@ -73,16 +73,20 @@ def extract_random_dna_sequences_app(data, kernel, bandwidth, chromosomes,
 
 if __name__ == '__main__':
 
-    OUTPUT_DIR = "/home/alex/qi3/hmmtuf/computations/sequence_clusters/output/lengths/"
-    OUTPUT_FILE = "part-00000"
-    with open(OUTPUT_DIR + OUTPUT_FILE, 'r') as fh:
+    #OUTPUT_DIR = "/home/alex/qi3/hmmtuf/computations/sequence_clusters/output/lengths/"
+    #OUTPUT_FILE = "part-00000"
+
+    INPUT_DIR = "/home/alex/qi3/hmmtuf/computations/sequence_clusters/output/"
+    INPUT_FILE = "deletion_sequences.csv"
+
+    with open(INPUT_DIR + INPUT_FILE, 'r') as fh:
         reader = csv.reader(fh, delimiter=",")
 
         x = []
 
         counter = 0
         for line in reader:
-            x.append(int(line[0]))
+            x.append(int(len(line[0])))
             counter += 1
 
         print("Number of items {0}".format(counter))
@@ -110,4 +114,4 @@ if __name__ == '__main__':
                                          bandwidth=0.7, chromosomes=chromosomes,
                                          chromosomes_lengths=chromosomes_lengths,
                                          fasta_file_name="/home/alex/qi3/hmmtuf/data/GCA_000001405.15_GRCh38_no_alt_analysis_set.fna",
-                                         save_sequence_file="/home/alex/qi3/hmmtuf/computations/sequence_clusters/input/random_sequences_II.csv")
+                                         save_sequence_file="/home/alex/qi3/hmmtuf/computations/sequence_clusters/input/random_sequences_deletion.csv")

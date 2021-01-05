@@ -34,28 +34,27 @@ def main(data_dir, data_file, bins,
     plt.xlabel(plot_xlabel)
     plt.ylabel(plot_ylabel)
 
-    #if plot_xlim is not None:
-    #    plt.xlim(plot_xlim[0], plot_xlim[1])
+    if plot_xlim is not True and plot_ylim is not True:
+        plt.hist2d(x, y, bins=bins, cmap=plt.cm.jet, alpha=0.5, range=[plot_xlim, plot_ylim])
+    else:
+        plt.hist2d(x, y, bins=bins, cmap=plt.cm.jet, alpha=0.5)
 
-    #if plot_ylim is not None:
-    #    plt.ylim(plot_ylim[0], plot_ylim[1])
-
-    plt.hist2d(x, y, bins=bins, cmap=plt.cm.jet, alpha=0.5, range=[plot_xlim, plot_ylim])
     plt.show()
 
 
 if __name__ == '__main__':
 
     INPUT_DIR = "/home/alex/qi3/hmmtuf/computations/sequence_clusters/output/"
-    INPUT_FILE = "random_sequences_distances_with_average_length_CPF.csv"
+    #INPUT_FILE = "random_deletion_sequences_distances_with_average_length_CPF_PROBABILITY_COUNTS_REMOVE_ZEROS.csv"
+    INPUT_FILE = "full_deletion_sequences_distances_with_average_length_CPF_PROBABILITY_COUNTS_REMOVE_ZEROS.csv"
 
-    PLOT_TITLE = "Random Sequences CPF distance VS Average Length"
+    PLOT_TITLE = "Extracted Deletion Repeats CPF counts P Remove 0s"
     PLOT_X_LABEL = "Average Length"
     PLOT_Y_LABEL = "Distance"
-    BINS = (80, 80)
+    BINS = (100, 100)
 
-    PLOT_X_LIM = (0, 150)
-    PLOT_Y_LIM = (0, 15)
+    PLOT_X_LIM = (0, 100)
+    PLOT_Y_LIM = (0, 3)
 
     main(data_dir=INPUT_DIR, data_file=INPUT_FILE, bins=BINS,
          plot_title=PLOT_TITLE, plot_xlabel=PLOT_X_LABEL, plot_ylabel=PLOT_Y_LABEL,

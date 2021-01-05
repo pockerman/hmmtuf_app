@@ -149,6 +149,74 @@ def calculate_p(s, z):
     return probabilities
 
 
+def count_words(word, seq):
+    """
+    Compute the number of occurences of the word in the sequence
+    """
+
+    # this the counter which tracks
+    # the occurrences of the word in the
+    # seq.
+    count = 0
+
+    # indexes will hold the locations of the
+    # word in the sequence. so len(indexes)
+    # indicates how many times the word is found in the
+    # sequence
+
+    for item in seq:
+
+        if item == word:
+            count += 1
+
+    return count
+
+
+def sequence_feature_vector_from_counts(seq, k=2):
+    """
+       Build the feature vector for the given sequence using
+       a word size k=2
+    """
+
+    # placeholder for shannon entropies
+    feature_vec = []
+
+    for C in categories:
+
+        # map the bases in seq into the groups
+        # of the category
+        new_seq = map_seq_to_category(categories[C], seq)
+
+        # collect the words in the sequence for
+        # a sliding window of length k
+        words = collect_words(seq=new_seq, k=k)
+
+        # loop over the unique words that
+        # each category can produce
+        for word in categories_words[C]:
+
+            tuple_word = (word[0], word[1])
+
+            if tuple_word not in words:
+                feature_vec.append(0)
+                continue
+
+            # compute the local frequencies
+            # of the word in the sequence
+            word_count = count_words(word=tuple_word, seq=words)
+
+            # compute the partial sums of the sequence
+            # which is basically the prefix sum
+
+            # ...append it to list
+            feature_vec.append(word_count)
+
+    if len(feature_vec) != 12:
+        raise ValueError("Invalid dimension for feature vector. {0} should be {1}".format(len(feature_vec), 12))
+
+    return feature_vec
+
+
 def sequence_feature_vector(seq, use_partial_sums=True, k=2):
     """
     Build the feature vector for the given sequence using
@@ -209,6 +277,129 @@ def sequence_feature_vector(seq, use_partial_sums=True, k=2):
     return feature_vec
 
 
+def cpf_from_counts(seq1, seq2, k=2):
+    feature_vec_1 = sequence_feature_vector_from_counts(seq=seq1, k=k)
+    feature_vec_2 = sequence_feature_vector_from_counts(seq=seq2, k=k)
+
+    # calculate Euclidean distance
+    feature_vec_1 = np.array(feature_vec_1)
+    feature_vec_2 = np.array(feature_vec_2)
+    dist = np.linalg.norm(feature_vec_1 - feature_vec_2)
+
+    return dist
+
+
+def cpf_from_counts_without_zeros(seq1, seq2, k=2):
+
+    feature_vec_1 = sequence_feature_vector_from_counts(seq=seq1, k=k)
+    feature_vec_2 = sequence_feature_vector_from_counts(seq=seq2, k=k)
+
+    tmp1 = []
+    tmp2 = []
+    # remove the zeros
+    for item1, item2 in zip(feature_vec_1, feature_vec_2):
+
+        if int(item1) == 0 or int(item2) == 0: # and item1 == item2:
+            continue
+
+        tmp1.append(item1)
+        tmp2.append(item2)
+
+    feature_vec_1 = tmp1
+    feature_vec_2 = tmp2
+
+    # calculate Euclidean distance
+    feature_vec_1 = np.array(feature_vec_1)
+    feature_vec_2 = np.array(feature_vec_2)
+    dist = np.linalg.norm(feature_vec_1 - feature_vec_2)
+
+    return dist
+
+def sequence_feature_vector_from_probability_counts(seq, k=2):
+    """
+        Build the feature vector for the given sequence using
+        a word size k=2
+    """
+
+    # placeholder for shannon entropies
+    feature_vec = []
+
+    for C in categories:
+
+        # map the bases in seq into the groups
+        # of the category
+        new_seq = map_seq_to_category(categories[C], seq)
+
+        # collect the words in the sequence for
+        # a sliding window of length k
+        words = collect_words(seq=new_seq, k=k)
+
+        # loop over the unique words that
+        # each category can produce
+        for word in categories_words[C]:
+
+            tuple_word = (word[0], word[1])
+
+            if tuple_word not in words:
+                feature_vec.append(0.0)
+                continue
+
+            # count how many times the word occurs
+            # in the sequnce
+            word_count = count_words(word=tuple_word, seq=words)
+
+            # frequency based probability calculation
+            probability = float(word_count)/float(len(words))
+
+            # ...append it to list
+            feature_vec.append(probability)
+
+    if len(feature_vec) != 12:
+        raise ValueError("Invalid dimension for feature vector. {0} should be {1}".format(len(feature_vec), 12))
+
+    return feature_vec
+
+
+def cpf_from_probability_counts(seq1, seq2 , k=2):
+
+    feature_vec_1 = sequence_feature_vector_from_probability_counts(seq=seq1, k=k)
+    feature_vec_2 = sequence_feature_vector_from_probability_counts(seq=seq2, k=k)
+
+    # calculate Euclidean distance
+    feature_vec_1 = np.array(feature_vec_1)
+    feature_vec_2 = np.array(feature_vec_2)
+    dist = np.linalg.norm(feature_vec_1 - feature_vec_2)
+
+    return dist
+
+
+def cpf_from_probability_counts_remove_zeros(seq1, seq2, k=2):
+
+    feature_vec_1 = sequence_feature_vector_from_probability_counts(seq=seq1, k=k)
+    feature_vec_2 = sequence_feature_vector_from_probability_counts(seq=seq2, k=k)
+
+    tmp1 = []
+    tmp2 = []
+    # remove the zeros
+    for item1, item2 in zip(feature_vec_1, feature_vec_2):
+
+        if item1 < 1.0e-5 or item2 < 1.0e-5:
+            continue
+
+        tmp1.append(item1)
+        tmp2.append(item2)
+
+    feature_vec_1 = tmp1
+    feature_vec_2 = tmp2
+
+    # calculate Euclidean distance
+    feature_vec_1 = np.array(feature_vec_1)
+    feature_vec_2 = np.array(feature_vec_2)
+    dist = np.linalg.norm(feature_vec_1 - feature_vec_2)
+
+    return dist
+
+
 def cpf(seq1, seq2, use_partial_sums=True, k=2):
     feature_vec_1 = sequence_feature_vector(seq=seq1, use_partial_sums=use_partial_sums, k=k)
     feature_vec_2 = sequence_feature_vector(seq=seq2, use_partial_sums=use_partial_sums, k=k)
@@ -226,9 +417,19 @@ class CPF(object):
         self._feature_vectors = np.empty((0, 12), np.float)
         self._k = k
         self._use_partial_sums = True
+        self._use_word_counts = False
+        self._use_word_counts_and_remove_zeros = False
+        self._use_probability_counts = False
+        self._use_probability_counts_and_remove_zeros = False
 
     def add_feature_vector(self, seq):
-        feature_vec = sequence_feature_vector(seq=seq, k=self._k)
+
+        if self._use_word_counts:
+            feature_vec = sequence_feature_vector_from_counts(seq=seq, k=self._k)
+        elif self._use_probability_counts:
+            feature_vec = sequence_feature_vector_from_probability_counts(seq=seq, k=self._k)
+        else:
+            feature_vec = sequence_feature_vector(seq=seq, k=self._k)
         self._feature_vectors = np.append(self._feature_vectors,
                                           np.array([feature_vec]), axis=0)
 
@@ -236,6 +437,16 @@ class CPF(object):
         return self._feature_vectors
 
     def similarity(self, seq1, seq2):
+
+        if self._use_word_counts:
+            return cpf_from_counts(seq1=seq1, seq2=seq2)
+        elif self._use_word_counts_and_remove_zeros:
+            return cpf_from_counts_without_zeros(seq1=seq1, seq2=seq2)
+        elif self._use_probability_counts:
+            return cpf_from_probability_counts(seq1=seq1, seq2=seq2)
+        elif self._use_probability_counts_and_remove_zeros:
+            return cpf_from_probability_counts_remove_zeros(seq1=seq1, seq2=seq2)
+
         return cpf(seq1=seq1, seq2=seq2, use_partial_sums=self._use_partial_sums)
 
     def __call__(self, *args, **kwargs):
