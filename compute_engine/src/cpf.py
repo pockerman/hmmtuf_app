@@ -436,6 +436,22 @@ class CPF(object):
     def get_feature_vectors(self):
         return self._feature_vectors
 
+    def set_options(self, **options):
+        if "use_word_counts" in options:
+            self._use_word_counts = options["use_word_counts"]
+
+        if "use_word_counts_and_remove_zeros" in options:
+            self._use_word_counts_and_remove_zeros = options["use_word_counts_and_remove_zeros"]
+
+        if "use_probability_counts" in options:
+            self._use_probability_counts = options["use_probability_counts"]
+
+        if "use_probability_counts_and_remove_zeros" in options:
+            self._use_probability_counts_and_remove_zeros = options["use_probability_counts_and_remove_zeros"]
+
+        if "use_partial_sums" in options:
+            self._use_partial_sums = options["use_partial_sums"]
+
     def similarity(self, seq1, seq2):
 
         if self._use_word_counts:

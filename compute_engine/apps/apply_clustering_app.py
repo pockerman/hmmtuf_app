@@ -170,10 +170,10 @@ def count_kmer_in_repeats(cluster, k, kmer_str):
 if __name__ == '__main__':
 
     INPUT_DIR = "/home/alex/qi3/hmmtuf/computations/sequence_clusters/output/"
-    #INPUT_FILE = "extracted_deletion_repeats_probability_counts_vectors.csv"
+    INPUT_FILE = "deletion_repeats_probability_counts_vectors.csv"
     #INPUT_FILE = "random_deletion_repeats_probability_counts_vectors.csv"
     #INPUT_FILE = "tuf_repeats_probability_counts_vectors.csv"
-    INPUT_FILE  = "normal_repeats_probability_counts_vectors.csv"
+    #INPUT_FILE  = "normal_repeats_probability_counts_vectors.csv"
     OUTPUT_FILE = "clustering_normal_repeats_probability_counts_vectors.csv"
     OUTPUT_KMERS_FILE = "clustering_normal_repeats_kmers.csv"
     USED_KMERS = []

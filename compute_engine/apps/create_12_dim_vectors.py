@@ -10,12 +10,14 @@ def save_feature_vectors(filename, vectors):
         for item in vectors:
                 writer.writerow(item)
 
-def create_12_dim_vectors_app_main(input_dir, input_file, output_dir, output_filename):
+def create_12_dim_vectors_app_main(input_dir, input_file, output_dir,
+                                   output_filename, **calculator_options):
 
     with open(input_dir + input_file, 'r', newline='\n') as rfh:
 
         calculator = TextDistanceCalculator.build_calculator(name='CPF')
-        calculator._use_probability_counts = True
+        calculator.set_options(**calculator_options)
+        #calculator._use_probability_counts = True
         file_reader = csv.reader(rfh, delimiter=',')
 
         sequences = []
@@ -37,10 +39,11 @@ def create_12_dim_vectors_app_main(input_dir, input_file, output_dir, output_fil
 
 if __name__ == '__main__':
     INPUT_DIR = "/home/alex/qi3/hmmtuf/computations/sequence_clusters/output/"
-    INPUT_FILE = "normal_sequences.csv"
+    INPUT_FILE = "deletion_sequences.csv"
 
     OUTPUT_DIR = "/home/alex/qi3/hmmtuf/computations/sequence_clusters/output/"
-    OUTPUT_FILE = "normal_repeats_probability_counts_vectors.csv"
+    OUTPUT_FILE = "deletion_repeats_probability_counts_vectors.csv"
 
     create_12_dim_vectors_app_main(input_dir=INPUT_DIR, input_file=INPUT_FILE,
-                                   output_dir=OUTPUT_DIR, output_filename=OUTPUT_FILE)
+                                   output_dir=OUTPUT_DIR, output_filename=OUTPUT_FILE,
+                                   **{"use_probability_counts": True})

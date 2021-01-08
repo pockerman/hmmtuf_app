@@ -92,7 +92,7 @@ if __name__ == '__main__':
     print("{0} Start combine bed files app...".format(INFO))
 
     OUTPUT_DIR = "/home/alex/qi3/hmmtuf/computations/sequence_clusters/output/"
-    OUTPUT_FILE = "full_sequences.csv"
+    OUTPUT_FILE = "full_sequences_all.csv"
     FILE_DIR = "/home/alex/qi3/hmmtuf/computations/sequence_clusters/data/"
     FILENAMES = None
 

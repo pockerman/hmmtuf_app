@@ -39,11 +39,11 @@ def extract_state_sequences_app_main(file_dir, file_pattern, state_name,
 if __name__ == '__main__':
 
     OUTPUT_DIR = "/home/alex/qi3/hmmtuf/computations/sequence_clusters/output/"
-    OUTPUT_FILE = "normal_sequences.csv"
+    OUTPUT_FILE = "tuf_sequences.csv"
     FILE_DIR = "/home/alex/qi3/hmmtuf/computations/sequence_clusters/data/"
     FILE_PATTERN = 'nucl_out.bed'
     SEQUENCE_POSITION = 3
-    STATE_NAME = 'Normal'
+    STATE_NAME = 'TUF'
     STATE_POSITION = 4
 
     extract_state_sequences_app_main(file_dir=FILE_DIR, state_name=STATE_NAME,

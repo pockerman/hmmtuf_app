@@ -80,16 +80,29 @@ class TextDistanceCalculator(object):
 
         self._dist_type = dist_type
 
-    def calculate(self, txt1, txt2):
-        pass
+    def calculate(self, txt1, txt2, **options):
+        calculator = TextDistanceCalculator.build_calculator(name=self._dist_type)
 
-    def calculate_from_files(self, fileslist, save_at, delim):
+        set_options = getattr(calculator, "set_options", None)
+
+        if set_options is not None:
+            calculator.set_options(**options)
+
+        return calculator.similarity(txt1, txt2)
+
+    def calculate_from_files(self, fileslist, save_at, delim, **options):
 
         sequences = []
         for file in fileslist:
             sequences.append(read_sequence_bed_file(filename=file[1], delim=delim))
 
         calculator = TextDistanceCalculator.build_calculator(name=self._dist_type)
+
+        set_options = getattr(calculator, "set_options", None)
+
+        if set_options is not None:
+            calculator.set_options(**options)
+
         similarity_map = {}
         for seqi in range(len(sequences)):
             for seqj in range(len(sequences)):
