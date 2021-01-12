@@ -1,3 +1,16 @@
+# hmmtuf
+
+Thermodynamically ultra-fastened (TUF) regions are stretches of the DNA which fail to denature
+even after the application of extreme melting conditions.  This behavior effectively reduces the amplification efficiency in these regions. 
+It has also been reported that  TUF regions contain a core sequence which exhibits an increased GC concentration relative to the surrounding DNA. 
+It is in fact these locally concentrated spikes of GC content which is believed to remain duplexed despite the application of denaturation processes.
+
+Computational modelling and analysis of TUF regions requires the ability to somehow identify these in the 
+DNA strand. However, visually, identifying and labeling TUF regions, although feasible, is time consuming to say the least. 
+
+```hmmtuf``` is an simple mapping tool that uses hidden Markov models in order to label regions of DNA.
+
+
 ## Dependencies
 
 - <a href="https://www.djangoproject.com/">django</a>
