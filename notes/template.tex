@@ -137,17 +137,15 @@ Computational modelling and analysis of TUF regions requires the ability to some
 DNA strand. However, to the best of our knowledge, such tools do not yet exist. Visually, identifying and
 labeling TUF regions, although feasible, is time consuming and error prone to say the least. 
 
-The aim of this work \footnotetext{The software developed under the present study can be found at \url{https://github.com/pockerman/hmmtuf_app}} is to develop an mathematical approach so that a mapping of TUF regions can be created. Such a tool will allow the labeling of these regions so that these can identified and further analysed.  In this regard, we employ a hidden Markov modelling methodology. Concretely, our approach uses two sequences; a sequence that it underwent WGA treatment (sample  m605), and  one that was not treated (sample m585). This is necessary in order to amplify the existence of TUF regions. In whole genome amplified (WGA) read-depth sequencing samples, TUF regions are often represented as regions of low coverage, resembling deletions. This resemblance actually makes it very difficult to computationally distinguish with copy deletions.
-
+The aim of this work \footnote{The software developed under the present study can be found at \url{https://github.com/pockerman/hmmtuf_app}} is twofold; the development of a mathematical approach so that a mapping of TUF regions can be created and the analysis of the TUF core regions. Such a tool will allow the labeling of these regions so that these can identified and further analysed.  In this regard, we employ a hidden Markov modelling methodology. Concretely, our approach uses two sequences; a sequence that it underwent WGA treatment (sample  m605), and  one that was not treated (sample m585). This is necessary in order to amplify the existence of TUF regions. In whole genome amplified (WGA) read-depth sequencing samples, TUF regions are often represented as regions of low coverage, resembling deletions. This resemblance actually makes it very difficult to computationally distinguish with copy deletions.
 %two assumes that in whole genome amplified (WGA) read-depth (RD) sequencing samples, TUF regions are often represented as regions of low coverage, resembling deletions.  
 %that  from modelling copy number variation see for example \cite{Wang2007, cahan2008}.  Concretely, in whole genome amplified (WGA) read-depth (RD) sequencing samples, TUF regions are often represented as regions of low coverage, resembling deletions. 
-
-Thus,  the developed HMM classifies segregated chromosome regions into states depending on their average read-depth. 
+Thus,  the developed HMM classifies segregated chromosome regions into states depending on their average read-depth count. 
 Although the exact characteristics in terms of read-depth of such a state are not known, the assumption is that a low read-depth observed in a WGA sample in combination 
-of a normal one observed in the same region for a non-WGA treated sample is indicative of TUF. Using this read-depth based characterization, we can distinguish commonly found behavior in sequences such single copy or full copy deletion. In terms of the HMM, the TUF regions can simply be modelled as an extra state. 
+of a normal one observed in the same region for a non-WGA treated sample is indicative of TUF. Using this read-depth based characterization, we can distinguish commonly found behavior in sequences such single copy or full copy deletion. In terms of the HMM, the TUF regions can simply be modelled as an extra state. Once a characterization of the DNA regions is available in terms of TUF, we can further process these regions in order to understand their structure. 
 
 The remaining of this work is organised as follows. Section \ref{hmm_general} briefly describes the general principles underlying  hidden Markov models. Concretely,  we focus on discrete and time invariant models. 
-Section \ref{hmm_tuf} discusses the particularities of our approach whilst section \ref{results} presents some initial mappings extracted using the developed HMM.
+Section \ref{hmm_tuf} discusses the particularities of our approach towards establishing a hidden Markov model for TUF regions. Section \ref{tuf_core_analysis} discusses our efforts to understand the underlying nucleotide structure of TUF core regions.  Section \ref{results} presents some initial mappings extracted using the developed HMM.
 Finally, section \ref{discussion}, presents a discussion on the developed methodology and indicates possible future work. 
 
 \section{Hidden Markov model}
@@ -394,6 +392,18 @@ We remark however, that the framework we use is flexible enough to assume differ
 \end{figure} 
 
 
+\section{Towards TUF core analysis}
+\label{tuf_core_analysis}
+Once a characterization of the DNA sequence in terms of TUF regions is available, one can further question what is the underlying nucleotide structure of these TUF regions. In order to do so, we process the Viterbi paths using \emph{SPADE} \footnote{See \url{https://github.com/yachielab/SPADE} for details}.
+
+
+This is a software for exploring periodic repeat regions from large genomic and protein data resources. \emph{SPADE} first extracts multiple sequence entries from an input file (GenBank or FASTA format) and identifies sequence type (DNA or protein) for each entry. Each sequence entry is scanned by a sliding window to count k-mers and highly repetitive regions are extracted. The sequence periodicity of each highly repetitive region is then evaluated based on position-period matrix that cumulatively plots distance between neighboring same k-mers and their sequence positions. The periodic sequence region is defined and the periodic sequence units are queried for a multiple alignment to identify repetitive motif and its sequence logo. The representative motif sequence is aligned back to the sequence of the periodically repeating region to annotate the repeating units. Finally, the annotations for detected periodic repeats are added to the input information and output in GenBank format with an option of visualizing k-mer density, position-periodicity matrix, sequence motif logo and repetitive unit loci with neighboring genes for each periodic repeat.
+
+Once the core regions have been extracted we can apply distance as well as clustering methods in order to discover any underlying structures. Towards this direction, there are many distance functions that compute text similarity. Our tool uses the \emph{textdistance}\footnote{See \url{https://pypi.org/project/textdistance/} for more details. } Python library which has implementations for more than thirty text distance algorithms. Furthermore, we also implemented the approach described in \cite{2014Bao}. 
+
+In this case, the nucleotide repeat string is cast in a twelve dimensional space. This is done by converting the repeat string into three strings according to the categories of nucleotide bases, and then yields a 12-dimension feature vector. The feature values are computed by an entropy based model that takes both local word frequency and position information into account \cite{2014Bao}. 
+
+ 
 \section{Results}
 \label{results}
 
@@ -560,6 +570,8 @@ Similarly, figures \ref{fig:rslt_image5} and \ref{fig:rslt_image6} show the labe
 
 Apart from region 1 for chromosome 1 the rest of the regions for both chromosomes are relatively uniform with respect to the mean RD count. This is illustrated both in the window labelling and in the IGV mapping. Note also that the GC count is shown somehow increased for region 1 of chromosome 1.  
 
+
+
 \clearpage
 
 %Use subsections and subsubsections etc. freely.
@@ -567,7 +579,7 @@ Apart from region 1 for chromosome 1 the rest of the regions for both chromosome
 \section{Discussion}
 \label{discussion}
 
-In this work, we describe the development of a hidden Markov model in order to map  is described in order to map thermodynamically ultra-fastened DNA regions. These  are stretches of the DNA which fail to denature even after the application of extreme melting conditions \cite{veal2012}. The model uses two DNA sequences and assumes seven different states. Some early mappings are reported in order to show case the utilization of the approach.
+In this work, we describe the development of a hidden Markov model in order to map  is described in order to map thermodynamically ultra-fastened DNA regions. These  are stretches of the DNA which fail to denature even after the application of extreme melting conditions. The model uses two DNA sequences and assumes seven different states. Some early mappings are reported in order to show case the utilization of the approach. We have, so far, developed a tool where the user can import hidden Markov models and export Viterbi paths so given DNA sequences. Furthermore, the user can also request for the extraction of TUF core repeats. 
 
 Future work should include extensive validation of the model. This however may require a meticulous labelling of DNA regions. Once the model is validated, one  can use it to extract the identified TUF regions and further investigate or model their structure. 
 
