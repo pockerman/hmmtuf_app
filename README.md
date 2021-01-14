@@ -167,3 +167,7 @@ server {
 
 Provided that everything has worked, you can access the application at: ```http://localhost/```
 
+## References
+
+1. Colin D Veal and Peter J Freeman and  Kevin Jacobs and Owen Lancaster and Stéphane Jamain and Marion Leboyer and Demetrius Albanes and Reshma R Vaghela and Ivo Gut and Stephen J Chanock and Anthony J Brookes, ```A mechanistic basis for amplification differences between samples and between genome regions```, BMC Genomics, 2012
+
