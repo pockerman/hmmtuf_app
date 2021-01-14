@@ -8,7 +8,10 @@ It is in fact these locally concentrated spikes of GC content which is believed 
 Computational modelling and analysis of TUF regions requires the ability to somehow identify these in the 
 DNA strand. However, visually, identifying and labeling TUF regions, although feasible, is time consuming to say the least. 
 
-```hmmtuf``` is an simple mapping tool that uses hidden Markov models in order to label regions of DNA.
+```hmmtuf``` is an simple mapping tool that uses <a href="https://en.wikipedia.org/wiki/Hidden_Markov_model">hidden Markov models</a> in order to label regions of DNA. Users can load
+their own developed models. The application uses <a href="https://pomegranate.readthedocs.io/en/latest/">pomegranate</a> for
+representing a hidden Markov model. We provide a default Markov model which can be found at ```hmmtuf_app/hmm_files/HMM1.json```. 
+The report in ```hmmtuf_app/notes/hmmtuf_model_report.pdf``` describes how this model was developed.
 
 
 ## Dependencies
