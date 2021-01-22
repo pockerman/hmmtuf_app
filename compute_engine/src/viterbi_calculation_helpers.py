@@ -1,5 +1,5 @@
 """
-Helpers for HMM
+Helpers for calculating HMM Viterbi paths
 """
 
 import csv
