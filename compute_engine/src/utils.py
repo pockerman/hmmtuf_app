@@ -227,7 +227,9 @@ def read_bed_files(file_dir, filenames, concatenate):
 def compute_textdistances(sequences, distance_type,
                           build_from_factory, compute_self_distances):
     """
-    Compute the
+    Compute the the pair-wise distance of the given sequences using
+    the given distance type. If compute_self_distances=True it also
+    computes the self distance
     """
 
     if build_from_factory:
@@ -326,6 +328,9 @@ def read_sequence_bed_file(filename, delim='\t'):
 
 
 def to_csv_line(data):
+    """
+    Convert the data to comma separated string
+    """
 
     if isinstance(data, float):
         return str(data)
@@ -338,6 +343,10 @@ def to_csv_line(data):
 
 def count_kmers(sequence, k):
     """
+    This function is taken from:
+    http://claresloggett.github.io/python_workshops/improved_kmers.html
+    see also
+    http://claresloggett.github.io/python_workshops/kmer_counting.html
     Count kmer occurrences in a given read.
 
     Parameters
@@ -376,6 +385,35 @@ def count_kmers(sequence, k):
         counts[kmer] += 1
     # Return the final counts
     return counts
+
+def type_converter(data, type_converter):
+    """
+    Return the data converted into the type
+    denoted by the string type_converter
+    """
+
+    if type_converter == "FLOAT":
+        return float(data)
+    elif type_converter == "INT":
+        return int(data)
+    elif type_converter == "STRING":
+        return str(data)
+
+    raise ValueError("Unknown type_converter={0}".format(type_converter))
+
+def load_data_file(filename, type_convert):
+    """
+    Loads a .txt data file into an array. Every
+    item is converted according to type_convert
+    """
+    with open(filename) as file:
+        context = file.read()
+        size = len(context)
+        arraystr= context[1:size-1]
+        arraystr = arraystr.split(',')
+        region_means = [type_converter(data=item, type_converter="FLOAT") for item in arraystr]
+        return region_means
+
 
 
 

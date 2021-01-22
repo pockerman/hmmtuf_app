@@ -1,5 +1,7 @@
 import unittest
 from compute_engine.src.utils import min_size_partition_range
+from compute_engine.src.utils import load_data_file
+from compute_engine.src.utils import type_converter
 from compute_engine.src.exceptions import Error
 
 
@@ -94,6 +96,14 @@ class TestUtils(unittest.TestCase):
 
         self.assertEqual(chuncks[2][0], 6)
         self.assertEqual(chuncks[2][1], 10)
+
+    def test_type_converter_fail(self):
+        self.assertRaises(ValueError, type_converter, 20.0, "MY_DATA")
+
+    def test_load_data_file(self):
+        DATA_PATH = "../../data/train/wga_windows_mean_0_DUPLICATION_CHR_1_MEAN_CUTOFF.txt"
+        data = load_data_file(filename=DATA_PATH, type_convert="FLOAT")
+        self.assertEqual(len(data), 5025)
 
 
 if __name__ == '__main__':
