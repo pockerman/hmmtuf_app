@@ -414,6 +414,58 @@ def load_data_file(filename, type_convert):
         region_means = [type_converter(data=item, type_converter="FLOAT") for item in arraystr]
         return region_means
 
+def make_data_array(wga_mu, no_wga_mu, gc, use_ratio, use_gc):
+    """
+    Using the two data arrays returns an array as pairs.
+
+    If gc array is also supplied and use_gc=True then
+    returns a array containing the tripplets.
+
+    If use_ratio=True then it returns the trippler
+    [no_wga, wga, (wga + 1) / (no_wga + 1)]
+
+    if use_ratio=True and use_gc=True
+    it returns the quatruplet
+    [no_wga_val, wga_val, (wga_val + 1) / (no_wga_val + 1), gc_val]
+    in this case gc should not be None
+
+    """
+
+    if len(no_wga_mu) != len(wga_mu):
+        raise ValueError("Invalid data size")
+
+    data = []
+
+    if use_ratio and use_gc:
+
+        if gc is None or len(gc) == 0:
+            raise  ValueError("GC array is either None or empty")
+
+        if len(gc) != len(no_wga_mu):
+            raise ValueError("GC array size={0} is not equal to {1}".format(len(gc), len(no_wga_mu)))
+
+        for no_wga_val, wga_val, gc_val in zip(no_wga_mu, wga_mu, gc):
+            data.append([no_wga_val, wga_val, (wga_val + 1) / (no_wga_val + 1), gc_val])
+    elif use_ratio:
+        for no_wga, wga in zip(no_wga_mu, wga_mu):
+            data.append([no_wga, wga, (wga + 1) / (no_wga + 1)])
+    elif use_gc:
+
+        if gc is None:
+            raise ValueError("GC array is None")
+
+        if gc is None or len(gc) != len(no_wga_mu):
+            raise ValueError("GC array size={0} is not equal to {1}".format(len(gc), len(no_wga_mu)))
+
+        for no_wga_val, wga_val, gc_val in zip(no_wga_mu, wga_mu, gc):
+            data.append([no_wga_val, wga_val, gc_val])
+    else:
+
+        for no_wga, wga in zip(no_wga_mu, wga_mu):
+            data.append([no_wga, wga])
+
+    return data
+
 
 
 

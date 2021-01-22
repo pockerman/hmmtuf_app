@@ -2,6 +2,7 @@ import unittest
 from compute_engine.src.utils import min_size_partition_range
 from compute_engine.src.utils import load_data_file
 from compute_engine.src.utils import type_converter
+from compute_engine.src.utils import make_data_array
 from compute_engine.src.exceptions import Error
 
 
@@ -104,6 +105,36 @@ class TestUtils(unittest.TestCase):
         DATA_PATH = "../../data/train/wga_windows_mean_0_DUPLICATION_CHR_1_MEAN_CUTOFF.txt"
         data = load_data_file(filename=DATA_PATH, type_convert="FLOAT")
         self.assertEqual(len(data), 5025)
+
+    def test_make_data_array_fail_1(self):
+        wga_mu=[1.0, 2.0]
+        no_wga_mu=[1.0]
+        gc=None
+        use_ratio=False
+        use_gc=False
+        self.assertRaises(ValueError, make_data_array,
+                          wga_mu, no_wga_mu, gc, use_ratio, use_gc)
+
+    def test_make_data_array_fail_2(self):
+        wga_mu=[1.0, 2.0]
+        no_wga_mu=[1.0, 2.0]
+        gc=None
+        use_ratio=False
+        use_gc=True
+        self.assertRaises(ValueError, make_data_array,
+                          wga_mu, no_wga_mu, gc, use_ratio, use_gc)
+
+    def test_make_data_array_fail_3(self):
+        wga_mu=[1.0, 2.0]
+        no_wga_mu=[1.0, 2.0]
+        gc=[1.0]
+        use_ratio=False
+        use_gc=True
+        self.assertRaises(ValueError, make_data_array,
+                          wga_mu, no_wga_mu, gc, use_ratio, use_gc)
+
+
+
 
 
 if __name__ == '__main__':
