@@ -518,7 +518,7 @@ def main(path, fas_file_name, chromosome,
                                 if (end-start) > 1000:
                                     p = random.randint(1, 10)
                                     print("{0} normal >1000, rand: {1}".format(INFO, p))
-                                    if p == 7:
+                                    if p in [1, 3, 5, 7, 9]:
                                         print("{0} processing random 1000 from normal region".format(INFO))
                                         n = random.randint(start, end-1000)
                                         nseq = fas.fetch(chr, n, n+1000)
