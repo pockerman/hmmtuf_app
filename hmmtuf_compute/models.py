@@ -208,6 +208,9 @@ class ViterbiComputation(Computation):
     completion of the task all fields should have valid values
     """
 
+    # the type of the computation
+    JOB_TYPE = JobType.VITERBI
+
     # the resulting viterbi path file
     file_viterbi_path = models.FileField(null=True)
 
@@ -279,38 +282,70 @@ class ViterbiComputation(Computation):
                 "end_region_idx": model.end_region_idx}
 
     @staticmethod
-    def build_from_map(map, save):
+    def build_from_data(task_id, result, error_explanation,
+                        file_viterbi_path, region_filename, ref_seq_filename,
+                        wga_seq_filename, no_wag_seq_filename, hmm_filename,
+                        chromosome, start_region_idx, end_region_idx,
+                        seq_size, number_of_gaps, hmm_path_img,
+                        extracted_sequences, n_mixed_windows, window_type, scheduler_id,  save):
+
+        map_data = dict()
+        map_data["task_id"] = task_id
+        map_data["result"] = result
+        map_data["error_explanation"] = error_explanation
+        map_data["computation_type"] = ViterbiComputation.JOB_TYPE
+        map_data["viterbi_path_filename"] = file_viterbi_path
+        map_data["region_filename"] = region_filename
+        map_data["ref_seq_file"] = ref_seq_filename
+        map_data["wga_seq_file"] = wga_seq_filename
+        map_data["no_wag_seq_file"] = no_wag_seq_filename
+        map_data["hmm_filename"] = hmm_filename
+        map_data["chromosome"] = chromosome
+        map_data["seq_size"] = seq_size
+        map_data["number_of_gaps"] = number_of_gaps
+        map_data["hmm_path_img"] = hmm_path_img
+        map_data["extracted_sequences"] = extracted_sequences
+        map_data["n_mixed_windows"] = n_mixed_windows
+        map_data["window_type"] = window_type
+        map_data["scheduler_id"] = scheduler_id
+        map_data["start_region_idx"] = start_region_idx
+        map_data["end_region_idx"] = end_region_idx
+
+        return ViterbiComputation.build_from_map(map_data=map_data, save=save)
+
+    @staticmethod
+    def build_from_map(map_data, save):
 
         try:
-            computation = ViterbiComputation.objects.get(task_id=map["task_id"])
+            computation = ViterbiComputation.objects.get(task_id=map_data["task_id"])
             return computation
         except ObjectDoesNotExist:
 
             computation = ViterbiComputation()
-            computation.task_id = map["task_id"]
-            computation.result = map["result"]
-            computation.error_explanation = map["error_explanation"]
-            computation.computation_type = map["computation_type"]
-            computation.file_viterbi_path = map["viterbi_path_filename"]
-            computation.region_filename = map["region_filename"]
-            computation.ref_seq_filename = map["ref_seq_file"]
-            computation.wga_seq_filename = map["wga_seq_file"]
-            computation.no_wag_seq_filename = map["no_wag_seq_file"]
-            computation.hmm_filename = map["hmm_filename"]
-            computation.chromosome = map["chromosome"]
-            computation.seq_size = map["seq_size"]
-            computation.number_of_gaps = map["number_of_gaps"]
-            computation.hmm_path_img = map["hmm_path_img"]
-            computation.extracted_sequences = map["extracted_sequences"]
-            computation.n_mixed_windows = map["n_mixed_windows"]
-            computation.window_type = map["window_type"]
-            computation.scheduler_id = map["scheduler_id"]
-            computation.start_region_idx = map["start_region_idx"]
-            computation.end_region_idx = map["end_region_idx"]
+            computation.task_id = map_data["task_id"]
+            computation.result = map_data["result"]
+            computation.error_explanation = map_data["error_explanation"]
+            computation.computation_type = map_data["computation_type"]
+            computation.file_viterbi_path = map_data["viterbi_path_filename"]
+            computation.region_filename = map_data["region_filename"]
+            computation.ref_seq_filename = map_data["ref_seq_file"]
+            computation.wga_seq_filename = map_data["wga_seq_file"]
+            computation.no_wag_seq_filename = map_data["no_wag_seq_file"]
+            computation.hmm_filename = map_data["hmm_filename"]
+            computation.chromosome = map_data["chromosome"]
+            computation.seq_size = map_data["seq_size"]
+            computation.number_of_gaps = map_data["number_of_gaps"]
+            computation.hmm_path_img = map_data["hmm_path_img"]
+            computation.extracted_sequences = map_data["extracted_sequences"]
+            computation.n_mixed_windows = map_data["n_mixed_windows"]
+            computation.window_type = map_data["window_type"]
+            computation.scheduler_id = map_data["scheduler_id"]
+            computation.start_region_idx = map_data["start_region_idx"]
+            computation.end_region_idx = map_data["end_region_idx"]
 
             if save:
                 computation.save()
-                print("{0} saved computation: {1}".format(INFO, map["task_id"]))
+                print("{0} saved computation: {1}".format(INFO, map_data["task_id"]))
             return computation
 
     @staticmethod
