@@ -209,7 +209,7 @@ class ViterbiComputation(Computation):
     """
 
     # the type of the computation
-    JOB_TYPE = JobType.VITERBI
+    JOB_TYPE = JobType.VITERBI.name
 
     # the resulting viterbi path file
     file_viterbi_path = models.FileField(null=True)

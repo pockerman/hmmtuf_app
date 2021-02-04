@@ -621,7 +621,8 @@ def compute_viterbi_path(task_id, hmm_name, chromosome,
             tufdel.main(path=task_path, fas_file_name=ref_seq_file,
                         chromosome=chromosome, chr_idx=chromosome_index,
                         viterbi_file=viterbi_path_filename,
-                        nucleods_path=make_viterbi_sequence_path(task_id=task_id), remove_dirs=remove_dirs)
+                        nucleods_path=make_viterbi_sequence_path(task_id=task_id),
+                        remove_dirs=remove_dirs)
 
             sequence = ViterbiSequenceModel()
             group = ViterbiSequenceGroupTip.objects.get(tip=sequence_group)
