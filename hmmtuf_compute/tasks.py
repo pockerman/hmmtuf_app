@@ -522,29 +522,6 @@ def compute_viterbi_path(task_id, hmm_name, chromosome,
                                                      extracted_sequences=1, n_mixed_windows=0, window_type=window_type,
                                                      scheduler_id=scheduler_id, save=True)
 
-    """
-    computation = ViterbiComputation()
-    computation.task_id = task_id
-    computation.computation_type = JobType.VITERBI.name
-    computation.error_explanation = DEFAULT_ERROR_EXPLANATION
-    computation.result = JobResultEnum.PENDING.name
-    computation.file_viterbi_path = viterbi_path_filename
-    computation.chromosome = chromosome
-    computation.hmm_filename = hmm_name
-    computation.region_filename = region_filename
-    computation.ref_seq_filename = ref_seq_file
-    computation.wga_seq_filename = wga_seq_file
-    computation.no_wag_seq_filename = no_wga_seq_file
-    computation.window_type = window_type
-    computation.number_of_gaps = 0
-    computation.seq_size = 0
-    computation.n_mixed_windows = 0
-    computation.extracted_sequences = 1
-    computation.start_region_idx = region_model.start_idx
-    computation.end_region_idx = region_model.end_idx
-    computation.save()
-    """
-
     # access the created computation object
     result = ViterbiComputation.get_as_map(model=computation)
 
@@ -569,8 +546,6 @@ def compute_viterbi_path(task_id, hmm_name, chromosome,
         result, computation = update_for_exception(result=result, computation=computation,
                                                    err_msg="Could not create dir: {0}".format(hmm_path_img))
 
-        #result["result"] = JobResultEnum.FAILURE.name
-        #result["error_explanation"] = "Could not create dir: {0}".format(hmm_path_img)
         computation.save()
         return result
     else:
@@ -657,11 +632,6 @@ def compute_viterbi_path(task_id, hmm_name, chromosome,
         result, computation = update_for_exception(result=result, computation=computation,
                                                    err_msg=str(e))
 
-        #result["result"] = JobResultEnum.FAILURE.name
-        #result["number_of_gaps"] = 0
-        #result["error_explanation"] = str(e)
-        #computation.result = JobResultEnum.FAILURE.name
-        #computation.error_explanation = str(e)
         computation.save()
         return result
 
