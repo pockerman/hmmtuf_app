@@ -134,8 +134,5 @@ class TestUtils(unittest.TestCase):
                           wga_mu, no_wga_mu, gc, use_ratio, use_gc)
 
 
-
-
-
 if __name__ == '__main__':
     unittest.main()
