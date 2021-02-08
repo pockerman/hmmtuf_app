@@ -2,6 +2,8 @@
 Helper functions for tuf-core files manipulation
 """
 import numpy as np
+import os
+import shutil
 from compute_engine.src.utils import INFO
 from compute_engine.src.utils import get_chunks
 
