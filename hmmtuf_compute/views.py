@@ -33,7 +33,11 @@ def success_schedule_group_viterbi_compute_all_view(request, task_id):
 
 
 def schedule_group_viterbi_compute_view(request):
-
+    """
+    Serve the view for scheduling viterbi computations
+    for Groups for example compute the Viterbi path
+    for chromosome 1
+    """
     template_html = 'hmmtuf_compute/schedule_group_viterbi_compute_view.html'
     template = loader.get_template(template_html)
 
@@ -87,9 +91,6 @@ def view_group_viterbi_all(request, task_id):
     template = loader.get_template(template_html)
 
     try:
-
-        #import pdb
-        #pdb.set_trace()
         # if the task exists do not ask celery. This means
         # that either the task failed or succeed
         task = models.GroupViterbiComputation.objects.get(task_id=task_id)
