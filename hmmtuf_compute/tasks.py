@@ -77,6 +77,7 @@ def compute_compare_viterbi_sequence_task(distance_metric, max_num_seqs, group_t
 
 def compute_group_viterbi_path_all(task_id, hmm_name, window_type,
                                    remove_dirs, use_spade, sequence_group):
+
     logger.info("Computing Group All Viterbi path")
     task_path = make_viterbi_path(task_id=task_id)
 
@@ -122,13 +123,7 @@ def compute_group_viterbi_path_all(task_id, hmm_name, window_type,
     if hmm_model is None:
         result, computation = update_for_exception(result=result, computation=computation,
                                                    err_msg="Could not build HMM model")
-
-        #computation.error_explanation =
-        #computation.result = JobResultEnum.FAILURE.name
         computation.save()
-
-        #result["result"] = JobResultEnum.FAILURE.name
-        #result["error_explanation"] = "Could not build HMM model"
         return result
 
     hmm_path_img = task_path
@@ -141,12 +136,7 @@ def compute_group_viterbi_path_all(task_id, hmm_name, window_type,
         result, computation = update_for_exception(result=result, computation=computation,
                                                    err_msg="Could not create dir: {0}".format(hmm_path_img))
 
-        #computation.error_explanation = "Could not create dir: {0}".format(hmm_path_img)
-        #computation.result = JobResultEnum.FAILURE.name
         computation.save()
-
-        #result["result"] = JobResultEnum.FAILURE.name
-        #result["error_explanation"] = "Could not create dir: {0}".format(hmm_path_img)
         return result
 
     hmm_path_img = hmm_path_img + hmm_name + '.png'
@@ -247,11 +237,6 @@ def compute_group_viterbi_path_all(task_id, hmm_name, window_type,
 
                 result, computation = update_for_exception(result=result, computation=computation,
                                                            err_msg=str(e))
-
-                #result["result"] = JobResultEnum.FAILURE.name
-                #result["error_explanation"] = str(e)
-                #computation.result = JobResultEnum.FAILURE.name
-                #computation.error_explanation = str(e)
                 computation.save()
                 return result
 
@@ -278,12 +263,6 @@ def compute_group_viterbi_path_all(task_id, hmm_name, window_type,
 
         result, computation = update_for_exception(result=result, computation=computation,
                                                    err_msg="An exception occurred whilst concatenating total files: " + str(e))
-
-        #result["result"] = JobResultEnum.FAILURE.name
-        #computation.result = JobResultEnum.FAILURE.name
-
-        #result["error_explanation"] = "An exception occurred whilst concatenating total files: " + str(e)
-        #computation.error_explanation = "An exception occurred whilst concatenating total files: " + str(e)
         computation.save()
         return result
 
@@ -296,6 +275,7 @@ def compute_group_viterbi_path_all(task_id, hmm_name, window_type,
 
 def compute_group_viterbi_path(task_id, hmm_name, window_type, group_tip,
                                remove_dirs, use_spade, sequence_group, scheduler_id=None):
+
     logger.info("Computing Group Viterbi path")
     from .models import GroupViterbiComputation
 
@@ -340,12 +320,11 @@ def compute_group_viterbi_path(task_id, hmm_name, window_type, group_tip,
     hmm_model = hmm_loader.build_hmm(hmm_file=hmm_filename)
 
     if hmm_model is None:
-        computation.error_explanation = "Could not build HMM model"
-        computation.result = JobResultEnum.FAILURE.name
+        result, computation = update_for_exception(result=result, computation=computation,
+                                                   err_msg="Could not build HMM model")
+
         computation.save()
 
-        result["result"] = JobResultEnum.FAILURE.name
-        result["error_explanation"] = "Could not build HMM model"
         return result
 
     hmm_path_img = task_path
@@ -354,13 +333,11 @@ def compute_group_viterbi_path(task_id, hmm_name, window_type, group_tip,
         os.mkdir(hmm_path_img)
         print("{0} Successfully created the directory {1}".format(INFO, hmm_path_img))
     except OSError:
+        result, computation = update_for_exception(result=result, computation=computation,
+                                                   err_msg="Could not create dir: {0}".format(hmm_path_img))
 
-        computation.error_explanation = "Could not create dir: {0}".format(hmm_path_img)
-        computation.result = JobResultEnum.FAILURE.name
         computation.save()
 
-        result["result"] = JobResultEnum.FAILURE.name
-        result["error_explanation"] = "Could not create dir: {0}".format(hmm_path_img)
         return result
 
     hmm_path_img = hmm_path_img + hmm_name + '.png'
@@ -446,12 +423,11 @@ def compute_group_viterbi_path(task_id, hmm_name, window_type, group_tip,
             print("{0} Done working with region: {1}".format(INFO, region_model.name))
 
         except Exception as e:
+            result, computation = update_for_exception(result=result, computation=computation,
+                                                       err_msg=str(e))
 
-            result["result"] = JobResultEnum.FAILURE.name
-            result["error_explanation"] = str(e)
-            computation.result = JobResultEnum.FAILURE.name
-            computation.error_explanation = str(e)
             computation.save()
+
             return result
 
     # only if spade is enabled do this
@@ -468,10 +444,8 @@ def compute_group_viterbi_path(task_id, hmm_name, window_type, group_tip,
                     # concatenate the files
                     tufdel.concatenate_bed_files(files_created_map[idx][name], outfile=out_path + name)
         except Exception as e:
-            result["result"] = JobResultEnum.FAILURE.name
-            result["error_explanation"] = str(e)
-            computation.result = JobResultEnum.FAILURE.name
-            computation.error_explanation = str(e)
+            result, computation = update_for_exception(result=result, computation=computation,
+                                                       err_msg=str(e))
             computation.save()
             return result
 
