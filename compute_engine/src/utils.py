@@ -275,7 +275,19 @@ def compute_textdistances(sequences, distance_type,
     return similarity_map
 
 
+def get_chunks(cseq, chunk_size):
+    """
+    Given a sequence split it into chunks of
+    size chunk_size each
+    """
+    return [cseq[i:i + chunk_size] for i in range(0, len(cseq), chunk_size)]
+
 def extract_file_names(configuration):
+    """
+    Given the configuration map extract the
+    filenames related to the reference file
+    the WGA files and the non WGA files
+    """
 
     reference_files_names = []
     wga_files_names = []
