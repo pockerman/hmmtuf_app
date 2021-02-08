@@ -3,6 +3,7 @@ from compute_engine.src.utils import min_size_partition_range
 from compute_engine.src.utils import load_data_file
 from compute_engine.src.utils import type_converter
 from compute_engine.src.utils import make_data_array
+from compute_engine.src.utils import get_chunks
 from compute_engine.src.exceptions import Error
 
 
@@ -132,6 +133,28 @@ class TestUtils(unittest.TestCase):
         use_gc=True
         self.assertRaises(ValueError, make_data_array,
                           wga_mu, no_wga_mu, gc, use_ratio, use_gc)
+
+    def test_get_chunks_1(self):
+        seq = "AAAA"
+        chunk_size = 4
+        chunks = get_chunks(cseq=seq, chunk_size=chunk_size)
+        self.assertEqual(len(chunks), 1)
+        self.assertEqual(len(chunks[0]), 4)
+
+    def test_get_chunks_2(self):
+        seq = "AAAA"
+        chunk_size = 2
+        chunks = get_chunks(cseq=seq, chunk_size=chunk_size)
+        self.assertEqual(len(chunks), 2)
+        self.assertEqual(len(chunks[0]), 2)
+
+    def test_get_chunks_3(self):
+        seq = "AAAA"
+        chunk_size = 3
+        chunks = get_chunks(cseq=seq, chunk_size=chunk_size)
+        self.assertEqual(len(chunks), 2)
+        self.assertEqual(len(chunks[0]), 3)
+        self.assertEqual(len(chunks[1]), 1)
 
 
 if __name__ == '__main__':
