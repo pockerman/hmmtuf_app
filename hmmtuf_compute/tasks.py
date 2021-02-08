@@ -275,6 +275,11 @@ def compute_group_viterbi_path_all(task_id, hmm_name, window_type,
 
 def compute_group_viterbi_path(task_id, hmm_name, window_type, group_tip,
                                remove_dirs, use_spade, sequence_group, scheduler_id=None):
+    """
+    Compute the Viterbi paths for a group of sequences. If use_spade is True
+    it also uses the SPADE application to compute the core repeats and
+    concatenates the results into common files
+    """
 
     logger.info("Computing Group Viterbi path")
     from .models import GroupViterbiComputation
@@ -337,7 +342,6 @@ def compute_group_viterbi_path(task_id, hmm_name, window_type, group_tip,
                                                    err_msg="Could not create dir: {0}".format(hmm_path_img))
 
         computation.save()
-
         return result
 
     hmm_path_img = hmm_path_img + hmm_name + '.png'
@@ -423,11 +427,11 @@ def compute_group_viterbi_path(task_id, hmm_name, window_type, group_tip,
             print("{0} Done working with region: {1}".format(INFO, region_model.name))
 
         except Exception as e:
-            result, computation = update_for_exception(result=result, computation=computation,
+            result, computation = update_for_exception(result=result,
+                                                       computation=computation,
                                                        err_msg=str(e))
 
             computation.save()
-
             return result
 
     # only if spade is enabled do this
