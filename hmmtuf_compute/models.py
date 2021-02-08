@@ -9,7 +9,6 @@ from hmmtuf.settings import USE_CELERY
 from hmmtuf_home.models import Computation
 
 from .tasks import compute_viterbi_path_task
-#from .tasks import compute_mutliple_viterbi_path_task
 from .tasks import compute_group_viterbi_path_task
 from .tasks import compute_compare_viterbi_sequence_task
 from .tasks import compute_group_viterbi_path_all_task
@@ -143,7 +142,7 @@ class GroupViterbiComputation(Computation):
                                                              remove_dirs=data["remove_dirs"],
                                                              use_spade=data["use_spade"],
                                                              sequence_group=data["sequence_group"])
-            return task.id
+            return task
         else:
 
             import uuid
@@ -159,7 +158,6 @@ class GroupViterbiComputation(Computation):
                                                use_spade=data["use_spade"],
                                                sequence_group=data["sequence_group"])
                 return task_id
-
 
             else:
                 from .tasks import compute_group_viterbi_path
