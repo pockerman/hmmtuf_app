@@ -140,8 +140,6 @@ def view_viterbi_path_exception_context(task, task_id, model=ViterbiComputation.
             raise ValueError("Model name: {0} not found".format(INFO, model))
     elif task.status == JobResultEnum.FAILURE.name:
 
-        import pdb
-        pdb.set_trace()
         result = task.get(propagate=False)
 
         if model == ViterbiComputation.__name__:
