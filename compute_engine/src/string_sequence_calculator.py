@@ -18,13 +18,65 @@ class L2Norm(object):
         return np.linalg.norm(seq1 - seq2)
 
 
-class TextDistanceCalculator(object):
+class AllDistancesCalculator(object):
+    """
+    Wrapper for calculating all the distances
+    """
+    def __init__(self):
+        pass
 
-    NAMES = ["Prefix similarity", "Postfix similarity",
-             "Length distance", "Identity similarity",
-             "Matrix similarity", "Longest common subsequence similarity",
-             "Longest common substring similarity",
-             "Ratcliff-Obershelp similarity", "L2Norm", 'CPF']
+    def similarity(self, seq1, seq2):
+
+        results = {}
+
+        results['ham'] = textdistance.Hamming().distance(seq1, seq2)
+        results['mlipns'] = textdistance.MLIPNS().distance(seq1, seq2)
+        results['lev'] = textdistance.Levenshtein().distance(seq1, seq2)
+        results['damlev'] = textdistance.DamerauLevenshtein().distance(seq1, bseq2)
+        results['jwink'] = textdistance.JaroWinkler().distance(seq1, seq2)
+        results['str'] = textdistance.StrCmp95().distance(seq1, seq2)
+        results['nw'] = textdistance.NeedlemanWunsch().distance(seq1, seq2)
+        results['got'] = textdistance.Gotoh().distance(seq1, seq2)
+        results['jac'] = textdistance.Jaccard().distance(seq1, seq2)
+        results['sor'] = textdistance.Sorensen().distance(seq1, seq2)
+        results['tve'] = textdistance.Tversky().distance(seq1, seq2)
+        results['ov'] = textdistance.Overlap().distance(seq1, seq2)
+        results['tan'] = textdistance.Tanimoto().distance(seq1, seq2)
+        results['cos'] = textdistance.Cosine().distance(seq1, seq2)
+        results['mon'] = textdistance.MongeElkan().distance(seq1, seq2)
+        results['bag'] = textdistance.Bag().distance(seq1, seq2)
+        results['lcsseq'] = textdistance.LCSSeq().distance(seq1, seq2)
+        results['lcsstr'] = textdistance.LCSStr().distance(seq1, seq2)
+        results['rat'] = textdistance.RatcliffObershelp().distance(seq1, seq2)
+        results['ari'] = textdistance.ArithNCD().distance(seq1, seq2)
+        results['rle'] = textdistance.RLENCD().distance(seq1, seq2)
+        results['bwt'] = textdistance.BWTRLENCD().distance(seq1, seq2)
+        results['sqr'] = textdistance.SqrtNCD().distance(seq1, seq2)
+        results['ent'] = textdistance.EntropyNCD().distance(seq1, seq2)
+        results['bz2'] = textdistance.BZ2NCD().distance(seq1, seq2)
+        results['lzm'] = textdistance.LZMANCD().distance(seq1, seq2)
+        results['zli'] = textdistance.ZLIBNCD().distance(seq1, seq2)
+        results['mra'] = textdistance.MRA().distance(seq1, seq2)
+        results['edi'] = textdistance.Editex().distance(seq1, seq2)
+        results['pre'] = textdistance.Prefix().distance(seq1, seq2)
+        results['pos'] = textdistance.Postfix().distance(seq1, seq2)
+        results['len'] = textdistance.Length().distance(seq1, seq2)
+        results['id'] = textdistance.Identity().distance(seq1, seq2)
+        results['mat'] = textdistance.Matrix().distance(seq1, seq2)
+
+        return results
+
+
+class TextDistanceCalculator(object):
+    """
+    Wrapper class for text distance calculation
+    """
+
+    NAMES = ['ham', 'mlipns', 'lev', 'damlev', 'jwink', 'str'
+            , 'nw', 'got', 'jac', 'sor', 'tve', 'ov', 'tan', 'cos', 'mon'
+            , 'bag', 'lcsseq', 'lcsstr', 'rat', 'ari', 'rle', 'bwt', 'sqr'
+            , 'ent', 'bz2', 'lzm', 'zli', 'mra', 'edi', 'pre', 'pos', 'len', 'id', 'mat'
+            , 'size', 'mins', 'maxs', 'diff', 'seqpair', 'CPF', 'all']
 
     @staticmethod
     def build_calculator(name):
@@ -81,6 +133,8 @@ class TextDistanceCalculator(object):
         self._dist_type = dist_type
 
     def calculate(self, txt1, txt2, **options):
+
+        # build a calculator
         calculator = TextDistanceCalculator.build_calculator(name=self._dist_type)
 
         set_options = getattr(calculator, "set_options", None)
@@ -90,6 +144,40 @@ class TextDistanceCalculator(object):
 
         return calculator.similarity(txt1, txt2)
 
+    def calculate_from_file(self, filename, file_reader, **options):
+        """
+        Calculate the similarity of the sequences in the
+        filename. The file is read using the file_reader object.
+        The file_reader should override the __call__ method
+        that returns a list of strings. It returns a map where
+        the key is (seq1, seq2) tuple and the value the
+        similarity calculated
+        """
+
+        if file_reader is None:
+            raise ValueError("file_reader not specified")
+
+        # read the file
+        sequences = file_reader(filename)
+
+        # build a calculator
+        calculator = TextDistanceCalculator.build_calculator(name=self._dist_type)
+
+        # do we have set_options function?
+        set_options = getattr(calculator, "set_options", None)
+
+        if set_options is not None:
+            calculator.set_options(**options)
+
+        similarity_map = {}
+        for seqi in range(len(sequences)):
+            for seqj in range(len(sequences)):
+                if seqi != seqj:
+                    result = calculator.similarity(sequences[seqi], sequences[seqj])
+                    similarity_map[(sequences[seqi], sequences[seqj])] = result
+
+        return similarity_map
+
     def calculate_from_files(self, fileslist, save_at, delim, **options):
 
         sequences = []
@@ -98,6 +186,7 @@ class TextDistanceCalculator(object):
 
         calculator = TextDistanceCalculator.build_calculator(name=self._dist_type)
 
+        # do we have set_options function?
         set_options = getattr(calculator, "set_options", None)
 
         if set_options is not None:
