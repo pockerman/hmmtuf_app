@@ -37,6 +37,20 @@ The application currently supports two types of computations
 You also need to install one of the backends supported by Celery. For more
 information see <a href="https://docs.celeryproject.org/en/stable/getting-started/introduction.html#installation">here</a>.
 
+## Configuration 
+
+The general configuration is controlled by the ```config.py``` script in the ```hmmtuf/```
+application directory. The following variables can be configured
+
+- ```DEBUG``` 
+- ```LOCAL_DEPLOY```
+- ```SESSION_COOKIE_SECURE```
+- ```CSRF_COOKIE_SECURE```
+- ```USE_CELERY```
+- ```ENABLE_SPADE```
+- ```SPADE_PATH```
+- ```DATA_PATH```
+- ```USE_DJANGO_EXTENSIONS```
 
 ## Setup the project locally
 
