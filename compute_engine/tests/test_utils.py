@@ -3,7 +3,8 @@ from compute_engine.src.utils import min_size_partition_range
 from compute_engine.src.utils import load_data_file
 from compute_engine.src.utils import type_converter
 from compute_engine.src.utils import make_data_array
-from compute_engine.src.utils import get_chunks
+from compute_engine.src.utils import get_sequence_chunks
+from compute_engine.src.utils import get_range_chunks
 from compute_engine.src.exceptions import Error
 
 
@@ -137,24 +138,50 @@ class TestUtils(unittest.TestCase):
     def test_get_chunks_1(self):
         seq = "AAAA"
         chunk_size = 4
-        chunks = get_chunks(cseq=seq, chunk_size=chunk_size)
+        chunks = get_sequence_chunks(cseq=seq, chunk_size=chunk_size)
         self.assertEqual(len(chunks), 1)
         self.assertEqual(len(chunks[0]), 4)
 
     def test_get_chunks_2(self):
         seq = "AAAA"
         chunk_size = 2
-        chunks = get_chunks(cseq=seq, chunk_size=chunk_size)
+        chunks = get_sequence_chunks(cseq=seq, chunk_size=chunk_size)
         self.assertEqual(len(chunks), 2)
         self.assertEqual(len(chunks[0]), 2)
 
     def test_get_chunks_3(self):
         seq = "AAAA"
         chunk_size = 3
-        chunks = get_chunks(cseq=seq, chunk_size=chunk_size)
+        chunks = get_sequence_chunks(cseq=seq, chunk_size=chunk_size)
         self.assertEqual(len(chunks), 2)
         self.assertEqual(len(chunks[0]), 3)
         self.assertEqual(len(chunks[1]), 1)
+
+    def test_get_range_chunks_1(self):
+
+        start = 0
+        end = 10
+        c_size = 2
+
+        chunks = get_range_chunks(start=start, end=end, chunk_size=c_size)
+        self.assertEqual(len(chunks), 5)
+
+        for item in chunks:
+            self.assertEqual(len(item), 2)
+
+    def test_get_range_chunks_2(self):
+
+        start = 0
+        end = 11
+        c_size = 2
+
+        chunks = get_range_chunks(start=start, end=end, chunk_size=c_size)
+        self.assertEqual(len(chunks), 6)
+
+        for i, item in enumerate(chunks):
+            self.assertEqual(len(item), 2)
+
+
 
 
 if __name__ == '__main__':
