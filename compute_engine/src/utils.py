@@ -50,8 +50,8 @@ def partition_range(start, end, npieces):
 
     chunks = []
     start_p = start
-
     end_p = start_p + load
+
     for p in range(npieces - 1):
         chunks.append((start_p, end_p))
         start_p = end_p
@@ -64,8 +64,8 @@ def partition_range(start, end, npieces):
 def read_json(filename):
 
     """
-        Read the json configuration file and
-        return a map with the config entries
+    Read the json configuration file and
+    return a map with the config entries
     """
     with open(filename) as json_file:
         json_input = json.load(json_file)
@@ -121,7 +121,10 @@ def read_sequences_csv_file_line(line, delimiter=","):
 
 
 def read_bed_file_line(line, extract_state=False, delimiter='\t'):
-
+    """
+    Read the given line and return the entries in a tuple
+    (chromosome, start, end, seq)
+    """
     line_data = line.split(delimiter)
     chromosome = line_data[0]
     start = int(line_data[1])
@@ -136,6 +139,10 @@ def read_bed_file_line(line, extract_state=False, delimiter='\t'):
 
 
 def extract_sequences_from_bed_file_with_state(filename, state_name, delimiter):
+    """
+    Extract the sequence from the given file that has the
+    state_name label
+    """
 
     with open(filename, 'r') as fh:
 
@@ -275,12 +282,26 @@ def compute_textdistances(sequences, distance_type,
     return similarity_map
 
 
-def get_chunks(cseq, chunk_size):
+def get_sequence_chunks(cseq, chunk_size):
     """
     Given a sequence split it into chunks of
     size chunk_size each
     """
     return [cseq[i:i + chunk_size] for i in range(0, len(cseq), chunk_size)]
+
+def get_range_chunks(start, end, chunk_size):
+    """
+    Given a range [start, end) partition it
+    into chunks for chunk_size
+    """
+
+    if end - start <= chunk_size:
+        return [(start, end)]
+
+    chunks = [[i, i + chunk_size] for i in range(0, end, chunk_size)]
+
+    chunks[-1][1] -= 1
+    return chunks
 
 def extract_file_names(configuration):
     """
