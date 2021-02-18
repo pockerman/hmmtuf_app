@@ -1,0 +1,9 @@
+{
+  "distance_type": "mlipns",
+  "input_file": "/home/alex/qi3/hmmtuf/computations/distances/nucl_out.bed",
+  "output_file": "/home/alex/qi3/hmmtuf/computations/distances/mlipns/",
+  "line_counter": 2810,
+  "num_procs": 1,
+  "master_proc_id": 0,
+  "load": 140
+}
