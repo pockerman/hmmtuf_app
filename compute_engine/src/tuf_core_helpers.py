@@ -5,7 +5,7 @@ import numpy as np
 import os
 import shutil
 from compute_engine.src.utils import INFO
-from compute_engine.src.utils import get_chunks
+from compute_engine.src.utils import get_sequence_chunks
 
 def get_align_unit_seq_fasta(working_dir):
 
@@ -117,7 +117,7 @@ def gcpercent(cseq, chunk_size=100):
 
     # otherwise split the sequence into chuncks of size 100
     # amd calculate max/min GC percentage
-    chunks = get_chunks(cseq=cseq, chunk_size=chunk_size) #[cseq[i:i + chunk_size] for i in range(0, len(cseq), chunk_size)]
+    chunks = get_sequence_chunks(cseq=cseq, chunk_size=chunk_size) #[cseq[i:i + chunk_size] for i in range(0, len(cseq), chunk_size)]
     rslt = []
     for chunk in chunks:
         tmp = gcpercent(cseq=chunk, chunk_size=chunk_size)

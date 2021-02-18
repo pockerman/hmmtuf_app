@@ -27,6 +27,7 @@ from .config import REGIONS_FILES_ROOT
 from .config import HMM_FILES_ROOT
 from .config import VITERBI_PATHS_FILES_ROOT
 from .config import VITERBI_SEQ_FILES_ROOT
+from .config import USE_DJANGO_EXTENSIONS
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.1/howto/deployment/checklist/
@@ -36,20 +37,25 @@ SECRET_KEY = 'y=ujo$_)gjwj$*k!v@2ihj@u)s0od%37)m6m)01)k6pc0siqsg'
 
 
 # Application definition
-
 INSTALLED_APPS = [
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
-    'hmmtuf_home',
-    'file_loader',
-    'hmmtuf_compute',
-     #'region_extractor',
-     'hmm_creator'
+        'django.contrib.admin',
+        'django.contrib.auth',
+        'django.contrib.contenttypes',
+        'django.contrib.sessions',
+        'django.contrib.messages',
+        'django.contrib.staticfiles'
 ]
+
+# if we have django extensions then use it
+if USE_DJANGO_EXTENSIONS:
+    INSTALLED_APPS.append('django_extensions')
+
+
+# HMMTuf specific applications
+INSTALLED_APPS.append('hmmtuf_home')
+INSTALLED_APPS.append('file_loader')
+INSTALLED_APPS.append('hmmtuf_compute')
+INSTALLED_APPS.append('hmm_creator')
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

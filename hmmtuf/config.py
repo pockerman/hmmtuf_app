@@ -14,6 +14,8 @@ ENABLE_SPADE = True
 SPADE_PATH = "%s/compute_engine/SPADE/" % BASE_DIR
 DATA_PATH = "%s/data/" % BASE_DIR
 
+USE_DJANGO_EXTENSIONS = True
+
 files_dict = {
   "sequence_files": {
 
