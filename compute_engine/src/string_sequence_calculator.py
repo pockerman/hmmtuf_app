@@ -3,6 +3,7 @@ import textdistance
 
 from compute_engine.src.exceptions import Error
 from compute_engine.src.utils import read_sequence_bed_file
+from compute_engine.src.utils import INFO
 from compute_engine.src.cpf import CPF
 
 
@@ -32,7 +33,7 @@ class AllDistancesCalculator(object):
         results['ham'] = textdistance.Hamming().distance(seq1, seq2)
         results['mlipns'] = textdistance.MLIPNS().distance(seq1, seq2)
         results['lev'] = textdistance.Levenshtein().distance(seq1, seq2)
-        results['damlev'] = textdistance.DamerauLevenshtein().distance(seq1, bseq2)
+        results['damlev'] = textdistance.DamerauLevenshtein().distance(seq1, seq2)
         results['jwink'] = textdistance.JaroWinkler().distance(seq1, seq2)
         results['str'] = textdistance.StrCmp95().distance(seq1, seq2)
         results['nw'] = textdistance.NeedlemanWunsch().distance(seq1, seq2)
@@ -72,11 +73,12 @@ class TextDistanceCalculator(object):
     Wrapper class for text distance calculation
     """
 
-    NAMES = ['ham', 'mlipns', 'lev', 'damlev', 'jwink', 'str'
-            , 'nw', 'got', 'jac', 'sor', 'tve', 'ov', 'tan', 'cos', 'mon'
-            , 'bag', 'lcsseq', 'lcsstr', 'rat', 'ari', 'rle', 'bwt', 'sqr'
-            , 'ent', 'bz2', 'lzm', 'zli', 'mra', 'edi', 'pre', 'pos', 'len', 'id', 'mat'
-            , 'size', 'mins', 'maxs', 'diff', 'seqpair', 'CPF', 'all']
+    NAMES = ['ham', 'mlipns', 'lev', 'damlev', 'jwink', 'str',
+             'nw', 'got', 'jac', 'sor', 'tve', 'ov', 'tan',
+             'cos', 'mon', 'bag', 'lcsseq', 'lcsstr', 'rat',
+             'ari', 'rle', 'bwt', 'sqr', 'ent', 'bz2', 'lzm',
+             'zli', 'mra', 'edi', 'pre', 'pos',
+             'len', 'id', 'mat',  'CPF', 'all']
 
     @staticmethod
     def build_calculator(name):
@@ -84,26 +86,43 @@ class TextDistanceCalculator(object):
         if name not in TextDistanceCalculator.NAMES:
             raise Error("Distance type '{0}' is invalid".format(name))
 
-        if name == 'Prefix similarity':
-            return textdistance.algorithms.simple.Prefix()
-        elif name == "Postfix similarity":
-            return textdistance.algorithms.simple.Postfix()
-        elif name == "Length distance":
-            return textdistance.algorithms.simple.Length()
-        elif name == "Identity similarity":
-            return textdistance.algorithms.simple.Identity()
-        elif name == "Matrix similarity":
-            return textdistance.algorithms.simple.Matrix()
-        elif name == "Longest common subsequence similarity":
-            return textdistance.algorithms.sequence_based.LCSSeq()
-        elif name == "Longest common substring similarity":
-            return textdistance.algorithms.sequence_based.LCSStr()
-        elif name == "Ratcliff-Obershelp similarity":
-            return textdistance.algorithms.sequence_based.RatcliffObershelp()
-        elif name == "L2Norm":
-            return L2Norm()
-        elif name == 'CPF':
-            return CPF()
+        if name   == 'ham'   : return textdistance.Hamming()
+        elif name == 'mlipns': return textdistance.MLIPNS()
+        elif name == 'lev'   : return textdistance.Levenshtein()
+        elif name == 'damlev': return textdistance.DamerauLevenshtein()
+        elif name == 'jwink' : return textdistance.JaroWinkler()
+        elif name == 'str'   : return textdistance.StrCmp95()
+        elif name == 'nw'    : return textdistance.NeedlemanWunsch()
+        elif name == 'got'   : return textdistance.Gotoh()
+        elif name == 'jac'   : return textdistance.Jaccard()
+        elif name == 'sor'   : return textdistance.Sorensen()
+        elif name == 'tve'   : return textdistance.Tversky()
+        elif name == 'ov'    : return textdistance.Overlap()
+        elif name == 'tan'   : return textdistance.Tanimoto()
+        elif name == 'cos'   : return textdistance.Cosine()
+        elif name == 'mon'   : return textdistance.MongeElkan()
+        elif name == 'bag'   : return textdistance.Bag()
+        elif name == 'lcsseq': return textdistance.LCSSeq()
+        elif name == 'lcsstr': return textdistance.LCSStr()
+        elif name == 'rat'   : return textdistance.RatcliffObershelp()
+        elif name == 'ari'   : return textdistance.ArithNCD()
+        elif name == 'rle'   : return textdistance.RLENCD()
+        elif name == 'bwt'   : return textdistance.BWTRLENCD()
+        elif name == 'sqr'   : return textdistance.SqrtNCD()
+        elif name == 'ent'   : return textdistance.EntropyNCD()
+        elif name == 'bz2'   : return textdistance.BZ2NCD()
+        elif name == 'lzm'   : return textdistance.LZMANCD()
+        elif name == 'zli'   : return textdistance.ZLIBNCD()
+        elif name == 'mra'   : return textdistance.MRA()
+        elif name == 'edi'   : return textdistance.Editex()
+        elif name == 'pre'   : return textdistance.Prefix()
+        elif name == 'pos'   : return textdistance.Postfix()
+        elif name == 'len'   : return textdistance.Length()
+        elif name == 'id'    : return textdistance.Identity()
+        elif name == 'mat'   : return textdistance.Matrix()
+        elif name == "L2Norm": return L2Norm()
+        elif name == 'CPF'   : return CPF()
+        elif name == 'all'   : return AllDistancesCalculator()
 
     @staticmethod
     def read_sequence_comparison_file(filename, strip_path, delim=',', commment_delim='#'):
@@ -159,6 +178,9 @@ class TextDistanceCalculator(object):
 
         # read the file
         sequences = file_reader(filename)
+
+        if 'print_info' in options and options["print_info"] == True:
+            print("{0} Number of sequences={1}".format(INFO, len(sequences)))
 
         # build a calculator
         calculator = TextDistanceCalculator.build_calculator(name=self._dist_type)
