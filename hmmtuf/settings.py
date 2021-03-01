@@ -56,6 +56,7 @@ INSTALLED_APPS.append('hmmtuf_home')
 INSTALLED_APPS.append('file_loader')
 INSTALLED_APPS.append('hmmtuf_compute')
 INSTALLED_APPS.append('hmm_creator')
+INSTALLED_APPS.append('repeats_analyser')
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
