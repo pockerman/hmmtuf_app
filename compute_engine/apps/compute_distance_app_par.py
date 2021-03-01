@@ -8,6 +8,8 @@ if "/home/alex/qi3/hmmtuf" not in sys.path:
 
 from compute_engine.src.string_sequence_calculator import TextDistanceCalculator
 from compute_engine.src.file_readers import NuclOutFileReader
+from compute_engine.src.utils import INFO
+from compute_engine.src.utils import read_json
 
 
 def reverse_complement_table(seq, tab):
@@ -26,6 +28,7 @@ def write_pair_segments_distances(proc_id, master_proc, start, end, input_file,
 
         from compute_engine.src.string_sequence_calculator import TextDistanceCalculator
         from compute_engine.src.file_readers import NuclOutFileReader
+        from compute_engine.src.utils import INFO
 
         # read original seqs
         filereader = NuclOutFileReader(exclude_seqs=["NO_REPEATS"])  # NuclOutFileReader()
@@ -36,8 +39,14 @@ def write_pair_segments_distances(proc_id, master_proc, start, end, input_file,
 
         if start >= end:
             raise ValueError("Error: start index={0} greater than end index={1}".format(start, end))
+            
+        if proc_id == master_proc:
+            print("{0} Master process is working on [{1}, {2})".format(INFO, start, end))
 
         tab = str.maketrans("ACTGRMW", "TGACYKS")
+        tabPP = str.maketrans("AGCT", "RRYY")
+        tabAK = str.maketrans("ACGT", "MMKK")
+        tabWS = str.maketrans("ATCG", "WWSS")
 
         # build the wrapper
         calculator = TextDistanceCalculator.build_calculator(name=distance_type)
@@ -48,7 +57,7 @@ def write_pair_segments_distances(proc_id, master_proc, start, end, input_file,
 
         # only work on the part assigned [start, end)
         for i in range(start, end, 1):
-            for j in range(len(sequences)):
+            for j in range(start, len(sequences)):
                 if (i, j) not in touched and (j, i) not in touched:
 
                     chr_seq_1 = sequences[i][0].strip()
@@ -71,7 +80,36 @@ def write_pair_segments_distances(proc_id, master_proc, start, end, input_file,
                         distance2 = calculator.normalized_distance(seq1, reverse_complement_table(seq=seq2, tab=tab))
 
                         distance = min(distance1, distance2)
-                        lines.append([chr_seq_1, start1, end1, seq1, state1, chr_seq_2, start2, end2, seq2, state2, distance])
+
+                        PPseq1 = seq1.translate(tabPP)
+                        AKseq1 = seq1.translate(tabAK)
+                        WSseq1 = seq1.translate(tabWS)
+
+                        PPseq2 = seq2.translate(tabPP)
+                        AKseq2 = seq2.translate(tabAK)
+                        WSseq2 = seq2.translate(tabWS)
+
+                        PPdist = calculator.normalized_distance(PPseq1, PPseq2)
+                        PPdist_rev = calculator.normalized_distance(PPseq1,
+                                                                    reverse_complement_table(seq=PPseq2, tab=tab))
+
+                        pp_distance = min(PPdist, PPdist_rev)
+
+                        AKdist = calculator.normalized_distance(AKseq1, AKseq2)
+                        AKdist_rev = calculator.normalized_distance(AKseq1,
+                                                                    reverse_complement_table(seq=AKseq2, tab=tab))
+
+                        ak_distance = min(AKdist, AKdist_rev)
+
+                        WSdist = calculator.normalized_distance(WSseq1, WSseq2)
+                        WSdist_rev = calculator.normalized_distance(WSseq1,
+                                                                    reverse_complement_table(seq=WSseq2, tab=tab))
+
+                        ws_distance = min(WSdist, WSdist_rev)
+
+                        lines.append([chr_seq_1, start1, end1, seq1, state1,
+                                      chr_seq_2, start2, end2, seq2, state2,
+                                      distance, pp_distance, ak_distance, ws_distance])
 
                         # if we reached the batch then flush
                         # to the output file
@@ -87,8 +125,13 @@ def write_pair_segments_distances(proc_id, master_proc, start, end, input_file,
 
                             with open(filename, 'w', newline="\n") as fh:
                                 writer = csv.writer(fh, delimiter=",")
-                                for l in lines:
-                                    writer.writerow(l)
+
+                                writer.writerow(["#", "ChrSeq-1", "StartSeq-1", "EndSeq-1", "Seq-1", "HMM-State-1",
+                                                 "ChrSeq-2", "StartSeq-2", "EndSeq-2", "Seq-2", "HMM-State-2",
+                                                 "Distance", "Distance-PP", "Distance-AK", "Distance-WS"])
+
+                                for line in lines:
+                                    writer.writerow(line)
 
                             if proc_id == master_proc:
                                 print("{0} Finished writing to {1}".format(INFO, filename))
@@ -118,8 +161,13 @@ def write_pair_segments_distances(proc_id, master_proc, start, end, input_file,
 
             with open(filename, 'w', newline="\n") as fh:
                 writer = csv.writer(fh, delimiter=",")
-                for l in lines:
-                    writer.writerow(l)
+
+                writer.writerow(["#", "ChrSeq-1", "StartSeq-1", "EndSeq-1", "Seq-1", "HMM-State-1",
+                                 "ChrSeq-2", "StartSeq-2", "EndSeq-2", "Seq-2", "HMM-State-2",
+                                 "Distance", "Distance-PP", "Distance-AK", "Distance-WS"])
+
+                for line in lines:
+                    writer.writerow(line)
 
             if proc_id == master_proc:
                 print("{0} Finished writing remaining lines to {1}".format(INFO, filename))
@@ -159,7 +207,8 @@ def main():
 
     procs = []
 
-    start = 0
+    start = configuration["start"]
+    end = configuration["end"]
     for p in range(num_procs-1):
         print("{0} Process {1} works in [{2},{3})".format(INFO, p, start, (p+1)*load))
         procs.append(mp.Process(target=write_pair_segments_distances,
@@ -171,11 +220,11 @@ def main():
         procs[p].start()
         start = (p+1)*load
 
-    print("{0} Master Process {1} works in [{2},{3})".format(INFO, p, start, -1))
+    print("{0} Master Process {1} works in [{2},{3})".format(INFO, MASTER_PROC_ID, start, end))
 
     # main process is working as well
     write_pair_segments_distances(proc_id=MASTER_PROC_ID, master_proc=MASTER_PROC_ID,
-                                  start=start, end=10,
+                                  start=start, end=end,
                                   input_file=input_file,
                                   line_counter=line_counter,
                                   outdir=outdir,
