@@ -1,9 +1,11 @@
 {
-  "distance_type": "mlipns",
+  "distance_type": "sor",
   "input_file": "/home/alex/qi3/hmmtuf/computations/distances/nucl_out.bed",
-  "output_file": "/home/alex/qi3/hmmtuf/computations/distances/mlipns/",
+  "output_file": "/home/alex/qi3/hmmtuf/computations/distances/sor/part_0_100/",
   "line_counter": 2810,
   "num_procs": 1,
   "master_proc_id": 0,
-  "load": 140
+  "load": 100,
+  "start": 0,
+  "end": 100
 }

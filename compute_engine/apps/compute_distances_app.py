@@ -1,20 +1,13 @@
 import csv
 import numpy as np
+import ipyparallel as ipp
+
 from compute_engine.src.constants import INFO
 from compute_engine.src.utils import to_csv_line
 from compute_engine.src.string_sequence_calculator import TextDistanceCalculator
+from compute_engine.src.file_readers import NuclOutSeqFileReader
+from compute_engine.src.file_creator import FileCreator
 
-
-def load_sequences_files(filename):
-
-    with open(filename, 'r', newline="\n") as fh:
-        file_reader = csv.reader(fh, delimiter=",")
-
-        sequences = []
-        for line in file_reader:
-            sequences.append(line[0])
-
-        return sequences
 
 
 def compute_sequences_cartesian_product(sequences):
@@ -66,46 +59,91 @@ def save_distances(filename, distances):
                 writer.writerow(item)
 
 
+def compute_distances(distance_type, input_file, outfile):
+    import sys
+
+    if "/home/alex/qi3/hmmtuf" not in sys.path:
+        sys.path.append("/home/alex/qi3/hmmtuf")
+
+    # typical import for spawned processes
+    from compute_engine.src.string_sequence_calculator import TextDistanceCalculator
+    from compute_engine.src.file_readers import NuclOutSeqFileReader
+
+    # build the wrapper
+    calculator = TextDistanceCalculator(dist_type=distance_type)
+
+    filereader = NuclOutSeqFileReader(exclude_seqs=["NO_REPEATS"])
+    distances = calculator.calculate_from_file(filename=input_file,
+                                               file_reader=filereader,
+                                               **{"print_info": True})
+
+    with open(outfile, 'w') as fh:
+
+        for dist in distances:
+            line = dist[0] + "," + dist[1] + "," + str(float(distances[dist]))
+            fh.write(line)
+
+    return True
+
+
+
+def compute_distances_app_main(distance_type, input_dir, filename):
+    # how many processes we have available
+    rc = ipp.Client()
+    view = rc[:]
+    view.block = False
+    print("{0} # of engines used={1}".format(INFO, len(view)))
+    # file_creator = FileCreator()
+    # file_creator.segragate_nucl_out_file(filename=input_dir + filename,
+    #                                     lines_per_file=300,
+    #                                     out_file_name="temp_sequences",
+    #                                     suffix=".bed",
+    #                                     output_dir="/home/alex/qi3/hmmtuf/computations/tmp/")
+
+    # view = rc.load_balanced_view()
+    rs1 = view.apply_async(compute_distances,
+                           distance_type,
+                           "/home/alex/qi3/hmmtuf/computations/tmp/temp_sequences_300.bed",
+                           "/home/alex/qi3/hmmtuf/computations/tmp/temp_sequences_300_out.bed")
+
+    rs2 = view.apply_async(compute_distances,
+                           distance_type,
+                           "/home/alex/qi3/hmmtuf/computations/tmp/temp_sequences_600.bed",
+                           "/home/alex/qi3/hmmtuf/computations/tmp/temp_sequences_600_out.bed")
+
+    rs3 = view.apply_async(compute_distances,
+                           distance_type,
+                           "/home/alex/qi3/hmmtuf/computations/tmp/temp_sequences_900.bed",
+                           "/home/alex/qi3/hmmtuf/computations/tmp/temp_sequences_900_out.bed")
+
+    rs4 = view.apply_async(compute_distances,
+                           distance_type,
+                           "/home/alex/qi3/hmmtuf/computations/tmp/temp_sequences_1200.bed",
+                           "/home/alex/qi3/hmmtuf/computations/tmp/temp_sequences_1200_out.bed")
+
+    print("Block to get the result...")
+    print("Process {0}  finished {1}".format(INFO, rs1.get()))
+    print("Process {0}  finished {1}".format(INFO, rs2.get()))
+    print("Process {0}  finished {1}".format(INFO, rs3.get()))
+    print("Process {0}  finished {1}".format(INFO, rs4.get()))
+
+
+
 if __name__ == '__main__':
 
     APP_NAME = "ComputeDistancesApp"
     print("{0} Running {1} application".format(INFO, APP_NAME))
 
-    DISTANCE_TYPE = "CPF"
-    STORE_AVERAGE_LENGTH = True
-    STORE_TOTAL_LENGTH = False
+    DISTANCE_TYPE = "ham"
+    INPUT_DIR = "/home/alex/qi3/hmmtuf/computations/viterbi_paths/chr1/chr1/"
+    FILENAME = 'nucl_out.bed'
 
-    OUTPUT_DIR = "/home/alex/qi3/hmmtuf/computations/sequence_clusters/output/"
-    OUTPUT_FILE = "random_deletion_sequences_distances_with_average_length" + "_CPF_PROBABILITY_COUNTS_REMOVE_ZEROS.csv"
-    #OUTPUT_FILE = "full_deletion_sequences_distances_with_average_length" + "_CPF_PROBABILITY_COUNTS_REMOVE_ZEROS.csv"
+    #file_creator = FileCreator()
+    #file_creator.append_nucl_out_files("/home/alex/qi3/hmmtuf/computations/viterbi_paths/",
+    #                                   "/home/alex/qi3/hmmtuf/computations/tmp/nucl_out.bed",)
+    compute_distances_app_main(distance_type=DISTANCE_TYPE,
+                               input_dir=INPUT_DIR,
+                               filename=FILENAME)
 
-    INPUT_DIR = "/home/alex/qi3/hmmtuf/computations/sequence_clusters/input/"
-    #INPUT_FILE = "full_sequences.csv"
-    #INPUT_FILE = "deletion_sequences.csv"
-    #INPUT_FILE = "random_sequences_II.csv"
-    INPUT_FILE = "random_sequences_deletion.csv"
+    print("{0} Done with application {1}".format(INFO, APP_NAME))
 
-    print("{0} Loading sequences from {1}".format(INFO, INPUT_DIR + INPUT_FILE))
-
-    # load the sequences
-    sequences = load_sequences_files(filename=INPUT_DIR + INPUT_FILE)
-
-    print("{0} Building cartesian product...".format(INFO))
-
-    # form pairs of the sequences
-    sequences_cartesian_product = compute_sequences_cartesian_product(sequences)
-
-    print("{0} Calculating distances".format(INFO))
-    print("{0} Using distance metric {1}".format(INFO, DISTANCE_TYPE))
-    distances = compute_distances(distance_type=DISTANCE_TYPE,
-                                  sequences=sequences_cartesian_product,
-                                  use_partial_sums=True,
-                                  store_average_length=STORE_AVERAGE_LENGTH,
-                                  store_total_length=STORE_TOTAL_LENGTH)
-
-    print("{0} Writing output to {1} ".format(INFO, OUTPUT_DIR + OUTPUT_FILE))
-
-    # save the distances
-    save_distances(filename=OUTPUT_DIR + OUTPUT_FILE, distances=distances)
-
-    print("{0} Finished...".format(INFO))
