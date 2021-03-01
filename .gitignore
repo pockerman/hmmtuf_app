@@ -16,3 +16,6 @@ compute_engine/SPADE/__pycache__/
 hmm_creator/migrations/__pycache__/
 hmm_creator/__pycache__/
 stories/.ipynb_checkpoints/
+repeats_analyser/migrations/__pycache__/
+repeats_analyser/__pycache__/
+repeats_analyser/migrations/
