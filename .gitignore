@@ -19,3 +19,4 @@ stories/.ipynb_checkpoints/
 repeats_analyser/migrations/__pycache__/
 repeats_analyser/__pycache__/
 repeats_analyser/migrations/
+db/__pycache__/
