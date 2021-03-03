@@ -8,6 +8,13 @@ class SQLiteDBConnector(object):
               'distance_sequence_type', 'repeats',
               'repeats_distances']
 
+    @staticmethod
+    def get_table_names():
+        """
+        Returns the table names the DB has
+        """
+        return SQLiteDBConnector.TABLES
+
     def __init__(self, db_file):
         self._conn = None
         self._db_file = db_file
@@ -23,20 +30,31 @@ class SQLiteDBConnector(object):
             print(str(e))
         return self._conn
 
+    def delete_all_tables(self):
+        """
+        Delete all the tables in the DB
+        """
+        for name in SQLiteDBConnector.TABLES:
+            self.delete_table(tbl_name=name)
+
     def create_all_tables(self):
 
-        sql_distance_metric_type = "CREATE TABLE IF NOT EXISTS distance_metric_type (type TEXT UNIQUE NOT NULL," \
+        sql_distance_metric_type = "CREATE TABLE IF NOT EXISTS distance_metric_type " \
+                                   "(id INTEGER PRIMARY KEY AUTOINCREMENT, " \
+                                   "type TEXT UNIQUE NOT NULL," \
                                    "short_cut TEXT UNIQUE NOT NULL)"
 
         self.cursor.execute(sql_distance_metric_type)
         self._conn.commit()
 
-        sql_distance_sequence_type = "CREATE TABLE IF NOT EXISTS distance_sequence_type (type TEXT UNIQUE NOT NULL)"
+        sql_distance_sequence_type = "CREATE TABLE IF NOT EXISTS distance_sequence_type " \
+                                     "(id INTEGER PRIMARY KEY AUTOINCREMENT, type TEXT UNIQUE NOT NULL)"
 
         self.cursor.execute(sql_distance_sequence_type)
         self._conn.commit()
 
-        sql_repeats = "CREATE TABLE IF NOT EXISTS repeats (type TEXT NOT NULL," \
+        sql_repeats = "CREATE TABLE IF NOT EXISTS repeats (id INTEGER PRIMARY KEY AUTOINCREMENT, " \
+                      "chromosome TEXT NOT NULL," \
                       " start_idx INT NOT NULL, end_idx INT NOT NULL," \
                       "repeat_seq TEXT NOT NULL, hmm_state TEXT, " \
                       "gc FLOAT)"
@@ -51,7 +69,9 @@ class SQLiteDBConnector(object):
                                 "start_idx_2 INT NOT NULL, " \
                                 "end_idx_2 INT NOT NULL, " \
                                 "value FLOAT, " \
-                                "metric_type TEXT NOT NULL, sequence_type TEXT NOT NULL, is_normalized INT NOT NULL)"
+                                "metric_type_id INT NOT NULL, " \
+                                "sequence_type_id INT NOT NULL, " \
+                                "is_normalized INT NOT NULL)"
 
         self.cursor.execute(sql_repeats_distances)
         self._conn.commit()
@@ -69,14 +89,20 @@ class SQLiteDBConnector(object):
         print(self.cursor.fetchall())
 
     def fetch_from_distance_metric_type_table_metric(self, metric_type):
+        """
+        Fetch the metric type corresponding to the given metric_type
+        """
 
         conn = sqlite3.connect(self._db_file)
         cursor = conn.cursor()
-        sql = '''SELECT id, type, short_cut from distance_metric_type where type=%s'''%metric_type
+        sql = '''SELECT id, type, short_cut from distance_metric_type where type="%s"''' % metric_type
         cursor.execute(sql)
         return cursor.fetchone()
 
     def fetch_from_distance_metric_type_table_by_short_cut(self, short_cut):
+        """
+        Fetch the metric type corresponding to the given short cut
+        """
 
         conn = sqlite3.connect(self._db_file)
         cursor = conn.cursor()
@@ -84,7 +110,21 @@ class SQLiteDBConnector(object):
         cursor.execute(sql)
         return cursor.fetchone()
 
+    def fetch_from_distance_metric_type_table_by_id(self, idx):
+        """
+        Fetch the metric type corresponding to the given idx
+        """
+
+        conn = sqlite3.connect(self._db_file)
+        cursor = conn.cursor()
+        sql = '''SELECT id, type, short_cut from distance_metric_type where id=%s''' % idx
+        cursor.execute(sql)
+        return cursor.fetchone()
+
     def fetch_from_distance_metric_type_table_all(self):
+        """
+        Fetch all the metric types
+        """
 
         conn = sqlite3.connect(self._db_file)
         sql = '''SELECT * FROM distance_metric_type'''
@@ -94,18 +134,107 @@ class SQLiteDBConnector(object):
         return rows
 
     def fetch_from_distance_sequence_type_table_by_seq_type(self, seq_type):
+        """
+        Fetch the sequence type corresponding to the given seq_type
+        """
 
         conn = sqlite3.connect(self._db_file)
         cursor = conn.cursor()
-        sql = '''SELECT id, type from distance_sequence_type where short_cut="%s"''' % seq_type
+        sql = '''SELECT id, type from distance_sequence_type where type="%s"''' % seq_type
+        cursor.execute(sql)
+        return cursor.fetchone()
+
+    def fetch_from_distance_sequence_type_table_by_id(self, idx):
+        """
+        Fetch the sequence type corresponding to the given idx
+        """
+
+        conn = sqlite3.connect(self._db_file)
+        cursor = conn.cursor()
+        sql = '''SELECT id, type from distance_sequence_type where id=%s''' % idx
         cursor.execute(sql)
         return cursor.fetchone()
 
     def fetch_from_distance_sequence_type_table_all(self):
+        """
+        Returns all the rows in the distance_sequence_type table
+        """
 
         conn = sqlite3.connect(self._db_file)
         cursor = conn.cursor()
         sql = '''SELECT * from distance_sequence_type'''
+        cursor.execute(sql)
+        return cursor.fetchall()
+
+    def fetch_from_repeats_table_by_id(self, idx):
+        """
+        Fetch the repeat corresponding to the given idx
+        """
+        conn = sqlite3.connect(self._db_file)
+        cursor = conn.cursor()
+        sql = '''SELECT * from repeats where id=%s''' % idx
+        cursor.execute(sql)
+        return cursor.fetchone()
+
+    def fetch_from_repeats_table_by_chromosome(self, chromosome):
+        """
+        Fetch the repeats from the given chromosome
+        """
+
+        conn = sqlite3.connect(self._db_file)
+        cursor = conn.cursor()
+        sql = '''SELECT * from repeats where chromosome="%s"''' % chromosome
+        cursor.execute(sql)
+        return cursor.fetchall()
+
+    def fetch_from_repeats_table_by_coordinates(self, start_idx, end_idx):
+        """
+        Fetch the repeats with the given [start_idx, end_idx)
+        """
+
+        conn = sqlite3.connect(self._db_file)
+        cursor = conn.cursor()
+        sql = '''SELECT * from repeats where start_idx=%s and end_idx=%s''' % (start_idx, end_idx)
+        cursor.execute(sql)
+        return cursor.fetchall()
+
+    def fetch_from_repeats_table_by_hmm_state(self, hmm_state):
+        """
+        Fetch the repeats with the given HMM state
+        """
+
+        conn = sqlite3.connect(self._db_file)
+        cursor = conn.cursor()
+        sql = '''SELECT * from repeats where hmm_state="%s"''' % (hmm_state)
+        cursor.execute(sql)
+        return cursor.fetchall()
+
+    def fetch_from_repeats_table_all(self):
+        """
+        Fetch all data from the repeats table
+        """
+
+        conn = sqlite3.connect(self._db_file)
+        cursor = conn.cursor()
+        sql = '''SELECT * from repeats'''
+        cursor.execute(sql)
+        return cursor.fetchall()
+
+    def fetch_one(self, sql):
+        """
+        Execute the given SQL and fetch one result
+        """
+        conn = sqlite3.connect(self._db_file)
+        cursor = conn.cursor()
+        cursor.execute(sql)
+        return cursor.fetchone()
+
+    def fetch_all(self, sql):
+        """
+        Execute the given SQL and fetch all results
+        """
+        conn = sqlite3.connect(self._db_file)
+        cursor = conn.cursor()
         cursor.execute(sql)
         return cursor.fetchall()
 
@@ -120,6 +249,13 @@ class SQLiteDBConnector(object):
         self._conn.commit()
 
     def create_table(self, table_name, columns):
+        """
+        Create the table with the given name and the given
+        columns. The table is create only if it doesn't exist
+        :param table_name:
+        :param columns:
+        :return:
+        """
 
         if len(columns) == 0:
             raise ValueError("Empty column names")
@@ -137,6 +273,10 @@ class SQLiteDBConnector(object):
         self._conn.commit()
 
     def delete_table(self, tbl_name):
+        """
+        Delete the table with the given name
+        if the table exists
+        """
         sql = "DROP TABLE IF EXISTS {0};".format(tbl_name)
         self.cursor.execute(sql)
         self._conn.commit()
