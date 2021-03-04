@@ -5,7 +5,7 @@ import os
 from pathlib import Path
 
 from compute_engine.src.file_readers import NuclOutFileReader
-from db.db_connector import SQLiteDBConnector
+from db.sqlite3_db_connector import SQLiteDBConnector
 
 
 def create_distance_types_table(database_wrap: SQLiteDBConnector) -> None:
@@ -68,12 +68,84 @@ def create_repeats_table(database_wrap: SQLiteDBConnector, repeats_file: str) ->
         database_wrap.execute(sql=sql, values=values)
 
 
+def create_repeats_info_table(database_wrap: SQLiteDBConnector, data_dir: Path, delimiter="\t") -> None:
+
+    data_directories = os.listdir(path=data_dir)
+    print(data_directories)
+
+    for directory in data_directories:
+        directory_path = data_dir / directory
+
+        if directory_path.is_dir():
+            # this is a directory so do work
+            tmp_path = directory_path / directory / 'repeates_info_file.bed'
+            with open(tmp_path, 'r', newline="\n") as fh:
+
+                for line in fh:
+                    line = line.split(delimiter)
+                    chromosome = line[0].strip()
+                    start_idx = int(line[1].strip())
+                    end_idx = int(line[2].strip())
+                    max_repeats_count = int(line[3].strip())
+                    align_seq = line[4].strip().upper()
+                    unit_seq = line[5].strip().upper()
+
+                    sql = '''INSERT INTO repeats_info(chromosome, 
+                    start_idx, end_idx,  max_repeats_count, 
+                    align_seq,  unit_seq) values(?, ?, ?, ?, ?, ?)'''
+                    values = (chromosome, start_idx, end_idx, max_repeats_count, align_seq, unit_seq)
+                    database_wrap.execute(sql=sql, values=values)
+
+
+def create_gquads_info_table(database_wrap: SQLiteDBConnector, data_dir: Path, delimiter="\t") -> None:
+
+    data_directories = os.listdir(path=data_dir)
+
+    for directory in data_directories:
+        directory_path = data_dir / directory
+
+        if directory_path.is_dir():
+            # this is a directory so do work
+            tmp_path = directory_path / directory / 'gquads.txt'
+            with open(tmp_path, 'r', newline="\n") as fh:
+
+                for line in fh:
+                    line = line.split(delimiter)
+                    part_one = line[0]
+                    part_one_split = part_one.split(":")
+                    chromosome = part_one_split[0].strip()
+
+                    part_one_split = part_one_split[1].split('-')
+
+                    start_idx = int(part_one_split[0].strip())
+
+                    part_one_two_split = part_one_split[1].split('_')
+
+                    end_idx = int(part_one_two_split[0].strip())
+                    average_gc_count = float(part_one_two_split[2].strip())
+
+                    if part_one_two_split[3].strip() != 'NA':
+                        min_gc_count = float(part_one_two_split[3].strip())
+                    else:
+                        min_gc_count = None
+
+                    if part_one_two_split[4].strip() != 'NA':
+                        max_gc_count = float(part_one_two_split[4].strip())
+                    else:
+                        max_gc_count = None
+
+                    sql = '''INSERT INTO gquads_info(chromosome, 
+                        start_idx, end_idx,  average_gc_count, 
+                        min_gc_count,  max_gc_count) values(?, ?, ?, ?, ?, ?)'''
+                    values = (chromosome, start_idx, end_idx, average_gc_count, min_gc_count, max_gc_count)
+                    database_wrap.execute(sql=sql, values=values)
+
+
 def create_repeats_distances_table(database_wrap: SQLiteDBConnector,
                                    data_dir: Path, metrics: dir) -> None:
 
     # get all the directories in the path
     data_directories = os.listdir(path=data_dir)
-    #print(data_directories)
 
     database_wrap.print_table_column_names("repeats_distances")
 
@@ -90,7 +162,7 @@ def create_repeats_distances_table(database_wrap: SQLiteDBConnector,
         directory_path = data_dir / directory
         if os.path.isdir(directory_path):
 
-            short_cut = directory_path.name#.split("/")[-1]
+            short_cut = directory_path.name
             metric_data = database_wrap.fetch_from_distance_metric_type_table_by_short_cut(short_cut=short_cut)
             metric_type_id = metric_data[0]
 
@@ -164,20 +236,26 @@ def create_repeats_distances_table(database_wrap: SQLiteDBConnector,
 
 def main(database_wrap: SQLiteDBConnector,
          repeats_file: str, data_dir: Path,
+         chromosomes_dir: Path,
          metrics: dir) -> None:
 
-    #create_distance_types_table(database_wrap=database_wrap)
-    #create_distance_metrics_table(database_wrap=database_wrap, metrics=metrics)
-    #create_repeats_table(database_wrap=database_wrap, repeats_file=repeats_file)
+    database_wrap.delete_all_tables()
+    database_wrap.create_all_tables()
+    create_distance_types_table(database_wrap=database_wrap)
+    create_distance_metrics_table(database_wrap=database_wrap, metrics=metrics)
+    create_repeats_table(database_wrap=database_wrap, repeats_file=repeats_file)
+    create_repeats_info_table(database_wrap=database_wrap, data_dir=chromosomes_dir)
+    create_gquads_info_table(database_wrap=database_wrap, data_dir=chromosomes_dir)
     create_repeats_distances_table(database_wrap=database_wrap,
                                    data_dir=data_dir, metrics=metrics)
 
 
 if __name__ == '__main__':
 
-    db_file = "../db.sqlite3"
+    db_file = "../test_db.sqlite3"
     repeats_file = "../computations/distances/nucl_out.bed"
     data_dir = Path("../computations/distances/")
+    chromosomes_dir = Path("../computations/viterbi_paths/")
 
     metrics = {'ham': "Hamming", 'mlipns': "MLIPNS",
                'lev': "Levenshtein", 'damlev': "DamerauLevenshtein",
@@ -198,4 +276,5 @@ if __name__ == '__main__':
     database_wrap = SQLiteDBConnector(db_file=db_file)
     database_wrap.connect()
     main(database_wrap=database_wrap, repeats_file=repeats_file,
+         chromosomes_dir=chromosomes_dir,
          data_dir=data_dir, metrics=metrics)
