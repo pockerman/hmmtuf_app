@@ -84,7 +84,7 @@ def write_from_weblogo(weblogo_dir, out_repeats, out_nucleods,
     # 12 observations?
     if count > count_check:
 
-        print("{0} Writing to: out_repeats".format(INFO))
+        #print("{0} Writing to: out_repeats".format(INFO))
         out_repeats.write(chrom + '\t' + str(start) + '\t' + str(stop) + '\n')
 
         if len(seq) != 0:
