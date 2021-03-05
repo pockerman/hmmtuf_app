@@ -3,6 +3,7 @@ from functools import wraps
 import time
 import os
 from pathlib import Path
+from zipfile import ZipFile
 
 from compute_engine.src.constants import INFO, WARNING
 from compute_engine.src.exceptions import Error
@@ -419,6 +420,7 @@ def count_kmers(sequence, k):
     # Return the final counts
     return counts
 
+
 def type_converter(data, type_converter):
     """
     Return the data converted into the type
@@ -434,6 +436,7 @@ def type_converter(data, type_converter):
 
     raise ValueError("Unknown type_converter={0}".format(type_converter))
 
+
 def load_data_file(filename, type_convert):
     """
     Loads a .txt data file into an array. Every
@@ -446,6 +449,7 @@ def load_data_file(filename, type_convert):
         arraystr = arraystr.split(',')
         region_means = [type_converter(data=item, type_converter="FLOAT") for item in arraystr]
         return region_means
+
 
 def make_data_array(wga_mu, no_wga_mu, gc, use_ratio, use_gc):
     """
@@ -498,6 +502,23 @@ def make_data_array(wga_mu, no_wga_mu, gc, use_ratio, use_gc):
             data.append([no_wga, wga])
 
     return data
+
+def unzip_file(input_dir: Path, member: str, output_dir: Path) -> None:
+    """
+    Extract a member from the archive to the current working directory;
+    """
+
+    with ZipFile(input_dir / member, 'r') as zip:
+        zip.extractall(path=output_dir)
+
+def unzip_files(data_dir: Path, output_dir: Path) -> None:
+
+    # get all the directories in the path
+    data_directories = os.listdir(path=data_dir)
+
+    for member in data_directories:
+        if member.endswith(".zip"):
+            unzip_file(input_dir=data_dir, member=member, output_dir=output_dir)
 
 
 

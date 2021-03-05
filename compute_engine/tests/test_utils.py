@@ -1,10 +1,12 @@
 import unittest
+from pathlib import Path
 from compute_engine.src.utils import min_size_partition_range
 from compute_engine.src.utils import load_data_file
 from compute_engine.src.utils import type_converter
 from compute_engine.src.utils import make_data_array
 from compute_engine.src.utils import get_sequence_chunks
 from compute_engine.src.utils import get_range_chunks
+from compute_engine.src.utils import unzip_files
 from compute_engine.src.exceptions import Error
 
 
@@ -180,6 +182,10 @@ class TestUtils(unittest.TestCase):
 
         for i, item in enumerate(chunks):
             self.assertEqual(len(item), 2)
+
+    def test_unzip_files(self):
+        data_dir = Path("/home/alex/qi3/hmmtuf/computations/distances/sor/")
+        unzip_files(data_dir=data_dir, output_dir=Path("/home/alex/qi3/hmmtuf/computations/unzipped_dists/sor/"))
 
 
 
