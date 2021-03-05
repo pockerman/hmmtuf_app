@@ -74,7 +74,7 @@ class TextDistanceCalculator(object):
     """
 
     NAMES = ['ham', 'mlipns', 'lev', 'damlev', 'jwink', 'str',
-             'nw', 'got', 'jac', 'sor', 'tve', 'ov', 'tan',
+             'nw', 'sw', 'got', 'jac', 'sor', 'tve', 'ov', 'tan',
              'cos', 'mon', 'bag', 'lcsseq', 'lcsstr', 'rat',
              'ari', 'rle', 'bwt', 'sqr', 'ent', 'bz2', 'lzm',
              'zli', 'mra', 'edi', 'pre', 'pos',
@@ -93,6 +93,7 @@ class TextDistanceCalculator(object):
         elif name == 'jwink' : return textdistance.JaroWinkler()
         elif name == 'str'   : return textdistance.StrCmp95()
         elif name == 'nw'    : return textdistance.NeedlemanWunsch()
+        elif name == 'sw'    : return textdistance.SmithWaterman()
         elif name == 'got'   : return textdistance.Gotoh()
         elif name == 'jac'   : return textdistance.Jaccard()
         elif name == 'sor'   : return textdistance.Sorensen()

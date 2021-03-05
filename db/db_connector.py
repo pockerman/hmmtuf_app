@@ -48,9 +48,9 @@ class DBConnectorBase(object):
         raise NotImplementedError()
 
     @abstractmethod
-    def print_table_column_names(self, table_name: str) -> None:
+    def get_table_column_names(self, table_name: str) -> list:
         """
-        Print the column names corresponding to the
+        Returns the column names corresponding to the
         given table name
         """
         raise NotImplementedError()
