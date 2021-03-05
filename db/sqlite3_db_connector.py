@@ -96,13 +96,18 @@ class SQLiteDBConnector(DBConnectorBase):
             raise ValueError("Not Connected to the DB")
         return self._conn.cursor()
 
-    def print_table_column_names(self, table_name):
+    def get_table_column_names(self, table_name: str) -> list:
+        """
+        Print the column names for the given table
+        """
 
+        conn = sqlite3.connect(self._db_file)
+        cursor = conn.cursor()
         sql = "PRAGMA table_info(%s)" % table_name
-        self.cursor.execute(sql)
-        print(self.cursor.fetchall())
+        cursor.execute(sql)
+        return cursor.fetchall()
 
-    def fetch_from_distance_metric_type_table_by_metric(self, metric_type):
+    def fetch_from_distance_metric_type_table_by_metric(self, metric_type: str) -> tuple:
         """
         Fetch the metric type corresponding to the given metric_type
         """
@@ -113,7 +118,7 @@ class SQLiteDBConnector(DBConnectorBase):
         cursor.execute(sql)
         return cursor.fetchone()
 
-    def fetch_from_distance_metric_type_table_by_short_cut(self, short_cut):
+    def fetch_from_distance_metric_type_table_by_short_cut(self, short_cut: str) -> tuple:
         """
         Fetch the metric type corresponding to the given short cut
         """
@@ -124,7 +129,7 @@ class SQLiteDBConnector(DBConnectorBase):
         cursor.execute(sql)
         return cursor.fetchone()
 
-    def fetch_from_distance_metric_type_table_by_id(self, idx):
+    def fetch_from_distance_metric_type_table_by_id(self, idx: int) -> tuple:
         """
         Fetch the metric type corresponding to the given idx
         """
@@ -135,7 +140,7 @@ class SQLiteDBConnector(DBConnectorBase):
         cursor.execute(sql)
         return cursor.fetchone()
 
-    def fetch_from_distance_metric_type_table_all(self):
+    def fetch_from_distance_metric_type_table_all(self) -> list:
         """
         Fetch all the metric types
         """
@@ -147,7 +152,7 @@ class SQLiteDBConnector(DBConnectorBase):
         rows = cursor.fetchall()
         return rows
 
-    def fetch_from_distance_sequence_type_table_by_seq_type(self, seq_type):
+    def fetch_from_distance_sequence_type_table_by_seq_type(self, seq_type: str) -> tuple:
         """
         Fetch the sequence type corresponding to the given seq_type
         """
@@ -158,7 +163,7 @@ class SQLiteDBConnector(DBConnectorBase):
         cursor.execute(sql)
         return cursor.fetchone()
 
-    def fetch_from_distance_sequence_type_table_by_id(self, idx):
+    def fetch_from_distance_sequence_type_table_by_id(self, idx: int) -> tuple:
         """
         Fetch the sequence type corresponding to the given idx
         """
@@ -169,7 +174,7 @@ class SQLiteDBConnector(DBConnectorBase):
         cursor.execute(sql)
         return cursor.fetchone()
 
-    def fetch_from_distance_sequence_type_table_all(self):
+    def fetch_from_distance_sequence_type_table_all(self) -> list:
         """
         Returns all the rows in the distance_sequence_type table
         """
@@ -180,7 +185,7 @@ class SQLiteDBConnector(DBConnectorBase):
         cursor.execute(sql)
         return cursor.fetchall()
 
-    def fetch_from_repeats_table_by_id(self, idx):
+    def fetch_from_repeats_table_by_id(self, idx: int) -> tuple :
         """
         Fetch the repeat corresponding to the given idx
         """
@@ -191,7 +196,7 @@ class SQLiteDBConnector(DBConnectorBase):
         cursor.execute(sql)
         return cursor.fetchone()
 
-    def fetch_from_repeats_table_by_chromosome(self, chromosome):
+    def fetch_from_repeats_table_by_chromosome(self, chromosome: str) -> list:
         """
         Fetch the repeats from the given chromosome
         """
@@ -202,7 +207,7 @@ class SQLiteDBConnector(DBConnectorBase):
         cursor.execute(sql)
         return cursor.fetchall()
 
-    def fetch_from_repeats_table_by_coordinates(self, start_idx, end_idx):
+    def fetch_from_repeats_table_by_coordinates(self, start_idx: int, end_idx: int) -> list:
         """
         Fetch the repeats with the given [start_idx, end_idx)
         """
@@ -213,7 +218,7 @@ class SQLiteDBConnector(DBConnectorBase):
         cursor.execute(sql)
         return cursor.fetchall()
 
-    def fetch_from_repeats_table_by_hmm_state(self, hmm_state):
+    def fetch_from_repeats_table_by_hmm_state(self, hmm_state: str) -> list:
         """
         Fetch the repeats with the given HMM state
         """
@@ -224,7 +229,7 @@ class SQLiteDBConnector(DBConnectorBase):
         cursor.execute(sql)
         return cursor.fetchall()
 
-    def fetch_from_repeats_table_all(self):
+    def fetch_from_repeats_table_all(self) -> list:
         """
         Fetch all data from the repeats table
         """
@@ -303,7 +308,7 @@ class SQLiteDBConnector(DBConnectorBase):
         cursor.execute(sql)
         return cursor.fetchall()
 
-    def fetch_one(self, sql):
+    def fetch_one(self, sql: str) -> tuple:
         """
         Execute the given SQL and fetch one result
         """
@@ -313,7 +318,7 @@ class SQLiteDBConnector(DBConnectorBase):
         cursor.execute(sql)
         return cursor.fetchone()
 
-    def fetch_all(self, sql):
+    def fetch_all(self, sql: str) -> list:
         """
         Execute the given SQL and fetch all results
         """
@@ -330,7 +335,7 @@ class SQLiteDBConnector(DBConnectorBase):
         self.cursor.execute(sql, values)
         self._conn.commit()
 
-    def create_table(self, table_name, columns):
+    def create_table(self, table_name: str, columns: list) -> None:
         """
         Create the table with the given name and the given
         columns. The table is created only if it doesn't exist
@@ -351,7 +356,7 @@ class SQLiteDBConnector(DBConnectorBase):
         self.cursor.execute(sql)
         self._conn.commit()
 
-    def delete_table(self, tbl_name):
+    def delete_table(self, tbl_name: str) -> None:
         """
         Delete the table with the given name
         if the table exists
