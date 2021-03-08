@@ -7,6 +7,7 @@ class DBConnectorBase(object):
 
     TABLES = ['distance_metric_type',
               'distance_sequence_type', 'repeats',
+              'hmm_state_types',
               'repeats_distances', 'repeats_info', 'gquads_info']
 
     @staticmethod
@@ -44,6 +45,13 @@ class DBConnectorBase(object):
     def create_all_tables(self) -> None:
         """
         Create all the DB tables
+        """
+        raise NotImplementedError()
+
+    @abstractmethod
+    def create_table(self, table_name: str) -> None:
+        """
+        Create the table with the given name
         """
         raise NotImplementedError()
 
@@ -126,7 +134,7 @@ class DBConnectorBase(object):
         raise NotImplementedError()
 
     @abstractmethod
-    def fetch_from_repeats_table_by_hmm_state(self, hmm_state: str) -> list:
+    def fetch_from_repeats_table_by_hmm_state(self, hmm_state_id: int) -> list:
         """
         Fetch the repeats with the given HMM state
         """
@@ -184,6 +192,29 @@ class DBConnectorBase(object):
         raise NotImplementedError()
 
     @abstractmethod
+    def fetch_from_hmm_state_types_by_id(self, idx: int) -> tuple:
+        """
+        Return the hmm_state_types table tuple
+        corresponding from to the id
+        """
+        raise NotImplementedError()
+
+    @abstractmethod
+    def fetch_from_hmm_state_types_by_type(self, hmm_type: str) -> tuple:
+        """
+        Return the hmm_state_types table tuple
+        corresponding from to the type
+        """
+        raise NotImplementedError()
+
+    @abstractmethod
+    def fetch_from_hmm_state_types_all(self) -> list:
+        """
+        Return the hmm_state_types
+        """
+        raise NotImplementedError()
+
+    @abstractmethod
     def fetch_one(self, sql: str) -> tuple:
         """
         Execute the given SQL and fetch one result
@@ -205,7 +236,7 @@ class DBConnectorBase(object):
         raise NotImplementedError()
 
     @abstractmethod
-    def create_table(self, table_name: str, columns: list) -> None:
+    def create_table_from_columns(self, table_name: str, columns: list) -> None:
         """
         Create the table with the given name and the given
         columns. The table is create only if it doesn't exist
