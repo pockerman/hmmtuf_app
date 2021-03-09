@@ -520,6 +520,15 @@ def unzip_files(data_dir: Path, output_dir: Path) -> None:
         if member.endswith(".zip"):
             unzip_file(input_dir=data_dir, member=member, output_dir=output_dir)
 
+def file_chunks(data_file, rows: int=10000):
+    """
+    Divides the data into 10000 rows each
+    """
+
+    for i in range(0, len(data_file), rows):
+        yield data_file[i:i+rows]
+
+
 
 
 
