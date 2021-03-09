@@ -29,32 +29,30 @@ class SQLiteDBConnector(DBConnectorBase):
         for name in SQLiteDBConnector.TABLES:
             self.delete_table(tbl_name=name)
 
-    def create_all_tables(self):
+    def create_table(self, table_name: str) -> None:
+        """
+        Create the table with the given name
+        """
 
-        sql_distance_metric_type = "CREATE TABLE IF NOT EXISTS distance_metric_type " \
-                                   "(id INTEGER PRIMARY KEY AUTOINCREMENT, " \
-                                   "type TEXT UNIQUE NOT NULL," \
-                                   "short_cut TEXT UNIQUE NOT NULL)"
+        if table_name not in SQLiteDBConnector.TABLES:
+            raise ValueError("Invalid table name. Name {0} not in {1}".format(table_name, SQLiteDBConnector.TABLES))
 
-        self.cursor.execute(sql_distance_metric_type)
-        self._conn.commit()
-
-        sql_distance_sequence_type = "CREATE TABLE IF NOT EXISTS distance_sequence_type " \
+        if table_name == 'distance_metric_type':
+            sql= "CREATE TABLE IF NOT EXISTS distance_metric_type " \
+                                       "(id INTEGER PRIMARY KEY AUTOINCREMENT, " \
+                                       "type TEXT UNIQUE NOT NULL," \
+                                       "short_cut TEXT UNIQUE NOT NULL)"
+        elif table_name == 'distance_sequence_type':
+            sql = "CREATE TABLE IF NOT EXISTS distance_sequence_type " \
                                      "(id INTEGER PRIMARY KEY AUTOINCREMENT, type TEXT UNIQUE NOT NULL)"
-
-        self.cursor.execute(sql_distance_sequence_type)
-        self._conn.commit()
-
-        sql_repeats = "CREATE TABLE IF NOT EXISTS repeats (id INTEGER PRIMARY KEY AUTOINCREMENT, " \
+        elif table_name == 'repeats':
+            sql = "CREATE TABLE IF NOT EXISTS repeats (id INTEGER PRIMARY KEY AUTOINCREMENT, " \
                       "chromosome TEXT NOT NULL," \
                       " start_idx INT NOT NULL, end_idx INT NOT NULL," \
-                      "repeat_seq TEXT NOT NULL, hmm_state TEXT, " \
+                      "repeat_seq TEXT NOT NULL, hmm_state_id INTEGER NOT NULL, " \
                       "gc FLOAT)"
-
-        self.cursor.execute(sql_repeats)
-        self._conn.commit()
-
-        sql_repeats_distances = "CREATE TABLE IF NOT EXISTS repeats_distances (chromosome1 TEXT NOT NULL, " \
+        elif table_name == 'repeats_distances':
+            sql = "CREATE TABLE IF NOT EXISTS repeats_distances (chromosome1 TEXT NOT NULL, " \
                                 "start_idx_1 INT NOT NULL, " \
                                 "end_idx_1 INT NOT NULL, " \
                                 "chromosome2 TEXT NOT NULL, " \
@@ -64,31 +62,35 @@ class SQLiteDBConnector(DBConnectorBase):
                                 "metric_type_id INT NOT NULL, " \
                                 "sequence_type_id INT NOT NULL, " \
                                 "is_normalized INT NOT NULL)"
-
-        self.cursor.execute(sql_repeats_distances)
-        self._conn.commit()
-
-        sql_repeats_info = "CREATE TABLE IF NOT EXISTS repeats_info(id INTEGER PRIMARY KEY AUTOINCREMENT," \
+        elif table_name == 'repeats_info':
+            sql = "CREATE TABLE IF NOT EXISTS repeats_info(id INTEGER PRIMARY KEY AUTOINCREMENT," \
                            "chromosome TEXT NOT NULL," \
                            "start_idx INTEGER NOT NULL," \
                            "end_idx INTEGER NOT NULL," \
                            "max_repeats_count INTEGER NOT NULL," \
                            "align_seq TEXT NOT NULL," \
                            "unit_seq TEXT NOT NULL)"
-
-        self.cursor.execute(sql_repeats_info)
-        self._conn.commit()
-
-        sql_gquads_info = "CREATE TABLE IF NOT EXISTS gquads_info(id INTEGER PRIMARY KEY AUTOINCREMENT, " \
+        elif table_name == 'gquads_info':
+            sql = "CREATE TABLE IF NOT EXISTS gquads_info(id INTEGER PRIMARY KEY AUTOINCREMENT, " \
                           "chromosome TEXT NOT NULL, " \
                           "start_idx INTEGER NOT NULL, " \
                           "end_idx INTEGER NOT NULL, " \
                           "average_gc_count FLOAT NOT NULL," \
                           "min_gc_count FLOAT," \
                           "max_gc_count FLOAT)"
+        elif table_name == 'hmm_state_types':
+            sql = "CREATE TABLE IF NOT EXISTS hmm_state_types(id INTEGER PRIMARY KEY AUTOINCREMENT," \
+                  "type TEXT NOT NULL)"
 
-        self.cursor.execute(sql_gquads_info)
+        self.cursor.execute(sql)
         self._conn.commit()
+
+    def create_all_tables(self):
+        """
+        Create all the tables in the schema
+        """
+        for name in SQLiteDBConnector.TABLES:
+            self.create_table(table_name=name)
 
     @property
     def cursor(self):
@@ -218,14 +220,14 @@ class SQLiteDBConnector(DBConnectorBase):
         cursor.execute(sql)
         return cursor.fetchall()
 
-    def fetch_from_repeats_table_by_hmm_state(self, hmm_state: str) -> list:
+    def fetch_from_repeats_table_by_hmm_state(self, hmm_state_id: int) -> list:
         """
         Fetch the repeats with the given HMM state
         """
 
         conn = sqlite3.connect(self._db_file)
         cursor = conn.cursor()
-        sql = '''SELECT * from repeats where hmm_state="%s"''' % hmm_state
+        sql = '''SELECT * from repeats where hmm_state_id=%s''' % hmm_state_id
         cursor.execute(sql)
         return cursor.fetchall()
 
@@ -308,6 +310,38 @@ class SQLiteDBConnector(DBConnectorBase):
         cursor.execute(sql)
         return cursor.fetchall()
 
+    def fetch_from_hmm_state_types_by_id(self, idx: int) -> tuple:
+        """
+        Return the hmm_state_types table tuple
+        corresponding from to the id
+        """
+        conn = sqlite3.connect(self._db_file)
+        cursor = conn.cursor()
+        sql = '''SELECT * from hmm_state_types where id=%s''' % idx
+        cursor.execute(sql)
+        return cursor.fetchone()
+
+    def fetch_from_hmm_state_types_by_type(self, hmm_type: str) -> tuple:
+        """
+        Return the hmm_state_types table tuple
+        corresponding from to the type
+        """
+        conn = sqlite3.connect(self._db_file)
+        cursor = conn.cursor()
+        sql = '''SELECT * from hmm_state_types where type="%s"''' % hmm_type
+        cursor.execute(sql)
+        return cursor.fetchone()
+
+    def fetch_from_hmm_state_types_all(self) -> list:
+        """
+        Return the hmm_state_types
+        """
+        conn = sqlite3.connect(self._db_file)
+        cursor = conn.cursor()
+        sql = '''SELECT * from hmm_state_types'''
+        cursor.execute(sql)
+        return cursor.fetchall()
+
     def fetch_one(self, sql: str) -> tuple:
         """
         Execute the given SQL and fetch one result
@@ -328,6 +362,17 @@ class SQLiteDBConnector(DBConnectorBase):
         cursor.execute(sql)
         return cursor.fetchall()
 
+    def execute_transaction(self, data, sql) -> None:
+
+        conn = sqlite3.connect(self._db_file)
+        cursor = conn.cursor()
+        cursor.execute("BEGIN TRANSACTION")
+
+        for item in data:
+            cursor.execute(sql, item)
+
+        cursor.execute('COMMIT')
+
     def execute(self, sql: str, values: tuple) -> None:
         """
         Execute the sql
@@ -335,7 +380,13 @@ class SQLiteDBConnector(DBConnectorBase):
         self.cursor.execute(sql, values)
         self._conn.commit()
 
-    def create_table(self, table_name: str, columns: list) -> None:
+    def execute_sql(self, sql: str) -> None:
+
+        conn = sqlite3.connect(self._db_file)
+        cursor = conn.cursor()
+        cursor.execute(sql)
+
+    def create_table_from_columns(self, table_name: str, columns: list) -> None:
         """
         Create the table with the given name and the given
         columns. The table is created only if it doesn't exist
