@@ -362,12 +362,29 @@ class SQLiteDBConnector(DBConnectorBase):
         cursor.execute(sql)
         return cursor.fetchall()
 
+    def execute_transaction(self, data, sql) -> None:
+
+        conn = sqlite3.connect(self._db_file)
+        cursor = conn.cursor()
+        cursor.execute("BEGIN TRANSACTION")
+
+        for item in data:
+            cursor.execute(sql, item)
+
+        cursor.execute('COMMIT')
+
     def execute(self, sql: str, values: tuple) -> None:
         """
         Execute the sql
         """
         self.cursor.execute(sql, values)
         self._conn.commit()
+
+    def execute_sql(self, sql: str) -> None:
+
+        conn = sqlite3.connect(self._db_file)
+        cursor = conn.cursor()
+        cursor.execute(sql)
 
     def create_table_from_columns(self, table_name: str, columns: list) -> None:
         """
