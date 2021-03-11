@@ -421,6 +421,28 @@ def count_kmers(sequence, k):
     return counts
 
 
+def get_max_kmers(kmers, min_count):
+    """
+    Returns the min_count max kmers
+    """
+
+    # sort the dictionary
+    sorted_kmers = {k: v for k, v in sorted(kmers.items(), key=lambda item: item[1], reverse=True)}
+
+    # the returned top kmers
+    top_kmers = dict()
+
+    counter = 0
+    for item in sorted_kmers:
+
+        if counter < min_count:
+            top_kmers[item] = sorted_kmers[item]
+            counter += 1
+        else:
+            break
+
+    return top_kmers
+
 def type_converter(data, type_converter):
     """
     Return the data converted into the type

@@ -39,6 +39,7 @@ def create_hmm_types_table(database_wrap: SQLiteDBConnector) -> None:
 def create_distance_metrics_table(database_wrap: SQLiteDBConnector,
                                   metrics: dir) -> None:
 
+    database_wrap.create_table(table_name="distance_metric_type")
     print("{0} Creating table {1}...".format(INFO, "distance_metric_type"))
     for met in metrics:
         sql = '''INSERT INTO distance_metric_type(type, short_cut) values(?,?)'''
@@ -49,7 +50,8 @@ def create_distance_metrics_table(database_wrap: SQLiteDBConnector,
 
 
 def create_repeats_table(database_wrap: SQLiteDBConnector, repeats_file: Path) -> None:
-    database_wrap.delete_table(tbl_name='repeats')
+
+    #database_wrap.delete_table(tbl_name='repeats')
     database_wrap.create_table(table_name='repeats')
 
     hmm_states = database_wrap.fetch_from_hmm_state_types_all()
@@ -75,6 +77,7 @@ def create_repeats_table(database_wrap: SQLiteDBConnector, repeats_file: Path) -
 
 def create_repeats_info_table(database_wrap: SQLiteDBConnector, data_dir: Path, delimiter="\t") -> None:
 
+    database_wrap.create_table(table_name="repeats_info")
     data_directories = os.listdir(path=data_dir)
 
     for directory in data_directories:
@@ -103,6 +106,7 @@ def create_repeats_info_table(database_wrap: SQLiteDBConnector, data_dir: Path, 
 
 def create_gquads_info_table(database_wrap: SQLiteDBConnector, data_dir: Path, delimiter="\t") -> None:
 
+    database_wrap.create_table(table_name="gquads_info")
     data_directories = os.listdir(path=data_dir)
 
     for directory in data_directories:
@@ -259,7 +263,8 @@ def create_repeats_distances_table(database_wrap: SQLiteDBConnector,
     # get all the directories in the path
     # data_directories = os.listdir(path=data_dir)
 
-    database_wrap.execute_sql(sql="DELETE FROM repeats_distances WHERE metric_type_id=3")
+    database_wrap.create_table(table_name="repeats_distances")
+    #database_wrap.execute_sql(sql="DELETE FROM repeats_distances WHERE metric_type_id=3")
 
     for metric in metrics:
         directory_path = data_dir / metric
@@ -282,15 +287,15 @@ def main(database_wrap: SQLiteDBConnector,
          chromosomes_dir: Path,
          metrics: dir) -> None:
 
-    #database_wrap.delete_all_tables()
+    database_wrap.delete_all_tables()
     #database_wrap.create_all_tables()
 
-    #create_hmm_types_table(database_wrap=database_wrap)
-    #create_distance_types_table(database_wrap=database_wrap)
-    #create_distance_metrics_table(database_wrap=database_wrap, metrics=metrics)
-    #create_repeats_table(database_wrap=database_wrap, repeats_file=repeats_file)
-    #create_repeats_info_table(database_wrap=database_wrap, data_dir=chromosomes_dir)
-    #create_gquads_info_table(database_wrap=database_wrap, data_dir=chromosomes_dir)
+    create_hmm_types_table(database_wrap=database_wrap)
+    create_distance_types_table(database_wrap=database_wrap)
+    create_distance_metrics_table(database_wrap=database_wrap, metrics=metrics)
+    create_repeats_table(database_wrap=database_wrap, repeats_file=repeats_file)
+    create_repeats_info_table(database_wrap=database_wrap, data_dir=chromosomes_dir)
+    create_gquads_info_table(database_wrap=database_wrap, data_dir=chromosomes_dir)
     create_repeats_distances_table(database_wrap=database_wrap,
                                    data_dir=data_dir, metrics=metrics)
 
