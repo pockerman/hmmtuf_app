@@ -423,11 +423,17 @@ def count_kmers(sequence, k):
 
 def get_max_kmers(kmers, min_count):
     """
-    Returns the min_count max kmers
+    Returns the min_count max kmers.
+    If min_count is 'all' all the
+    soreted kmers is returned. If as_percentage is True
+    then it returns the max_kmers in terms of percentages
     """
 
     # sort the dictionary
     sorted_kmers = {k: v for k, v in sorted(kmers.items(), key=lambda item: item[1], reverse=True)}
+
+    if min_count == 'all':
+        return sorted_kmers
 
     # the returned top kmers
     top_kmers = dict()
