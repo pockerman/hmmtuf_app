@@ -6,7 +6,6 @@ if HAS_SKLEARN:
     from sklearn.linear_model import LogisticRegression
 
 
-
 class LogisticRegressor(ClassifierBase):
 
     def __init__(self, regressor_type, **options):
@@ -18,16 +17,20 @@ class LogisticRegressor(ClassifierBase):
         else:
             raise ValueError("Invalid regressor type")
 
-    @abstractmethod
+    def get_parameters(self):
+        """
+        Return the parameters of the model
+        """
+        return self._regressor_impl.get_parameters()
+
     def predict(self, x):
         """
         Predict based on the input data
         """
         return self._regressor_impl.predict(x=x)
 
-    @abstractmethod
     def __call__(self, x):
-        pass
+        return self.predict(x=x)
 
 class SKLearnLogisticRegressor(LogisticRegressor):
     """
@@ -40,14 +43,18 @@ class SKLearnLogisticRegressor(LogisticRegressor):
         self._options = options
         self._model = LogisticRegression()
 
-    @abstractmethod
+    def get_parameters(self):
+        """
+        Return the parameters of the model
+        """
+        return self._model.get_params()
+
     def predict(self, x):
         """
         Predict based on the input data
         """
         return self._model.predict(X=x)
 
-    @abstractmethod
     def __call__(self, x):
         return self.predict(x=x)
 
@@ -58,14 +65,12 @@ class PyTorchLogisticRegressor(LogisticRegressor):
     def __init__(self, **options):
         self._options = options
 
-    @abstractmethod
     def predict(self, x):
         """
         Predict based on the input data
         """
         pass
 
-    @abstractmethod
     def __call__(self, x):
         pass
 

@@ -7,4 +7,7 @@ class SKLearnTrainer(object):
         self._options = options
 
     def train(self):
-        pass
+
+        data_loader = self._options["data_loader"]
+        self._options["model"].fit(X=data_loader.get_data_set(),
+                                   y=data_loader.get_labels())
