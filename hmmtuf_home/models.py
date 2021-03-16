@@ -1,7 +1,7 @@
 from django.db import models
 from django.core.files.storage import FileSystemStorage
 
-from compute_engine.src.job import JobResultEnum
+from compute_engine.src.enumeration_types import JobResultEnum
 from compute_engine import DEFAULT_ERROR_EXPLANATION
 from hmmtuf.settings import REGIONS_FILES_ROOT
 from hmmtuf.settings import HMM_FILES_ROOT
