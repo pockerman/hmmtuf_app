@@ -2,7 +2,7 @@ from django.db import models
 from django.core.exceptions import ObjectDoesNotExist
 
 from compute_engine import INFO, INVALID_STR
-from compute_engine.src.job import JobType, JobResultEnum
+from compute_engine.src.enumeration_types import JobType, JobResultEnum
 from compute_engine.src.windows import WindowType
 from hmmtuf import INVALID_ITEM
 from hmmtuf.settings import USE_CELERY

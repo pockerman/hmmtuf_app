@@ -1,11 +1,11 @@
 {
-  "distance_type": "sor",
+  "distance_type": "lcsstr",
   "input_file": "/home/alex/qi3/hmmtuf/computations/distances/nucl_out.bed",
-  "output_file": "/home/alex/qi3/hmmtuf/computations/distances/sor/part_0_100/",
+  "output_file": "/home/alex/qi3/hmmtuf/computations/distances/lcsstr/part_0_1000/",
   "line_counter": 2810,
   "num_procs": 1,
   "master_proc_id": 0,
   "load": 100,
   "start": 0,
-  "end": 100
+  "end": 1000
 }

@@ -1,5 +1,5 @@
 from compute_engine import INFO
-from compute_engine.src.job import JobResultEnum
+from compute_engine.src.enumeration_types import JobResultEnum
 
 
 def update_for_exception(result, computation, err_msg):

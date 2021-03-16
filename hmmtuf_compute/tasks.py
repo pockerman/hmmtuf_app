@@ -6,7 +6,7 @@ from celery.decorators import task
 from celery.utils.log import get_task_logger
 
 from compute_engine import INFO, DEFAULT_ERROR_EXPLANATION
-from compute_engine.src.job import JobType, JobResultEnum
+from compute_engine.src.enumeration_types import JobType, JobResultEnum
 from compute_engine.src import hmm_loader, tufdel, viterbi_calculation_helpers as viterbi_helpers
 from compute_engine.src.windows import WindowType
 from compute_engine.src.region import Region
