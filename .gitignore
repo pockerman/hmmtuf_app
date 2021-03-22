@@ -20,3 +20,5 @@ repeats_analyser/migrations/__pycache__/
 repeats_analyser/__pycache__/
 repeats_analyser/migrations/
 db/__pycache__/
+compute_engine/apps/.ipynb_checkpoints/
+compute_engine/src/classification/__pycache__/
