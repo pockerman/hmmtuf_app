@@ -32,16 +32,20 @@ class LogisticRegressor(ClassifierBase):
     def __call__(self, x):
         return self.predict(x=x)
 
-class SKLearnLogisticRegressor(LogisticRegressor):
+class SKLearnLogisticRegressor():
     """
     Wrapper to SKLearn Logistic Regression model
     """
 
+    # the type of the regressor
     REGRESSOR_TYPE = ClassifierType.SKLEARN_LOGISTIC_REGRESSOR
 
-    def __init__(self, **options):
+    def __init__(self, options):
+        # the options passed to the model
         self._options = options
-        self._model = LogisticRegression()
+
+        # the model
+        self._model = self._initialize()
 
     def get_parameters(self):
         """
@@ -57,6 +61,26 @@ class SKLearnLogisticRegressor(LogisticRegressor):
 
     def __call__(self, x):
         return self.predict(x=x)
+
+    def fit(self, X, y):
+        """
+        Fit the model
+        """
+        self._model.fit(X=X, y=y)
+
+    def _initialize(self):
+        """
+        Create the model based on the assigned
+        """
+
+        max_itrs = self._options["max_iter"] if "max_iter" in self._options else 100
+        fit_intercept = self._options["fit_intercept"] if "fit_intercept" in self._options else True
+        verbose = self._options["verbose"] if "verbose" in self._options else True
+        tol = self._options["tol"] if "tol" in self._options else 1.0e-4
+        solver = self._options["solver"] if "solver" in self._options else 'lbfgs'
+        n_jobs = self._options["n_jobs"] if "n_jobs" in self._options else 1
+        return LogisticRegression(max_iter=max_itrs, verbose=verbose, fit_intercept=fit_intercept,
+                                  tol=tol, solver=solver, n_jobs=n_jobs)
 
 class PyTorchLogisticRegressor(LogisticRegressor):
 

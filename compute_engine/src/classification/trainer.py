@@ -21,9 +21,8 @@ class Trainer(object):
         Train the model
         """
 
-        print(self._options)
         if self._options["backend_type"] == BackendType.SKLEARN:
-            trainer = SKLearnTrainer(**self._options)
+            trainer = SKLearnTrainer(self._options)
             trainer.train()
         elif self._options["backend_type"] == BackendType.PYTORCH:
             trainer = PyTorchTrainer(**self._options)
