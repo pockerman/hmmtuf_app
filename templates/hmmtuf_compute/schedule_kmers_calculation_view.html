@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}HMMtuf-Compute Viterbi Path{% endblock title %}
+{%block inner_body %}
+
+<br/>
+<div class="row">
+    <div class="col-lg-8 mb-4">
+
+        {% if error_found %}
+
+        {% endif %}
+
+        <h4>Schedule kmer computation</h4>
+        <hr/>
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <div class="control-group form-group">
+                <div class="controls">
+                    <label>kmer size:</label><br/>
+                    <input type="number" class="form-control" name="kmer_size"><br/>
+                </div>
+            </div>
+            <br/>
+
+            <div class="control-group form-group">
+                <div class="controls">
+                    <label>Keep top best results:</label>
+                    <input type="number" class="form-control" name="top_best_result"><br/>
+                </div>
+            </div>
+            <br/>
+
+            <div class="control-group form-group">
+                <div class="controls">
+                    <label>Group tip:</label><br/>
+                    <select name="group_tip">
+                        {% for group in group_tips %}
+                            <option value="{{ group.tip }}">{{ group.tip }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <br/>
+
+            {% if use_spade %}
+            <input type="checkbox" name="use_spade" value="True">
+            <label for="use_spade">Use SPADE</label><br><br>
+
+            <input type="checkbox" name="remove_dirs" value="True">
+            <label for="remove_dirs">Remove created directories</label><br><br>
+            {% endif %}
+
+            <button type="submit" class="btn btn-primary">Compute</button>
+        </form>
+    </div>
+</div>
+{% endblock inner_body %}

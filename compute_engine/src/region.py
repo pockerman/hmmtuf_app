@@ -4,7 +4,7 @@ from compute_engine.src.windows import WindowType, MixedWindowView, Window
 from compute_engine.src.exceptions import Error
 from compute_engine.src.preprocess_utils import remove_outliers, compute_statistic
 from compute_engine.src.analysis_helpers import save_windows_statistic
-from compute_engine.src.constants import TREAT_ERRORS_AS_WARNINGS, PRINT_WARNINGS
+from compute_engine.src.cengine_configuration import TREAT_ERRORS_AS_WARNINGS, PRINT_WARNINGS
 from compute_engine.src.constants import WARNING, INFO
 
 

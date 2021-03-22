@@ -8,6 +8,8 @@ urlpatterns = [
 
     path('hmm_group_viterbi/', views.schedule_group_viterbi_compute_view, name='schedule_all_viterbi_compute_view'),
 
+    path('kmers_calculation/', views.schedule_kmers_calculation_view, name='schedule_kmers_calculation_view'),
+
     path('view_viterbi_path/<str:task_id>/', views.view_viterbi_path, name='view_viterbi_path'),
 
     path('view_group_viterbi_path/<str:task_id>/', views.view_group_viterbi_path, name='view_group_viterbi_path'),

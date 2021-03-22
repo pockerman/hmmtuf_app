@@ -26,7 +26,7 @@ from .config import VITERBI_PATHS_FILES_ROOT
 from .config import VITERBI_SEQ_COMPARISON_FILES_ROOT
 from .config import VITERBI_SEQ_COMPARISON_FILES_URL
 
-
+# urlpatterns for the HMMTuf application
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('hmmtuf_home.urls')),
@@ -35,6 +35,7 @@ urlpatterns = [
 
     #path('region_extractor/', include('region_extractor.urls')),
     path('hmm_creator/', include('hmm_creator.urls')),
+    path('django_plotly_dash/', include('django_plotly_dash.urls')),
 ]
 
 

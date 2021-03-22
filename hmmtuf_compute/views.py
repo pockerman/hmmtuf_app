@@ -11,7 +11,6 @@ from hmmtuf import INVALID_TASK_ID, INVALID_ITEM, ENABLE_SPADE
 from hmmtuf.celery import celery_app
 from hmmtuf_home.models import HMMModel, RegionModel, RegionGroupTipModel, ViterbiSequenceGroupTip
 
-# Create your views here.
 from . import models
 from . import forms
 from . view_helpers import get_result_view_context
@@ -27,7 +26,27 @@ def success_schedule_group_viterbi_compute_view(request, task_id):
 
 
 def success_schedule_group_viterbi_compute_all_view(request, task_id):
+    """
+    Success view for group Viterbi calculation
+    """
     template_html = 'hmmtuf_compute/success_schedule_group_viterbi_compute_all_view.html'
+    return handle_success_view(request=request,
+                               template_html=template_html, task_id=task_id)
+
+
+def success_schedule_viterbi_compute_view(request, task_id):
+    """
+    Success redirect after scheduling a Viterbi path computation
+    """
+
+    template_html = 'hmmtuf_compute/success_schedule_viterbi_compute_view.html'
+    return handle_success_view(request=request,
+                               template_html=template_html, task_id=task_id)
+
+
+def success_schedule_compare_sequences_compute_view(request, task_id):
+
+    template_html = 'hmmtuf_compute/success_schedule_compare_sequences_compute_view.html'
     return handle_success_view(request=request,
                                template_html=template_html, task_id=task_id)
 
@@ -74,7 +93,7 @@ def schedule_group_viterbi_compute_view(request):
         if result is not OK:
             return form.response
 
-        kwargs = form.as_map()
+        kwargs = form.kwargs
         task_id = models.GroupViterbiComputation.compute(data=kwargs)
 
         if kwargs["group_tip"] == 'all':
@@ -146,16 +165,6 @@ def view_group_viterbi_path(request, task_id):
         return HttpResponse(template.render(context, request))
 
 
-def success_schedule_viterbi_compute_view(request, task_id):
-    """
-    Success redirect after scheduling a Viterbi path computation
-    """
-
-    template_html = 'hmmtuf_compute/success_schedule_viterbi_compute_view.html'
-    return handle_success_view(request=request,
-                               template_html=template_html, task_id=task_id)
-
-
 def schedule_hmm_viterbi_compute_view(request):
     """
     Schedule a region Viterbi computation.
@@ -212,7 +221,7 @@ def schedule_hmm_viterbi_compute_view(request):
         if form.check(request=request) is not OK:
             return form.response
 
-        task_id = models.ViterbiComputation.compute(data=form.as_map())
+        task_id = models.ViterbiComputation.compute(data=form.kwargs)
 
         # return the id for the computation
         return redirect('success_schedule_viterbi_computation_view', task_id=task_id)
@@ -221,6 +230,9 @@ def schedule_hmm_viterbi_compute_view(request):
 
 
 def view_viterbi_path(request, task_id):
+    """
+    Render the computed Viterbi path
+    """
     template_html = 'hmmtuf_compute/viterbi_result_view.html'
     template = loader.get_template(template_html)
     try:
@@ -239,13 +251,6 @@ def view_viterbi_path(request, task_id):
         task = celery_app.AsyncResult(task_id)
         context = view_viterbi_path_exception_context(task=task, task_id=task_id)
         return HttpResponse(template.render(context, request))
-
-
-def success_schedule_compare_sequences_compute_view(request, task_id):
-
-    template_html = 'hmmtuf_compute/success_schedule_compare_sequences_compute_view.html'
-    return handle_success_view(request=request,
-                               template_html=template_html, task_id=task_id)
 
 
 def schedule_compare_sequences_compute_view(request):
@@ -270,7 +275,7 @@ def schedule_compare_sequences_compute_view(request):
         if form.check(request=request) is not OK:
             return form.response
 
-        task_id = models.CompareViterbiSequenceComputation.compute(data=form.as_map())
+        task_id = models.CompareViterbiSequenceComputation.compute(data=form.kwargs)
 
         # return the id for the computation
         return redirect('success_schedule_compare_sequences_compute_view', task_id=task_id)
@@ -298,6 +303,34 @@ def view_sequence_comparison(request, task_id):
         task = celery_app.AsyncResult(task_id)
         context = view_viterbi_path_exception_context(task=task, task_id=task_id)
         return HttpResponse(template.render(context, request))
+
+
+def schedule_kmers_calculation_view(request):
+    """
+    Scedule a kmers calculation
+    :param request:
+    :return:
+    """
+
+    template_html = "hmmtuf_compute/schedule_kmers_calculation_view.html"
+    template = loader.get_template(template_name=template_html)
+
+    context = {}
+
+    if request.method == 'POST':
+
+        form = forms.SequenceComparisonComputeForm(template_html=template_html,
+                                                   context=context, configuration=None)
+
+        if form.check(request=request) is not OK:
+            return form.response
+
+        task_id = models.CompareViterbiSequenceComputation.compute(data=form.kwargs)
+
+        # return the id for the computation
+        return redirect('success_schedule_compare_sequences_compute_view', task_id=task_id)
+
+    return HttpResponse(template.render(context, request))
 
 
 

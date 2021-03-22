@@ -183,6 +183,20 @@ class ViterbiSequenceModel(models.Model):
         return "%s" % self.group_tip
 
 
+class BackendTypeModel(models.Model):
+    """
+    DB model for the backend used for computations
+    """
+
+    type_name = models.CharField(max_length=100, unique=True)
+
+    class Meta:
+        db_table = 'backend_type_model'
+
+    def __str__(self):
+        return "%s" % self.type_name
+
+
 
 
 
