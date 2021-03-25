@@ -9,7 +9,7 @@ from compute_engine import OK
 from hmmtuf import VITERBI_PATH_FILENAME
 from hmmtuf import INVALID_ITEM
 from hmmtuf.settings import VITERBI_PATHS_FILES_ROOT
-from hmmtuf_home.models import HMMModel, RegionModel, ViterbiSequenceGroupTip
+from hmmtuf_home.models import HMMModel, RegionModel, ViterbiSequenceGroupTipModel
 
 
 class ComputeFormBase(object):
@@ -120,9 +120,9 @@ class GroupViterbiComputeForm(ComputeFormBase):
 
                 try:
 
-                    group_tip = ViterbiSequenceGroupTip.objects.get(tip=self._sequence_group)
+                    group_tip = ViterbiSequenceGroupTipModel.objects.get(tip=self._sequence_group)
                 except ObjectDoesNotExist as e:
-                    model = ViterbiSequenceGroupTip()
+                    model = ViterbiSequenceGroupTipModel()
                     model.tip = self._sequence_group
                     model.save()
 
@@ -203,9 +203,9 @@ class ViterbiComputeForm(ComputeFormBase):
 
                 try:
 
-                    group_tip = ViterbiSequenceGroupTip.objects.get(tip=sequence_group)
+                    group_tip = ViterbiSequenceGroupTipModel.objects.get(tip=sequence_group)
                 except ObjectDoesNotExist as e:
-                    model = ViterbiSequenceGroupTip()
+                    model = ViterbiSequenceGroupTipModel()
                     model.tip = sequence_group
                     model.save()
 
@@ -327,10 +327,20 @@ class KmerComputeForm(ComputeFormBase):
         top_best_result = request.POST.get("top_best_result", "")
 
         if top_best_result == "":
+            template = loader.get_template(self._template_html)
+            self.context.update({"error_found": True,
+                                 "err_top_best_result": "Top best result cannot be empty"})
+
+            self.response = HttpResponse(template.render(self.context, request))
             return not OK
 
         top_best_result = int(top_best_result)
         if top_best_result < 0:
+            template = loader.get_template(self._template_html)
+            self.context.update({"error_found": True,
+                                 "err_top_best_result": "Top best result should be greater than or equal to zero"})
+
+            self.response = HttpResponse(template.render(self.context, request))
             return not OK
 
         if self._group_tip != "all":
@@ -368,9 +378,9 @@ class KmerComputeForm(ComputeFormBase):
 
                 try:
 
-                    group_tip = ViterbiSequenceGroupTip.objects.get(tip=self._sequence_group)
+                    group_tip = ViterbiSequenceGroupTipModel.objects.get(tip=self._sequence_group)
                 except ObjectDoesNotExist as e:
-                    model = ViterbiSequenceGroupTip()
+                    model = ViterbiSequenceGroupTipModel()
                     model.tip = self._sequence_group
                     model.save()
 

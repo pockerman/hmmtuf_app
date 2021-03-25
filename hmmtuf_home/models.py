@@ -15,7 +15,10 @@ def upload_region_file(instance, filename):
     return REGIONS_FILES_ROOT + filename #'/'.join(['content', instance.user.username, filename])
 
 
-class Computation(models.Model):
+class ComputationModel(models.Model):
+    """
+    Abstract base class for DB computation
+    """
 
     RESULT_OPTIONS = ((JobResultEnum.PENDING.name, JobResultEnum.PENDING.name),
                       (JobResultEnum.SUCCESS.name, JobResultEnum.SUCCESS.name),
@@ -34,6 +37,9 @@ class Computation(models.Model):
 
 
 class FilesModel(models.Model):
+    """
+    Abstract DB model for files
+    """
 
     # a user defined name to distinguish
     name = models.CharField(max_length=100, unique=True)
@@ -49,6 +55,9 @@ class FilesModel(models.Model):
 
 
 class HMMModel(FilesModel):
+    """
+    DB HMM model
+    """
 
     file_hmm = models.FileField(upload_to=upload_hmm_file)
 
@@ -94,6 +103,9 @@ class RegionGroupTipModel(models.Model):
 
 
 class RegionModel(FilesModel):
+    """
+    DB Region model
+    """
 
     # the file representing the region
     file_region = models.FileField(upload_to=upload_region_file, null=False)
@@ -153,7 +165,7 @@ class RegionModel(FilesModel):
         return inst
 
 
-class ViterbiSequenceGroupTip(models.Model):
+class ViterbiSequenceGroupTipModel(models.Model):
 
     # tip used to group Viterbi sequence  models
     tip = models.CharField(max_length=100, unique=True)
@@ -168,7 +180,7 @@ class ViterbiSequenceGroupTip(models.Model):
 class ViterbiSequenceModel(models.Model):
 
     # the group tip
-    group_tip = models.ForeignKey(ViterbiSequenceGroupTip, on_delete=models.CASCADE, null=False)
+    group_tip = models.ForeignKey(ViterbiSequenceGroupTipModel, on_delete=models.CASCADE, null=False)
 
     # the file representing the region
     file_sequence = models.FileField(null=False)
@@ -197,6 +209,151 @@ class BackendTypeModel(models.Model):
         return "%s" % self.type_name
 
 
+class DistanceMetricTypeModel(models.Model):
+    """
+    DB model for distance metric types
+    """
+
+    # string describing the class name
+    # of the metric
+    type = models.CharField(max_length=100, unique=True)
+
+    # short name to refer to the metric
+    short_cut = models.CharField(max_length=50, unique=True, default="INVALID")
+
+    class Meta:
+        db_table = 'distance_metric_type'
+
+    def __str__(self):
+        return "%s " % self.type
+
+
+class DistanceSequenceTypeModel(models.Model):
+    """
+    DB model for distance sequence type
+    """
+
+    CHOICES = [("NORMAL", "NORMAL"),
+               ("PURINE", "PURINE"),
+               ("AMINO", "AMINO"),
+               ("WEAK_HYDROGEN", "WEAK_HYDROGEN"), ]
+
+    # a user defined name to distinguish
+    type = models.CharField(max_length=100, unique=True, choices=CHOICES)
+
+    class Meta:
+        db_table = 'distance_sequence_type'
+
+    def __str__(self):
+        return "%s " % self.type
+
+
+class HHMStateTypesModel(models.Model):
+    """
+    DB model for HMM state types
+    """
+
+    type = models.CharField(max_length=100, unique=True)
+
+    class Meta:
+        db_table = 'hmm_state_types'
+
+
+class RepeatsModel(models.Model):
+    """
+    DB model for repeats
+    """
+    # the chromosome
+    chromosome = models.CharField(max_length=100, unique=False)
+
+    # the start index
+    start_idx = models.IntegerField(unique=False)
+
+    # the end index
+    end_idx = models.IntegerField(unique=False)
+
+    # the repeat sequence
+    repeat_seq = models.CharField(max_length=500)
+
+    # the state of the repeat comming from HMM
+    hmm_state_id = models.ForeignKey(HHMStateTypesModel, on_delete=models.CASCADE)
+
+    # gc percentage
+    gc = models.FloatField(default=0.0)
+
+    class Meta:
+        db_table = 'repeats'
+
+
+class RepeatsDistancesModel(models.Model):
+    """
+    DB model for distances between the repeats
+    """
+
+    # the chromosome
+    chromosome1 = models.CharField(max_length=100, unique=False)
+
+    # the start index
+    start_idx_1 = models.IntegerField(unique=False)
+
+    # the end index
+    end_idx_1 = models.IntegerField(unique=False)
+
+    # the chromosome
+    chromosome2 = models.CharField(max_length=100, unique=False)
+
+    # the start index
+    start_idx_2 = models.IntegerField(unique=False)
+
+    # the end index
+    end_idx_2 = models.IntegerField(unique=False)
+
+    # the metric value computed
+    value = models.FloatField()
+
+    # the metric type used for the calculation
+    metric_type_id = models.ForeignKey(DistanceMetricTypeModel, on_delete=models.CASCADE)
+
+    # whether the calculation is based on
+    # the original repeats NORMAL or the formed purine group PURINE
+    # or amino group AMINO or weak hydrogen bond group WEAK_HYDROGEN
+    sequence_type_id = models.ForeignKey(DistanceSequenceTypeModel, on_delete=models.CASCADE)
+
+    # flag indicating if the metric is normalized
+    is_normalized = models.BooleanField(default=True)
+
+    class Meta:
+        db_table = 'repeats_distances'
+
+
+class RepeatsInfoModel(models.Model):
+    """
+    DB model for repeats
+    """
+    chromosome = models.CharField(max_length=100, unique=False)
+    start_idx = models.IntegerField(unique=False)
+    end_idx = models.IntegerField(unique=False)
+    max_repeats_count = models.IntegerField(unique=False)
+    align_seq = models.CharField(max_length=1000, unique=False)
+    unit_seq = models.CharField(max_length=1000, unique=False)
+
+    class Meta:
+        db_table = 'repeats_info'
+
+
+class GQuadsInfoModel(models.Model):
+    """
+    DB model for gquads
+    """
+    chromosome = models.CharField(max_length=100, unique=False)
+    start_idx = models.IntegerField(unique=False)
+    end_idx = models.IntegerField(unique=False)
+    average_gc_count = models.FloatField(0.0)
+    min_gc_count = models.FloatField(0.0)
+    max_gc_count = models.FloatField(0.0)
+
+    class Meta:
+        db_table = 'gquads_info'
 
 
 

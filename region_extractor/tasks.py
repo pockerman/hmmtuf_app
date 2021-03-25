@@ -15,9 +15,9 @@ logger = get_task_logger(__name__)
 
 def serial_task(configuration):
 
-    from .models import ExtractRegionComputation
+    from .models import ExtractRegionComputationModel
 
-    db_task = ExtractRegionComputation()
+    db_task = ExtractRegionComputationModel()
     db_task.task_id = str(uuid.uuid4())
     db_task.computation_type = JobType.EXTRACT_REGION.name
     db_task.error_explanation = DEFAULT_ERROR_EXPLANATION
@@ -56,12 +56,12 @@ def extract_region_task(region_name, chromosome,
                         ignore_orphans, truncate,
                         quality_threshold, add_indels):
 
-    from .models import ExtractRegionComputation
+    from .models import ExtractRegionComputationModel
 
     task_id = extract_region_task.request.id
     task_id = task_id.replace('-', '_')
 
-    db_task = ExtractRegionComputation()
+    db_task = ExtractRegionComputationModel()
     db_task.task_id = task_id
     db_task.computation_type = JobType.EXTRACT_REGION.name
     db_task.error_explanation = DEFAULT_ERROR_EXPLANATION

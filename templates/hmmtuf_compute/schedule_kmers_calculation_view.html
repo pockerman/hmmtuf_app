@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}HMMtuf-Compute Viterbi Path{% endblock title %}
+{% block title %}HMMtuf-Compute Kmer {% endblock title %}
 {%block inner_body %}
 
 <br/>
@@ -7,7 +7,7 @@
     <div class="col-lg-8 mb-4">
 
         {% if error_found %}
-
+            <p style="color:red;">ERROR: Correct the errors below.</p>
         {% endif %}
 
         <h4>Schedule kmer computation</h4>
@@ -19,6 +19,9 @@
                 <div class="controls">
                     <label>kmer size:</label><br/>
                     <input type="number" class="form-control" name="kmer_size"><br/>
+                    {% if err_kmer_size %}
+                    <p style="color:red;">ERROR: {{err_kmer_size}}.</p>
+                    {% endif %}
                 </div>
             </div>
             <br/>
@@ -27,6 +30,9 @@
                 <div class="controls">
                     <label>Keep top best results:</label>
                     <input type="number" class="form-control" name="top_best_result"><br/>
+                    {% if err_top_best_result %}
+                    <p style="color:red;">ERROR: {{err_top_best_result}}.</p>
+                    {% endif %}
                 </div>
             </div>
             <br/>

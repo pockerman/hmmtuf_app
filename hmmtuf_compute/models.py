@@ -6,29 +6,15 @@ from compute_engine.src.enumeration_types import JobType, JobResultEnum
 from compute_engine.src.windows import WindowType
 from hmmtuf import INVALID_ITEM
 from hmmtuf.settings import USE_CELERY
-from hmmtuf_home.models import Computation
+from hmmtuf_home.models import ComputationModel
+from hmmtuf_home.models import RepeatsModel
 
 from .tasks import compute_viterbi_path_task
 from .tasks import compute_group_viterbi_path_task
-from .tasks import compute_compare_viterbi_sequence_task
 from .tasks import compute_group_viterbi_path_all_task
 
 
-class ScheduleComputation(Computation):
-
-    class Meta(Computation.Meta):
-        db_table = 'schedule_computation_map'
-
-    @staticmethod
-    def get_as_map(model):
-        return {"task_id": model.task_id,
-                "result": model.result,
-                "error_explanation": model.error_explanation,
-                "computation_type": model.computation_type,
-                "scheduler_id": model.scheduler_id}
-
-
-class GroupViterbiComputation(Computation):
+class GroupViterbiComputationModel(ComputationModel):
     """
     Represents a group Viterbi computation task in the DB
     All fields are NULL by default as the computation may fail
@@ -68,7 +54,7 @@ class GroupViterbiComputation(Computation):
     # end index of the first region in the group
     end_region_idx = models.IntegerField(null=True)
 
-    class Meta(Computation.Meta):
+    class Meta(ComputationModel.Meta):
         db_table = 'group_viterbi_computation'
 
     @staticmethod
@@ -93,11 +79,11 @@ class GroupViterbiComputation(Computation):
     def build_from_map(map_data, save):
 
         try:
-            computation = GroupViterbiComputation.objects.get(task_id=map_data["task_id"])
+            computation = GroupViterbiComputationModel.objects.get(task_id=map_data["task_id"])
             return computation
         except ObjectDoesNotExist:
 
-            computation = ViterbiComputation()
+            computation = ViterbiComputationModel()
             computation.task_id = map_data["task_id"]
             computation.result = map_data["result"]
             computation.error_explanation = map_data["error_explanation"]
@@ -196,9 +182,9 @@ class GroupViterbiComputation(Computation):
         return data_map
 
 
-class ViterbiComputation(Computation):
+class ViterbiComputationModel(ComputationModel):
     """
-    Represents a Viterbi computation task in the DB
+    DB model for a Viterbi computation task
     All fields are NULL by default as the computation may fail
     before computing the relevant field. Instances of this class
     are created by the tasks.compute_viterbi_path_task
@@ -254,7 +240,7 @@ class ViterbiComputation(Computation):
     # type of the window
     window_type = models.CharField(max_length=20, default=WindowType.BOTH.name, null=True)
 
-    class Meta(Computation.Meta):
+    class Meta(ComputationModel.Meta):
         db_table = 'viterbi_computation'
 
     @staticmethod
@@ -291,7 +277,7 @@ class ViterbiComputation(Computation):
         map_data["task_id"] = task_id
         map_data["result"] = result
         map_data["error_explanation"] = error_explanation
-        map_data["computation_type"] = ViterbiComputation.JOB_TYPE
+        map_data["computation_type"] = ViterbiComputationModel.JOB_TYPE
         map_data["viterbi_path_filename"] = file_viterbi_path
         map_data["region_filename"] = region_filename
         map_data["ref_seq_file"] = ref_seq_filename
@@ -309,17 +295,17 @@ class ViterbiComputation(Computation):
         map_data["start_region_idx"] = start_region_idx
         map_data["end_region_idx"] = end_region_idx
 
-        return ViterbiComputation.build_from_map(map_data=map_data, save=save)
+        return ViterbiComputationModel.build_from_map(map_data=map_data, save=save)
 
     @staticmethod
     def build_from_map(map_data, save):
 
         try:
-            computation = ViterbiComputation.objects.get(task_id=map_data["task_id"])
+            computation = ViterbiComputationModel.objects.get(task_id=map_data["task_id"])
             return computation
         except ObjectDoesNotExist:
 
-            computation = ViterbiComputation()
+            computation = ViterbiComputationModel()
             computation.task_id = map_data["task_id"]
             computation.result = map_data["result"]
             computation.error_explanation = map_data["error_explanation"]
@@ -412,185 +398,55 @@ class ViterbiComputation(Computation):
         return data_map
 
 
-class MultiViterbiComputation(Computation):
+class KmerComputationModel(ComputationModel):
     """
-    Represents a multi-Viterbi computation task in the DB
-    All fields are NULL by default as the computation may fail
-    before computing the relevant field. Instances of this class
-    are created by the tasks.compute_mutliple_viterbi_path_task
-    which tries to fill in as many fields as possible. Upon successful
-    completion of the task all fields should have valid values
+    DB model for kmer calculation
     """
 
-    # the resulting viterbi path file
-    file_viterbi_path = models.FileField(null=True)
+    # the type of the computation
+    JOB_TYPE = JobType.KMER.name
 
-    # chromosome
-    chromosome = models.CharField(max_length=10, null=True)
+    # the kmer field
+    kmer = models.CharField(max_length=500, null=True)
 
-    # the hmm model used for the computation
-    hmm_filename = models.CharField(max_length=500, null=True)
+    # how many times the kmer occured
+    n_instances = models.IntegerField(default=0, null=True)
 
-    # the reference sequence filename
-    ref_seq_filename = models.CharField(max_length=1000, null=True)
+    # the repeat sequence the calculation corresponds to
+    repeat_seq_id = models.ForeignKey(RepeatsModel, on_delete=models.CASCADE)
 
-    # the reference sequence filename
-    wga_seq_filename = models.CharField(max_length=1000, null=True)
-
-    # the reference sequence filename
-    no_wag_seq_filename = models.CharField(max_length=1000, null=True)
-
-    # number of regions used
-    n_regions = models.IntegerField(null=True)
-
-    # the hmm model image
-    hmm_path_img = models.FileField(null=True)
-
-    class Meta(Computation.Meta):
-        db_table = 'multi_viterbi_computation'
-
-    @staticmethod
-    def build_from_map(map, save):
-
-        try:
-            computation = MultiViterbiComputation.objects.get(task_id=map["task_id"])
-            return computation
-        except ObjectDoesNotExist:
-
-            computation = MultiViterbiComputation()
-            computation.task_id = map["task_id"]
-            computation.result = map["result"]
-            computation.error_explanation = map["error_explanation"]
-            computation.computation_type = map["computation_type"]
-            computation.hmm_filename = map["hmm_filename"]
-            computation.ref_seq_filename = map["ref_seq_filename"]
-            computation.wga_seq_filename = map["wga_seq_filename"]
-            computation.no_wag_seq_filename = map["no_wga_seq_filename"]
-            computation.chromosome = map["chromosome"]
-            computation.n_regions = map["n_regions"]
-            computation.file_viterbi_path = map["file_viterbi_path"]
-            computation.hmm_path_img = map["hmm_path_img"]
-
-            if save:
-                computation.save()
-                print("{0} saved computation: {1}".format(INFO, map["task_id"]))
-            return computation
+    class Meta(ComputationModel.Meta):
+        db_table = 'kmer_computation'
 
     @staticmethod
     def compute(data):
-
-        hmm_name = data['hmm_name']
-        chromosome = data['chromosome']
-        window_type = 'BOTH'
-        ref_seq_file = data["ref_seq_filename"]
-        wga_seq_file = data["wga_seq_filename"]
-        no_wag_seq_file = data["no_wga_seq_filename"]
-        raise ValueError("Not Implemented")
-
-        """
-        if USE_CELERY:
-
-            # schedule the computation
-            task = compute_mutliple_viterbi_path_task.delay(hmm_name=hmm_name,
-                                                            chromosome=chromosome,
-                                                            window_type=window_type,
-                                                            group_tip=data['group_tip'],
-                                                            ref_seq_file=ref_seq_file,
-                                                            no_wga_seq_file=no_wag_seq_file,
-                                                            wga_seq_file=wga_seq_file,
-                                                            remove_dirs=data["remove_dirs"],
-                                                            use_spade=data["use_spade"])
-
-            return task.id
-        else:
-
-            import uuid
-            from .tasks import compute_mutliple_viterbi_path
-            task_id = str(uuid.uuid4())
-            compute_mutliple_viterbi_path(task_id=task_id, hmm_name=hmm_name,
-                                          chromosome=chromosome, window_type=window_type,
-                                          group_tip=data['group_tip'], ref_seq_file=ref_seq_file,
-                                          wga_seq_file=wga_seq_file, no_wga_seq_file=no_wag_seq_file,
-                                          remove_dirs=data["remove_dirs"], use_spade=data["use_spade"])
-            return task_id
-        """
-
-
-    @staticmethod
-    def get_invalid_map(task, result):
-
-        data_map = dict()
-        data_map["task_id"] = task.id
-        data_map["result"] = JobResultEnum.FAILURE.name
-        data_map["error_explanation"] = str(result)
-        data_map["computation_type"] = JobType.MULTI_VITERBI.name
-        data_map["file_viterbi_path"] = result["file_viterbi_path"]
-        data_map["hmm_filename"] = result["hmm_filename"]
-        data_map["chromosome"] = result["chromosome"]
-        data_map["ref_seq_filename"] = result["ref_seq_filename"]
-        data_map["wga_seq_filename"] = result["wga_seq_filename"]
-        data_map["no_wag_seq_filename"] = result["no_wga_seq_filename"]
-        data_map["window_type"] = result["window_type"]
-        data_map["n_regions"] = result["n_regions"]
-        data_map["hmm_path_img"] = result["hmm_path_img"]
-        return data_map
-
-
-class CompareViterbiSequenceComputation(Computation):
-
-    # the file holding the result of the computation
-    file_result = models.FileField(null=True)
-
-    # the metric used for the comparison
-    distance_metric = models.CharField(max_length=100, null=True)
-
-    class Meta(Computation.Meta):
-        db_table = 'compare_viterbi_sequence_computation'
-
-    @staticmethod
-    def compute(data):
-
-        if USE_CELERY:
-
-            # schedule the computation
-            task = compute_compare_viterbi_sequence_task.delay(distance_metric=data["distance_metric"],
-                                                               max_num_seqs=data["max_num_seqs"],
-                                                               group_tip=data['group_tip'])
-
-            return task.id
-        else:
-
-            import uuid
-            from .tasks import compute_compare_viterbi_sequence
-            task_id = str(uuid.uuid4())
-            compute_compare_viterbi_sequence(task_id=task_id, distance_metric=data["distance_metric"],
-                                             max_num_seqs=data["max_num_seqs"], group_tip=data['group_tip'])
-            return task_id
-
-    @staticmethod
-    def get_as_map(model):
-        return {"task_id": model.task_id, "result": model.result,
-                "error_explanation": model.error_explanation,
-                "computation_type": model.computation_type,
-                "file_result": model.file_result.name,
-                "distance_metric": model.distance_metric}
+        pass
 
     @staticmethod
     def get_invalid_map(task, result):
         data_map = dict()
+
         data_map["task_id"] = task.id
         data_map["result"] = JobResultEnum.FAILURE.name
         data_map["error_explanation"] = str(result)
-        data_map["computation_type"] = JobType.MULTI_VITERBI.name
-        data_map["file_viterbi_path"] = result["file_viterbi_path"]
-        data_map["hmm_filename"] = result["hmm_filename"]
-        data_map["chromosome"] = result["chromosome"]
-        data_map["ref_seq_filename"] = result["ref_seq_filename"]
-        data_map["wga_seq_filename"] = result["wga_seq_filename"]
-        data_map["no_wag_seq_filename"] = result["no_wga_seq_filename"]
-        data_map["window_type"] = result["window_type"]
-        data_map["n_regions"] = result["n_regions"]
-        data_map["hmm_path_img"] = result["hmm_path_img"]
+        data_map["computation_type"] = KmerComputationModel.JOB_TYPE
+        data_map['kmer'] = INVALID_STR
+        data_map['n_instances'] = 0
+        data_map['repeat_seq_id'] = INVALID_ITEM
+
         return data_map
 
+    @staticmethod
+    def build_from_data(task_id, result, error_explanation,
+                        file_viterbi_path, save):
+        map_data = dict()
+        map_data["task_id"] = task_id
+        map_data["result"] = result
+        map_data["error_explanation"] = error_explanation
+        map_data["computation_type"] = ViterbiComputationModel.JOB_TYPE
+        return KmerComputationModel.build_from_map(map_data=map_data, save=save)
+
+    @staticmethod
+    def build_from_map(map_data, save):
+        pass
 

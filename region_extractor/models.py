@@ -1,15 +1,15 @@
 from django.db import models
 
 from hmmtuf.config import USE_CELERY
-from hmmtuf_home.models import Computation
+from hmmtuf_home.models import ComputationModel
 from .tasks import extract_region_task
 from .tasks import serial_task
 
 # Create your models here.
 
-class ExtractRegionComputation(Computation):
+class ExtractRegionComputationModel(ComputationModel):
 
-    class Meta(Computation.Meta):
+    class Meta(ComputationModel.Meta):
         db_table = 'extract_region_computation_model'
 
     @staticmethod
