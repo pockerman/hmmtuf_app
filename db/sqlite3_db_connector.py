@@ -52,13 +52,12 @@ class SQLiteDBConnector(DBConnectorBase):
                       "repeat_seq TEXT NOT NULL, hmm_state_id INTEGER NOT NULL, " \
                       "gc FLOAT)"
         elif table_name == 'repeats_distances':
-            sql = "CREATE TABLE IF NOT EXISTS repeats_distances (chromosome1 TEXT NOT NULL, " \
-                                "start_idx_1 INT NOT NULL, " \
-                                "end_idx_1 INT NOT NULL, " \
-                                "chromosome2 TEXT NOT NULL, " \
-                                "start_idx_2 INT NOT NULL, " \
-                                "end_idx_2 INT NOT NULL, " \
-                                "value FLOAT, " \
+            sql = "CREATE TABLE IF NOT EXISTS repeats_distances (id INTEGER PRIMARY KEY AUTOINCREMENT, " \
+                  "repeat_idx_1 INTEGER NOT NULL,  " \
+                  "repeat_idx_2 INTEGER NOT NULL, " \
+                  "hmm_state_id_1 INTEGER NOT NULL, " \
+                  "hmm_state_id_2 INTEGER NOT NULL, " \
+                  "value FLOAT, " \
                                 "metric_type_id INT NOT NULL, " \
                                 "sequence_type_id INT NOT NULL, " \
                                 "is_normalized INT NOT NULL)"
