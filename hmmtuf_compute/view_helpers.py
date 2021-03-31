@@ -1,16 +1,90 @@
 from django.template import loader
 from django.http import HttpResponse
+from django.core.exceptions import ObjectDoesNotExist
+import dash
+import dash_core_components as dcc
+import dash_html_components as html
+from dash.dependencies import Input, Output
+import plotly.express as px
+import pandas as pd
+
 
 from compute_engine.src.utils import get_sequence_name, get_tdf_file
 from compute_engine.src.enumeration_types import JobResultEnum, JobType
 from compute_engine import INFO
-from compute_engine.src.string_sequence_calculator import TextDistanceCalculator
+from hmmtuf_compute import dash_kmer_viewer
+from hmmtuf.celery import celery_app
 from hmmtuf.helpers import make_bed_path
 from hmmtuf.helpers import get_configuration
 from hmmtuf import INVALID_TASK_ID
 
-from .models import ViterbiComputation, MultiViterbiComputation, \
-    GroupViterbiComputation, CompareViterbiSequenceComputation
+from .models import ViterbiComputationModel, GroupViterbiComputationModel, KmerComputationModel
+
+
+def get_kmer_view_result(request, task_id):
+    # return
+    # template_html = 'hmmtuf_compute/kmer_result_view.html'
+    # template = loader.get_template(template_html)
+    try:
+
+        # if the task exists do not ask celery. This means
+        # that either the task failed or succeed
+        # task = KmerComputationModel.objects.get(task_id=task_id)
+        context = {"show_get_results_button": True,
+                   "error_message": "This is a test"}  # get_result_view_context(task=task, task_id=task_id)
+
+        if 'error_task_failed' in context:
+            # the task failed so
+            # Dash view should show this
+            layout = html.Div(children=[
+                html.H1(children='Kmer Viewer',
+                        style={"textAlign": "center", "color": '#7FDBFF'}),
+                html.H2(children="Kmer calculation failed",
+                        style={"textAlign": "left", "color": 'red'}),
+                html.H3(children="Task id: %s" % task_id,
+                        style={"textAlign": "left", "color": 'black'}),
+                html.H4(children="Error message: %s" % context["error_message"],
+                        style={"textAlign": "left", "color": 'black'})])
+            return layout
+        elif "show_get_results_button" in context:
+            # result is not ready yet
+            layout = html.Div(children=[html.H1(children='Kmer Viewer',
+                                                style={"textAlign": "center", "color": '#7FDBFF'}),
+                                        html.H2(children="Kmer calculation pending",
+                                                style={"textAlign": "left", "color": 'blue'}),
+                                        html.H3(children="Task id: %s" % task_id,
+                                                style={"textAlign": "left", "color": 'black'}),
+                                        html.Button(children="Check task", id="check_task", n_clicks=task_id,
+                                                    style={"textAlign": "center", "color": 'black'}),
+                                        html.Div(id='check_task-button-timestamp')])
+
+            # we also need to add
+            # a callback to check on the result
+            @dash_kmer_viewer.kmer_viewer.callback(Output('check_task-button-timestamp', 'children'),
+                                                   Input('check_task', 'n_clicks'))
+            def fetch_results():
+                changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
+                if 'check_task' in changed_id:
+                    msg = 'Button 1 was most recently clicked'
+                elif 'btn-nclicks-2' in changed_id:
+                    msg = 'Button 2 was most recently clicked'
+                elif 'btn-nclicks-3' in changed_id:
+                    msg = 'Button 3 was most recently clicked'
+                else:
+                    msg = 'None of the buttons have been clicked yet'
+                return html.Div(msg)
+
+            return layout
+
+    except ObjectDoesNotExist:
+
+        # try to ask celery
+        # check if the computation is ready
+        # if yes collect the results
+        # otherwise return the html
+        task = celery_app.AsyncResult(task_id)
+        context = view_viterbi_path_exception_context(task=task, task_id=task_id)
+        return HttpResponse(template.render(context, request))
 
 
 def get_result_view_context(task, task_id):
@@ -29,19 +103,7 @@ def get_result_view_context(task, task_id):
         return context
 
     else:
-
-        if task.computation_type == JobType.VITERBI_SEQUENCE_COMPARE.name:
-            context = {'task_status': task.result,
-                       "computation": task}
-
-            similarity_map = TextDistanceCalculator.read_sequence_comparison_file(filename=task.file_result.name,
-                                                                                  strip_path=True,
-                                                                                  delim=',',
-                                                                                  commment_delim='#')
-            context['similarity_map'] = similarity_map
-            context['distance_metric'] = task.distance_metric
-            return context
-
+        # this is success
         configuration = get_configuration()
         wga_name = task.wga_seq_filename.split("/")[-1]
         wga_seq_name = get_sequence_name(configuration=configuration, seq=wga_name)
@@ -91,6 +153,11 @@ def get_result_view_context(task, task_id):
                        "end_region_idx": task.end_region_idx}
             return context
 
+        if task.computation_type == JobType.KMER.name:
+            context = {'task_status': task.result,
+                       "computation": task,}
+            return context
+
         context = {'task_status': task.result,
                    "computation": task,
                    "wga_seq_name": wga_seq_name,
@@ -112,7 +179,7 @@ def get_result_view_context(task, task_id):
         return context
 
 
-def view_viterbi_path_exception_context(task, task_id, model=ViterbiComputation.__name__):
+def view_viterbi_path_exception_context(task, task_id, model=ViterbiComputationModel.__name__):
 
     context = {'task_status': task.status}
 
@@ -124,17 +191,11 @@ def view_viterbi_path_exception_context(task, task_id, model=ViterbiComputation.
     elif task.status == JobResultEnum.SUCCESS.name:
 
         result = task.get()
-        if model == ViterbiComputation.__name__:
-            computation = ViterbiComputation.build_from_map(result, save=True)
+        if model == ViterbiComputationModel.__name__:
+            computation = ViterbiComputationModel.build_from_map(result, save=True)
             context.update({"computation": computation})
-        elif model == MultiViterbiComputation.__name__:
-            computation = MultiViterbiComputation.build_from_map(result, save=True)
-            context.update({"computation": computation})
-        elif model == GroupViterbiComputation.__name__:
-            computation = GroupViterbiComputation.build_from_map(result, save=True)
-            context.update({"computation": computation})
-        elif model == CompareViterbiSequenceComputation.__name__:
-            computation = CompareViterbiSequenceComputation.build_from_map(result, save=True)
+        elif model == GroupViterbiComputationModel.__name__:
+            computation = GroupViterbiComputationModel.build_from_map(result, save=True)
             context.update({"computation": computation})
         else:
             raise ValueError("Model name: {0} not found".format(INFO, model))
@@ -142,29 +203,19 @@ def view_viterbi_path_exception_context(task, task_id, model=ViterbiComputation.
 
         result = task.get(propagate=False)
 
-        if model == ViterbiComputation.__name__:
+        if model == ViterbiComputationModel.__name__:
 
-            data_map = ViterbiComputation.get_invalid_map(task=task, result=result)
-            computation = ViterbiComputation.build_from_map(data_map, save=True)
+            data_map = ViterbiComputationModel.get_invalid_map(task=task, result=result)
+            computation = ViterbiComputationModel.build_from_map(data_map, save=True)
             context.update({'error_task_failed': True,
                             "error_message": str(result),
                             'task_id': task_id, "computation": computation})
 
-        elif model == MultiViterbiComputation.__name__:
+        elif model == GroupViterbiComputationModel.__name__:
 
             result = task.get(propagate=False)
-            data_map = MultiViterbiComputation.get_invalid_map(task=task, result=result)
-            computation = MultiViterbiComputation.build_from_map(data_map, save=True)
-            context.update({'error_task_failed': True,
-                            "error_message": str(result),
-                            'task_id': task_id,
-                            "computation": computation})
-
-        elif model == GroupViterbiComputation.__name__:
-
-            result = task.get(propagate=False)
-            data_map = GroupViterbiComputation.get_invalid_map(task=task, result=result)
-            computation = GroupViterbiComputation.build_from_map(data_map, save=True)
+            data_map = GroupViterbiComputationModel.get_invalid_map(task=task, result=result)
+            computation = GroupViterbiComputationModel.build_from_map(data_map, save=True)
             context.update({'error_task_failed': True,
                             "error_message": str(result),
                             'task_id': task_id,
@@ -189,3 +240,6 @@ def handle_success_view(request, template_html, task_id, **kwargs):
         context.update(kwargs)
 
     return HttpResponse(template.render(context, request))
+
+
+

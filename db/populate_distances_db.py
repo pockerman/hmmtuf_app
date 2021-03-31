@@ -51,7 +51,7 @@ def create_distance_metrics_table(database_wrap: SQLiteDBConnector,
 
 def create_repeats_table(database_wrap: SQLiteDBConnector, repeats_file: Path) -> None:
 
-    #database_wrap.delete_table(tbl_name='repeats')
+    print("{0} Creating table repeats...".format(INFO))
     database_wrap.create_table(table_name='repeats')
 
     hmm_states = database_wrap.fetch_from_hmm_state_types_all()
@@ -65,18 +65,28 @@ def create_repeats_table(database_wrap: SQLiteDBConnector, repeats_file: Path) -
     seqs = file_reader(filename=repeats_file)
 
     for seq in seqs:
-        sql = '''INSERT INTO repeats(chromosome, start_idx, end_idx, repeat_seq, hmm_state_id, gc) values(?,?,?,?,?,?)'''
-
         seq[-1] = seq[-1].strip()
         seq[-1] = seq[-1].upper()
         seq[-1] = hmm_state_dict[seq[-1]]
-        seq.append(0.0)
-        values = seq
-        database_wrap.execute(sql=sql, values=values)
+
+        sql = '''SELECT * FROM repeats WHERE chromosome='%s' AND start_idx=%s AND
+        end_idx=%s AND repeat_seq='%s' ''' % (seq[0], seq[1], seq[2], seq[3])
+
+        rows = database_wrap.fetch_all(sql=sql)
+
+        if len(rows) == 0:
+
+            sql = '''INSERT INTO repeats(chromosome, start_idx, end_idx, repeat_seq, hmm_state_id, gc) values(?,?,?,?,?,?)'''
+            seq.append(0.0)
+            values = seq
+            database_wrap.execute(sql=sql, values=values)
+    print("{0} Done...".format(INFO))
 
 
-def create_repeats_info_table(database_wrap: SQLiteDBConnector, data_dir: Path, delimiter="\t") -> None:
+def create_repeats_info_table(database_wrap: SQLiteDBConnector,
+                              data_dir: Path, delimiter="\t") -> None:
 
+    print("{0} Creating table repeats_info...".format(INFO))
     database_wrap.create_table(table_name="repeats_info")
     data_directories = os.listdir(path=data_dir)
 
@@ -102,9 +112,13 @@ def create_repeats_info_table(database_wrap: SQLiteDBConnector, data_dir: Path, 
                     align_seq,  unit_seq) values(?, ?, ?, ?, ?, ?)'''
                     values = (chromosome, start_idx, end_idx, max_repeats_count, align_seq, unit_seq)
                     database_wrap.execute(sql=sql, values=values)
+    print("{0} Done...".format(INFO))
 
 
-def create_gquads_info_table(database_wrap: SQLiteDBConnector, data_dir: Path, delimiter="\t") -> None:
+def create_gquads_info_table(database_wrap: SQLiteDBConnector,
+                             data_dir: Path, delimiter="\t") -> None:
+
+    print("{0} Creating table gquads_info...".format(INFO))
 
     database_wrap.create_table(table_name="gquads_info")
     data_directories = os.listdir(path=data_dir)
@@ -148,6 +162,8 @@ def create_gquads_info_table(database_wrap: SQLiteDBConnector, data_dir: Path, d
                     values = (chromosome, start_idx, end_idx, average_gc_count, min_gc_count, max_gc_count)
                     database_wrap.execute(sql=sql, values=values)
 
+    print("{0} Done...".format(INFO))
+
 
 def insert_distance_metric_result(database_wrap: SQLiteDBConnector,
                                   directory_path: Path, metric_data: tuple,
@@ -165,6 +181,19 @@ def insert_distance_metric_result(database_wrap: SQLiteDBConnector,
 
     # get all the results directories
     results_dir = os.listdir(path=directory_path)
+
+    sql_repeats = '''SELECT id, hmm_state_id, chromosome, start_idx, end_idx, repeat_seq FROM repeats'''
+
+    repeats_rows = database_wrap.fetch_all(sql=sql_repeats)
+    repeats_map = {}
+    for item in repeats_rows:
+        key = (item[2], item[3], item[4], item[5])
+        value = (item[0], item[1])
+
+        if key in repeats_rows:
+            raise ValueError("Repeat {0} already encountered".format(key))
+
+        repeats_map[key] = value
 
     for result_dir in results_dir:
         result_dir_path = directory_path / result_dir
@@ -185,10 +214,9 @@ def insert_distance_metric_result(database_wrap: SQLiteDBConnector,
                         reader = csv.reader(fh, delimiter=",")
                         batch_data = []
 
-                        sql = '''INSERT INTO repeats_distances(chromosome1, start_idx_1, 
-                                                end_idx_1, chromosome2, 
-                                                start_idx_2, end_idx_2, value, 
-                                                metric_type_id, sequence_type_id, is_normalized) values(?,?, ?, ?, ?, ?, ?, ?, ?, ?)'''
+                        insert_sql = '''INSERT INTO repeats_distances(repeat_idx_1, repeat_idx_2,  
+                        hmm_state_id_1, hmm_state_id_2, value, 
+                        metric_type_id, sequence_type_id, is_normalized) values(?, ?, ?, ?, ?, ?, ?, ?)'''
 
                         for row in reader:
                             if row[0] == '#':
@@ -197,57 +225,98 @@ def insert_distance_metric_result(database_wrap: SQLiteDBConnector,
                             chromosome1 = row[0]
                             start_idx_1 = int(row[1])
                             end_idx_1 = int(row[2])
+                            seq = row[3]
 
+                            repeat_idx_1, hmm_state_id_1 = repeats_map[(chromosome1, start_idx_1, end_idx_1, seq)]
+
+                            """
+                            # get the repeat with such an id
+                            sql = '''SELECT id, hmm_state_id FROM repeats WHERE chromosome='%s' 
+                            AND start_idx=%s AND end_idx=%s AND repeat_seq='%s' ''' % (chromosome1, start_idx_1, end_idx_1, seq)
+
+                            rows = database_wrap.fetch_all(sql=sql)
+
+                            if len(rows) == 0:
+                                raise ValueError("Repeat with (chromosome={0}, "
+                                                 "start_idx={1}, end_idx={2}) does not exist ".format(chromosome1,
+                                                                                                      start_idx_1,
+                                                                                                      end_idx_1))
+
+                            if len(rows) > 1:
+                                raise ValueError("Repeat with (chromosome={0}, "
+                                                 "start_idx={1}, end_idx={2}) exists multiple times ".format(chromosome1,
+                                                                                                             start_idx_1,
+                                                                                                              end_idx_1))
+
+                            """
+                            #repeat_idx_1 = rows[0][0]
+                            #hmm_state_id_1 = rows[0][1]
                             chromosome2 = row[5]
                             start_idx_2 = int(row[6])
                             end_idx_2 = int(row[7])
+                            seq = row[8]
+
+                            """
+                            sql = '''SELECT id, hmm_state_id FROM repeats WHERE chromosome='%s' 
+                                     AND start_idx=%s AND end_idx=%s AND repeat_seq='%s' ''' % (chromosome2, start_idx_2,
+                                                                                                end_idx_2, seq)
+
+                            rows = database_wrap.fetch_all(sql=sql)
+
+                            if len(rows) == 0:
+                                raise ValueError("Repeat with (chromosome={0}, "
+                                                 "start_idx={1}, end_idx={2}, seq={3}) does not exist ".format(chromosome2,
+                                                                                                      start_idx_2,
+                                                                                                      end_idx_2, seq))
+
+                            if len(rows) > 1:
+                                raise ValueError("Repeat with (chromosome={0}, "
+                                                 "start_idx={1}, end_idx={2}, seq={3}) exists multiple times ".format(
+                                    chromosome2,
+                                    start_idx_2,
+                                    end_idx_2, seq))
+                            """
+                            repeat_idx_2, hmm_state_id_2 = repeats_map[(chromosome2, start_idx_2, end_idx_2, seq)]
+                            #repeat_idx_2 = rows[0][0]
+                            #hmm_state_id_2 = rows[0][1]
                             value = float(row[10])
                             is_normalized = 1
                             sequence_type_id = squence_types_dict["NORMAL"]
 
-                            values = (chromosome1, start_idx_1, end_idx_1,
-                                      chromosome2, start_idx_2, end_idx_2,
+                            values = (repeat_idx_1, repeat_idx_2, hmm_state_id_1, hmm_state_id_2,
                                       value, metric_type_id, sequence_type_id, is_normalized)
 
                             batch_data.append(values)
-
-                            #database_wrap.execute(sql=sql, values=values)
 
                             value = float(row[11])
                             sequence_type_id = squence_types_dict["PURINE"]
-                            values = (chromosome1, start_idx_1, end_idx_1,
-                                      chromosome2, start_idx_2, end_idx_2,
+                            values = (repeat_idx_1, repeat_idx_2, hmm_state_id_1, hmm_state_id_2,
                                       value, metric_type_id, sequence_type_id, is_normalized)
 
                             batch_data.append(values)
-                            #database_wrap.execute(sql=sql, values=values)
 
                             value = float(row[12])
                             sequence_type_id = squence_types_dict["AMINO"]
-                            values = (chromosome1, start_idx_1, end_idx_1,
-                                      chromosome2, start_idx_2, end_idx_2,
+                            values = (repeat_idx_1, repeat_idx_2, hmm_state_id_1, hmm_state_id_2,
                                       value, metric_type_id, sequence_type_id, is_normalized)
 
                             batch_data.append(values)
-                            #database_wrap.execute(sql=sql, values=values)
 
                             value = float(row[13])
                             sequence_type_id = squence_types_dict["WEAK_HYDROGEN"]
-                            values = (chromosome1, start_idx_1, end_idx_1,
-                                      chromosome2, start_idx_2, end_idx_2,
+                            values = (repeat_idx_1, repeat_idx_2, hmm_state_id_1, hmm_state_id_2,
                                       value, metric_type_id, sequence_type_id, is_normalized)
 
                             batch_data.append(values)
-                            #database_wrap.execute(sql=sql, values=values)
 
                             if len(batch_data) >= batch_size:
-                                database_wrap.execute_transaction(data=batch_data, sql=sql)
+                                database_wrap.execute_transaction(data=batch_data, sql=insert_sql)
                                 batch_data = []
 
                         if len(batch_data) != 0:
-                            database_wrap.execute_transaction(data=batch_data, sql=sql)
+                            database_wrap.execute_transaction(data=batch_data, sql=insert_sql)
                             batch_data = []
-    print("{0} Inserting metric {1}".format(INFO, metric_data[1]))
+    print("{0} Done....".format(INFO))
 
 
 def create_repeats_distances_table(database_wrap: SQLiteDBConnector,
@@ -257,14 +326,11 @@ def create_repeats_distances_table(database_wrap: SQLiteDBConnector,
     Populate the repeats_distances table
     """
 
+    print("{0} Creating table repeats_distances...".format(INFO))
     if len(metrics) == 0:
         print("{0} Metrics map is empty exiting...".format(INFO))
 
-    # get all the directories in the path
-    # data_directories = os.listdir(path=data_dir)
-
     database_wrap.create_table(table_name="repeats_distances")
-    #database_wrap.execute_sql(sql="DELETE FROM repeats_distances WHERE metric_type_id=3")
 
     for metric in metrics:
         directory_path = data_dir / metric
@@ -280,6 +346,8 @@ def create_repeats_distances_table(database_wrap: SQLiteDBConnector,
                                               metric_data=metric_data,
                                               directory_path=directory_path)
 
+    print("{0} Done...".format(INFO))
+
 
 def main(database_wrap: SQLiteDBConnector,
          repeats_file: Path,
@@ -287,15 +355,16 @@ def main(database_wrap: SQLiteDBConnector,
          chromosomes_dir: Path,
          metrics: dir) -> None:
 
-    database_wrap.delete_all_tables()
-    #database_wrap.create_all_tables()
+    tbl_names = ['repeats_distances', ]
+    #database_wrap.delete_all_tables(tbl_names=None)
 
-    create_hmm_types_table(database_wrap=database_wrap)
-    create_distance_types_table(database_wrap=database_wrap)
-    create_distance_metrics_table(database_wrap=database_wrap, metrics=metrics)
-    create_repeats_table(database_wrap=database_wrap, repeats_file=repeats_file)
-    create_repeats_info_table(database_wrap=database_wrap, data_dir=chromosomes_dir)
-    create_gquads_info_table(database_wrap=database_wrap, data_dir=chromosomes_dir)
+    #create_hmm_types_table(database_wrap=database_wrap)
+    #create_distance_types_table(database_wrap=database_wrap)
+    #create_distance_metrics_table(database_wrap=database_wrap, metrics=metrics)
+    #create_repeats_table(database_wrap=database_wrap, repeats_file=repeats_file)
+    #create_repeats_info_table(database_wrap=database_wrap, data_dir=chromosomes_dir)
+    #create_gquads_info_table(database_wrap=database_wrap, data_dir=chromosomes_dir)
+
     create_repeats_distances_table(database_wrap=database_wrap,
                                    data_dir=data_dir, metrics=metrics)
 
@@ -307,26 +376,38 @@ if __name__ == '__main__':
     data_dir = Path("/home/alex/qi3/hmmtuf/computations/distances/")
     chromosomes_dir = Path("/home/alex/qi3/hmmtuf/computations/viterbi_paths/")
 
-    """
+
     metrics = {'ham': "Hamming", 'mlipns': "MLIPNS",
-               'lev': "Levenshtein", 'damlev': "DamerauLevenshtein",
-               'jwink': "JaroWinkler", 'str': "StrCmp95",
+               'lev': "Levenshtein",
+               'damlev': "DamerauLevenshtein",
+               'jwink': "JaroWinkler",
+               'str': "StrCmp95",
                'nw': "NeedlemanWunsch",
                'sw': "SmithWaterman",
                'got': "Gotoh",
-               'jac': "Jaccard", 'sor': "Sorensen",
+               'jac': "Jaccard",
+               'sor': "Sorensen",
                'tve': "Tversky", 'ov': "Overlap",
                'tan': "Tanimoto", 'cos': "Cosine",
-               'mon': "MongeElkan", 'bag': "Bag", 'lcsseq': "LCSSeq",
+               'mon': "MongeElkan",
+               'bag': "Bag",
+               'lcsseq': "LCSSeq",
                'lcsstr': "LCSStr", 'rat': "RatcliffObershelp",
                'ari': "ArithNCD", 'rle': "RLENCD",
                'bwt': "BWTRLENCD", 'sqr': "SqrtNCD",
                'ent': "EntropyNCD", 'bz2': "BZ2NCD", 'lzm': "LZMANCD",
                'zli': "ZLIBNCD", 'mra': "MRA", 'edi': "Editex",
                'pre': "Prefix", 'pos': "Postfix",
-               'len': "Length", 'id': "Identity", 'mat': "Matrix", }
-    """
-    metrics = {'sw': "SmithWaterman"} #, 'sor': "Sorensen", }
+               'len': "Length", 'id': "Identity", 'mat': "Matrix",
+              }
+
+    metrics = {'lcsseq': "LCSSeq", 'lcsstr': "LCSStr",
+               'lev': "Levenshtein", 'mlipns': "MLIPNS",  'mon': "MongeElkan"}
+    #{'tve': "Tversky", 'ov': "Overlap", 'tan': "Tanimoto"}
+    #{'nw': "NeedlemanWunsch", 'got': "Gotoh", 'jac': "Jaccard"}
+    #{'damlev': "DamerauLevenshtein", 'jwink': "JaroWinkler",}
+    #{"bag": "Bag", "cos": "Cosine"}
+    #{'str': "StrCmp95", 'sor': "Sorensen", }
 
     database_wrap = SQLiteDBConnector(db_file=db_file)
     database_wrap.connect()

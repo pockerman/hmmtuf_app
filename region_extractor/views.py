@@ -10,7 +10,7 @@ from hmmtuf.helpers import get_configuration
 from hmmtuf_home.models import RegionModel
 
 from .forms import ExtractRegionForm
-from .models import ExtractRegionComputation
+from .models import ExtractRegionComputationModel
 
 
 # Create your views here.
@@ -73,7 +73,7 @@ def extract_region_view(request):
                                                     "quality_threshold": form.quality_threshold,
                                                     "add_indels": form.add_indels}
 
-                task_id = ExtractRegionComputation.compute(data=configuration)
+                task_id = ExtractRegionComputationModel.compute(data=configuration)
 
                 # return the id for the computation
                 return redirect('extract_region_success_view', task_id=task_id)

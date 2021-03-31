@@ -17,10 +17,11 @@ class JobType(Enum):
     """
     VITERBI = 0
     EXTRACT_REGION = 1
-    MULTI_VITERBI = 2
+    #MULTI_VITERBI = 2
     GROUP_VITERBI = 3
     VITERBI_SEQUENCE_COMPARE = 4
     VITERBI_GROUP_ALL = 5
+    KMER = 6
 
 class BackendType(Enum):
     """

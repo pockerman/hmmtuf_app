@@ -22,7 +22,7 @@ from hmmtuf.helpers import make_viterbi_sequence_comparison_path_filename
 from hmmtuf.helpers import make_viterbi_sequence_comparison_path
 from hmmtuf_home.models import RegionModel, \
     HMMModel, ViterbiSequenceModel, \
-    ViterbiSequenceGroupTip, RegionGroupTipModel
+    ViterbiSequenceGroupTipModel, RegionGroupTipModel
 
 from hmmtuf_compute.tasks_helpers import build_files_map, update_for_exception
 
@@ -66,25 +66,16 @@ def compute_group_viterbi_path_task(hmm_name, window_type, group_tip,
                                       sequence_group=sequence_group, scheduler_id=None)
 
 
-@task(name="compute_compare_viterbi_sequence_task")
-def compute_compare_viterbi_sequence_task(distance_metric, max_num_seqs, group_tip):
-    task_id = compute_compare_viterbi_sequence_task.request.id
-    return compute_compare_viterbi_sequence(task_id=task_id,
-                                            distance_metric=distance_metric,
-                                            max_num_seqs=max_num_seqs,
-                                            group_tip=group_tip)
-
-
 def compute_group_viterbi_path_all(task_id, hmm_name, window_type,
                                    remove_dirs, use_spade, sequence_group):
 
     logger.info("Computing Group All Viterbi path")
     task_path = make_viterbi_path(task_id=task_id)
 
-    from .models import GroupViterbiComputation
+    from .models import GroupViterbiComputationModel
 
     # create a computation instance
-    computation = GroupViterbiComputation()
+    computation = GroupViterbiComputationModel()
     computation.task_id = task_id
     computation.computation_type = JobType.VITERBI_GROUP_ALL.name
     computation.error_explanation = DEFAULT_ERROR_EXPLANATION
@@ -111,7 +102,7 @@ def compute_group_viterbi_path_all(task_id, hmm_name, window_type,
     computation.end_region_idx = regions[0].end_idx
     computation.save()
 
-    result = GroupViterbiComputation.get_as_map(model=computation)
+    result = GroupViterbiComputationModel.get_as_map(model=computation)
 
     window_type = WindowType.from_string(window_type)
     db_hmm_model = HMMModel.objects.get(name=hmm_name)
@@ -219,7 +210,7 @@ def compute_group_viterbi_path_all(task_id, hmm_name, window_type,
                                                 remove_dirs=remove_dirs)
 
                     sequence = ViterbiSequenceModel()
-                    group = ViterbiSequenceGroupTip.objects.get(tip=sequence_group)
+                    group = ViterbiSequenceGroupTipModel.objects.get(tip=sequence_group)
                     sequence.group_tip = group
                     sequence.file_sequence = make_viterbi_sequence_path_filename(task_id=task_id, extra_path=path_extra)
                     sequence.region = region_model
@@ -282,7 +273,7 @@ def compute_group_viterbi_path(task_id, hmm_name, window_type, group_tip,
     """
 
     logger.info("Computing Group Viterbi path")
-    from .models import GroupViterbiComputation
+    from .models import GroupViterbiComputationModel
 
     print("{0} task_id: {1}".format(INFO, task_id))
     print("{0} group_tip: {1}".format(INFO, group_tip))
@@ -297,7 +288,7 @@ def compute_group_viterbi_path(task_id, hmm_name, window_type, group_tip,
     regions = RegionModel.objects.filter(group_tip__tip=group_tip).order_by('chromosome', 'start_idx')
 
     # create a computation instance
-    computation = GroupViterbiComputation()
+    computation = GroupViterbiComputationModel()
     computation.task_id = task_id
     computation.computation_type = JobType.GROUP_VITERBI.name
     computation.error_explanation = DEFAULT_ERROR_EXPLANATION
@@ -315,7 +306,7 @@ def compute_group_viterbi_path(task_id, hmm_name, window_type, group_tip,
     computation.end_region_idx = regions[0].end_idx
     computation.save()
 
-    result = GroupViterbiComputation.get_as_map(model=computation)
+    result = GroupViterbiComputationModel.get_as_map(model=computation)
 
     window_type = WindowType.from_string(window_type)
     db_hmm_model = HMMModel.objects.get(name=hmm_name)
@@ -411,7 +402,7 @@ def compute_group_viterbi_path(task_id, hmm_name, window_type, group_tip,
                                             remove_dirs=remove_dirs)
 
                 sequence = ViterbiSequenceModel()
-                group = ViterbiSequenceGroupTip.objects.get(tip=sequence_group)
+                group = ViterbiSequenceGroupTipModel.objects.get(tip=sequence_group)
                 sequence.group_tip = group
                 sequence.file_sequence = make_viterbi_sequence_path_filename(task_id=task_id, extra_path=path_extra)
                 sequence.region = region_model
@@ -471,7 +462,7 @@ def compute_viterbi_path(task_id, hmm_name, chromosome,
     """
 
     logger.info("Computing Viterbi path")
-    from .models import ViterbiComputation
+    from .models import ViterbiComputationModel
 
     # get the region model from the DB
     region_model = RegionModel.objects.get(file_region=region_filename)
@@ -485,25 +476,23 @@ def compute_viterbi_path(task_id, hmm_name, chromosome,
     print("{0} remove_dirs {1}".format(INFO, remove_dirs))
 
     # create a computation object in the DB
-    computation = ViterbiComputation.build_from_data(task_id=task_id,
-                                                     result=JobResultEnum.PENDING.name,
-                                                     error_explanation=DEFAULT_ERROR_EXPLANATION,
-                                                     file_viterbi_path=viterbi_path_filename,
-                                                     region_filename=region_filename,
-                                                     ref_seq_filename=ref_seq_file,
-                                                     wga_seq_filename=wga_seq_file, no_wag_seq_filename=no_wga_seq_file,
-                                                     hmm_filename=hmm_name,
-                                                     chromosome=chromosome,
-                                                     start_region_idx=region_model.start_idx,
-                                                     end_region_idx=region_model.end_idx,
-                                                     seq_size=0, number_of_gaps=0, hmm_path_img=None,
-                                                     extracted_sequences=1, n_mixed_windows=0, window_type=window_type,
-                                                     scheduler_id=scheduler_id, save=True)
+    computation = ViterbiComputationModel.build_from_data(task_id=task_id,
+                                                          result=JobResultEnum.PENDING.name,
+                                                          error_explanation=DEFAULT_ERROR_EXPLANATION,
+                                                          file_viterbi_path=viterbi_path_filename,
+                                                          region_filename=region_filename,
+                                                          ref_seq_filename=ref_seq_file,
+                                                          wga_seq_filename=wga_seq_file, no_wag_seq_filename=no_wga_seq_file,
+                                                          hmm_filename=hmm_name,
+                                                          chromosome=chromosome,
+                                                          start_region_idx=region_model.start_idx,
+                                                          end_region_idx=region_model.end_idx,
+                                                          seq_size=0, number_of_gaps=0, hmm_path_img=None,
+                                                          extracted_sequences=1, n_mixed_windows=0, window_type=window_type,
+                                                          scheduler_id=scheduler_id, save=True)
 
     # access the created computation object
-    result = ViterbiComputation.get_as_map(model=computation)
-
-    #print("{0} Window type {1}".format(INFO, window_type))
+    result = ViterbiComputationModel.get_as_map(model=computation)
     result["window_type"] = 'BOTH'
 
     # build the hmm model from the file
@@ -578,7 +567,7 @@ def compute_viterbi_path(task_id, hmm_name, chromosome,
                         remove_dirs=remove_dirs)
 
             sequence = ViterbiSequenceModel()
-            group = ViterbiSequenceGroupTip.objects.get(tip=sequence_group)
+            group = ViterbiSequenceGroupTipModel.objects.get(tip=sequence_group)
             sequence.group_tip = group
             sequence.file_sequence = make_viterbi_sequence_path_filename(task_id=task_id)
             sequence.region = region_model
@@ -614,54 +603,4 @@ def compute_viterbi_path(task_id, hmm_name, chromosome,
         return result
 
 
-def compute_compare_viterbi_sequence(task_id, distance_metric,
-                                     max_num_seqs, group_tip):
-    logger.info("Computing Viterbi sequence comparison")
-    from .models import CompareViterbiSequenceComputation
 
-    computation = CompareViterbiSequenceComputation()
-    computation.task_id = task_id
-    computation.result = JobResultEnum.PENDING.name
-    computation.error_explanation = DEFAULT_ERROR_EXPLANATION
-    computation.computation_type = JobType.VITERBI_SEQUENCE_COMPARE.name
-    computation.distance_metric = distance_metric
-    computation.save()
-
-    result = CompareViterbiSequenceComputation.get_as_map(model=computation)
-
-    tip = ViterbiSequenceGroupTip.objects.get(tip=group_tip)
-    seqs = ViterbiSequenceModel.objects.filter(group_tip__tip=tip)
-
-    if max_num_seqs != -1:
-        # limit the number of sequences to do work
-        seqs = seqs[0: max_num_seqs]
-
-    seqs_filenames = []
-
-    # collect all the sequence files
-    for seq in seqs:
-        seqs_filenames.append((seq.region.name, seq.file_sequence.name))
-
-    try:
-
-        calculator = TextDistanceCalculator(dist_type=distance_metric)
-
-        os.mkdir(make_viterbi_sequence_comparison_path(task_id=task_id))
-        calculator.calculate_from_files(fileslist=seqs_filenames,
-                                        save_at=make_viterbi_sequence_comparison_path_filename(task_id=task_id),
-                                        delim='\t')
-
-        result["result"] = computation.result = JobResultEnum.SUCCESS.name
-        result["file_result"] = make_viterbi_sequence_comparison_path_filename(task_id=task_id)
-        computation.result = JobResultEnum.SUCCESS.name
-        computation.file_result = make_viterbi_sequence_comparison_path_filename(task_id=task_id)
-        computation.save()
-        return result
-    except Exception as e:
-
-        result["error_explanation"] = str(e)
-        result["result"] = computation.result = JobResultEnum.FAILURE.name
-        computation.result = JobResultEnum.FAILURE.name
-        computation.error_explanation = str(e)
-        computation.save()
-        return result

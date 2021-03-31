@@ -9,14 +9,14 @@ from compute_engine import OK
 
 from hmmtuf import INVALID_TASK_ID, INVALID_ITEM, ENABLE_SPADE
 from hmmtuf.celery import celery_app
-from hmmtuf_home.models import HMMModel, RegionModel, RegionGroupTipModel, ViterbiSequenceGroupTip
+from hmmtuf_home.models import HMMModel, RegionModel, RegionGroupTipModel, ViterbiSequenceGroupTipModel
 
-# Create your views here.
+from hmmtuf_compute import dash_kmer_viewer
 from . import models
 from . import forms
 from . view_helpers import get_result_view_context
 from . view_helpers import view_viterbi_path_exception_context
-from . view_helpers import handle_success_view
+from . view_helpers import handle_success_view, get_kmer_view_result
 
 
 def success_schedule_group_viterbi_compute_view(request, task_id):
@@ -27,7 +27,30 @@ def success_schedule_group_viterbi_compute_view(request, task_id):
 
 
 def success_schedule_group_viterbi_compute_all_view(request, task_id):
+    """
+    Success view for group Viterbi calculation
+    """
     template_html = 'hmmtuf_compute/success_schedule_group_viterbi_compute_all_view.html'
+    return handle_success_view(request=request,
+                               template_html=template_html, task_id=task_id)
+
+
+def success_schedule_viterbi_compute_view(request, task_id):
+    """
+    Success redirect after scheduling a Viterbi path computation
+    """
+
+    template_html = 'hmmtuf_compute/success_schedule_viterbi_compute_view.html'
+    return handle_success_view(request=request,
+                               template_html=template_html, task_id=task_id)
+
+
+def success_schedule_kmer_compute_view(request, task_id):
+    """
+    Success redirect after scheduling a Viterbi path computation
+    """
+
+    template_html = 'hmmtuf_compute/success_schedule_kmer_compute_view.html'
     return handle_success_view(request=request,
                                template_html=template_html, task_id=task_id)
 
@@ -41,7 +64,7 @@ def schedule_group_viterbi_compute_view(request):
     template_html = 'hmmtuf_compute/schedule_group_viterbi_compute_view.html'
     template = loader.get_template(template_html)
 
-    db_group_tips = ViterbiSequenceGroupTip.objects.all()
+    db_group_tips = ViterbiSequenceGroupTipModel.objects.all()
     sequence_groups = ["None"]
 
     for item in db_group_tips:
@@ -74,8 +97,8 @@ def schedule_group_viterbi_compute_view(request):
         if result is not OK:
             return form.response
 
-        kwargs = form.as_map()
-        task_id = models.GroupViterbiComputation.compute(data=kwargs)
+        kwargs = form.kwargs
+        task_id = models.GroupViterbiComputationModel.compute(data=kwargs)
 
         if kwargs["group_tip"] == 'all':
             return redirect('success_schedule_group_viterbi_compute_all_view', task_id=task_id)
@@ -93,7 +116,7 @@ def view_group_viterbi_all(request, task_id):
     try:
         # if the task exists do not ask celery. This means
         # that either the task failed or succeed
-        task = models.GroupViterbiComputation.objects.get(task_id=task_id)
+        task = models.GroupViterbiComputationModel.objects.get(task_id=task_id)
         context = get_result_view_context(task=task, task_id=task_id)
         return HttpResponse(template.render(context, request))
 
@@ -109,7 +132,7 @@ def view_group_viterbi_all(request, task_id):
             return success_schedule_group_viterbi_compute_view(request, task_id=INVALID_TASK_ID)
 
         context = view_viterbi_path_exception_context(task=task, task_id=task_id,
-                                                      model=models.GroupViterbiComputation.__name__)
+                                                      model=models.GroupViterbiComputationModel.__name__)
         return HttpResponse(template.render(context, request))
 
 
@@ -126,7 +149,7 @@ def view_group_viterbi_path(request, task_id):
 
         # if the task exists do not ask celery. This means
         # that either the task failed or succeed
-        task = models.GroupViterbiComputation.objects.get(task_id=task_id)
+        task = models.GroupViterbiComputationModel.objects.get(task_id=task_id)
         context = get_result_view_context(task=task, task_id=task_id)
         return HttpResponse(template.render(context, request))
 
@@ -142,18 +165,8 @@ def view_group_viterbi_path(request, task_id):
             return success_schedule_group_viterbi_compute_view(request, task_id=INVALID_TASK_ID)
 
         context = view_viterbi_path_exception_context(task=task, task_id=task_id,
-                                                      model=models.GroupViterbiComputation.__name__)
+                                                      model=models.GroupViterbiComputationModel.__name__)
         return HttpResponse(template.render(context, request))
-
-
-def success_schedule_viterbi_compute_view(request, task_id):
-    """
-    Success redirect after scheduling a Viterbi path computation
-    """
-
-    template_html = 'hmmtuf_compute/success_schedule_viterbi_compute_view.html'
-    return handle_success_view(request=request,
-                               template_html=template_html, task_id=task_id)
 
 
 def schedule_hmm_viterbi_compute_view(request):
@@ -165,7 +178,7 @@ def schedule_hmm_viterbi_compute_view(request):
     template_html = 'hmmtuf_compute/schedule_viterbi_compute_view.html'
     template = loader.get_template(template_html)
 
-    db_group_tips = ViterbiSequenceGroupTip.objects.all().order_by('tip')
+    db_group_tips = ViterbiSequenceGroupTipModel.objects.all().order_by('tip')
     group_tips = ["None"]
 
     for item in db_group_tips:
@@ -212,7 +225,7 @@ def schedule_hmm_viterbi_compute_view(request):
         if form.check(request=request) is not OK:
             return form.response
 
-        task_id = models.ViterbiComputation.compute(data=form.as_map())
+        task_id = models.ViterbiComputationModel.compute(data=form.kwargs)
 
         # return the id for the computation
         return redirect('success_schedule_viterbi_computation_view', task_id=task_id)
@@ -221,13 +234,16 @@ def schedule_hmm_viterbi_compute_view(request):
 
 
 def view_viterbi_path(request, task_id):
+    """
+    Render the computed Viterbi path
+    """
     template_html = 'hmmtuf_compute/viterbi_result_view.html'
     template = loader.get_template(template_html)
     try:
 
         # if the task exists do not ask celery. This means
         # that either the task failed or succeed
-        task = models.ViterbiComputation.objects.get(task_id=task_id)
+        task = models.ViterbiComputationModel.objects.get(task_id=task_id)
         context = get_result_view_context(task=task, task_id=task_id)
         return HttpResponse(template.render(context, request))
     except ObjectDoesNotExist:
@@ -241,64 +257,75 @@ def view_viterbi_path(request, task_id):
         return HttpResponse(template.render(context, request))
 
 
-def success_schedule_compare_sequences_compute_view(request, task_id):
+def schedule_kmers_calculation_view(request):
+    """
+    Scedule a kmers calculation
+    """
 
-    template_html = 'hmmtuf_compute/success_schedule_compare_sequences_compute_view.html'
-    return handle_success_view(request=request,
-                               template_html=template_html, task_id=task_id)
+    template_html = "hmmtuf_compute/schedule_kmers_calculation_view.html"
+    template = loader.get_template(template_name=template_html)
 
-
-def schedule_compare_sequences_compute_view(request):
-
-    template_html = 'hmmtuf_compute/schedule_compare_sequences_compute_view.html'
-    template = loader.get_template(template_html)
-
-    db_sequence_tips = ViterbiSequenceGroupTip.objects.all()
-    sequence_tips = []
-
-    for item in db_sequence_tips:
-        sequence_tips.append(item.tip)
-
-    context = {"metrics": forms.SequenceComparisonComputeForm.NAMES,
-               "sequence_tips": sequence_tips}
+    context = {}
 
     if request.method == 'POST':
 
-        form = forms.SequenceComparisonComputeForm(template_html=template_html,
-                                                   context=context, configuration=None)
+        form = forms.KmerComputeForm(template_html=template_html,
+                                     context=context, configuration=None)
 
-        if form.check(request=request) is not OK:
-            return form.response
+        #if form.check(request=request) is not OK:
+        #    return form.response
 
-        task_id = models.CompareViterbiSequenceComputation.compute(data=form.as_map())
+        # the id of the task
+        #task_id = models.CompareViterbiSequenceComputationModel.compute(data=form.kwargs)
+        task_id = 0
 
         # return the id for the computation
-        return redirect('success_schedule_compare_sequences_compute_view', task_id=task_id)
+        return redirect('success_schedule_kmer_compute_view', task_id=task_id)
 
     return HttpResponse(template.render(context, request))
 
 
-def view_sequence_comparison(request, task_id):
+def view_kmers(request, task_id):
+    """
+    Serves the kmers view for the computation identified
+    by the task_id
+    """
 
-    template_html = 'hmmtuf_compute/sequence_comparison_view.html'
-    template = loader.get_template(template_html)
-    try:
+    # set up the Dash viewer layout
+    dash_kmer_viewer.kmer_viewer.layout = get_kmer_view_result(request=request, task_id=task_id)
+    #import dash
+    #import dash_core_components as dcc
+    #import dash_html_components as html
+    #import plotly.express as px
+    #from django_plotly_dash import DjangoDash
+    #import pandas as pd
 
-        # if the task exists do not ask celery. This means
-        # that either the task failed or succeed
-        task = models.CompareViterbiSequenceComputation.objects.get(task_id=task_id)
-        context = get_result_view_context(task=task, task_id=task_id)
-        return HttpResponse(template.render(context, request))
-    except ObjectDoesNotExist:
 
-        # try to ask celery
-        # check if the computation is ready
-        # if yes collect the results
-        # otherwise return the html
-        task = celery_app.AsyncResult(task_id)
-        context = view_viterbi_path_exception_context(task=task, task_id=task_id)
-        return HttpResponse(template.render(context, request))
 
+    # organize data into a Pandas DF
+    #df = pd.DataFrame({
+    #    "Kmer": ["AAAA", "TTTT", "ATTA", "GGGG", "AGGG", "ACTG"],
+    #    "Amount": [4, 1, 2, 2, 4, 5],
+       # "City": ["SF", "SF", "SF", "Montreal", "Montreal", "Montreal"]
+    #})
+
+    # the figure to dispay
+    #fig = px.bar(df, x="Kmer", y="Amount", color="Kmer", barmode="group")
+
+    # set up the layout for the app
+    """
+    hmmtuf_compute_app_config_with_viewer.kmer_viewer.layout = html.Div(children=[
+        html.H1(children='Kmer Viewer', style={"textAlign": "center", "color": '#7FDBFF'}),
+        dcc.Graph(
+            id='example-graph',
+            figure=fig
+        )
+    ])
+    """
+
+    # after building the data for the
+    # app redirect to view
+    return redirect(to="/django_plotly_dash/app/kmer_viewer_app/")
 
 
 

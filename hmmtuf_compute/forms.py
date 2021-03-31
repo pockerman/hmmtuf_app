@@ -9,16 +9,21 @@ from compute_engine import OK
 from hmmtuf import VITERBI_PATH_FILENAME
 from hmmtuf import INVALID_ITEM
 from hmmtuf.settings import VITERBI_PATHS_FILES_ROOT
-from hmmtuf_home.models import HMMModel, RegionModel, ViterbiSequenceGroupTip
+from hmmtuf_home.models import HMMModel, RegionModel, ViterbiSequenceGroupTipModel
 
 
 class ComputeFormBase(object):
+
+    """
+    Base class for computation forms
+    """
 
     def __init__(self, template_html, context, configuration):
         self._template_html = template_html
         self._context = context
         self._configuration = configuration
         self._response = INVALID_ITEM
+        self._kwargs = INVALID_ITEM
 
     @property
     def response(self):
@@ -36,9 +41,13 @@ class ComputeFormBase(object):
     def template_html(self):
         return self._template_html
 
-    @abstractmethod
-    def as_map(self):
-        pass
+    @property
+    def kwargs(self):
+        return self._kwargs
+
+    @kwargs.setter
+    def kwargs(self, value):
+        self._kwargs = value
 
     @abstractmethod
     def check(self, request):
@@ -58,13 +67,15 @@ class GroupViterbiComputeForm(ComputeFormBase):
         self._sequence_group = INVALID_ITEM
         self._scheduler_id = INVALID_ITEM
 
+        self.kwargs = {"hmm_name": self._hmm_name,
+                       "group_tip": self._group_tip,
+                       "remove_dirs": self._remove_dirs,
+                       "use_spade": self._use_spade,
+                       "sequence_group": self._sequence_group,
+                       "scheduler_id": self._scheduler_id}
+
     def as_map(self):
-        return {"hmm_name": self._hmm_name,
-                "group_tip": self._group_tip,
-                "remove_dirs": self._remove_dirs,
-                "use_spade": self._use_spade,
-                "sequence_group": self._sequence_group,
-                "scheduler_id": self._scheduler_id}
+        return self.kwargs
 
     def check(self, request):
 
@@ -109,89 +120,14 @@ class GroupViterbiComputeForm(ComputeFormBase):
 
                 try:
 
-                    group_tip = ViterbiSequenceGroupTip.objects.get(tip=self._sequence_group)
+                    group_tip = ViterbiSequenceGroupTipModel.objects.get(tip=self._sequence_group)
                 except ObjectDoesNotExist as e:
-                    model = ViterbiSequenceGroupTip()
+                    model = ViterbiSequenceGroupTipModel()
                     model.tip = self._sequence_group
                     model.save()
 
         return OK
 
-"""
-class MultipleViterbiComputeForm(ComputeFormBase):
-
-    def __init__(self, template_html, configuration, context):
-        super(MultipleViterbiComputeForm, self).__init__(template_html=template_html,
-                                                         context=context, configuration=configuration)
-
-        self._path = INVALID_ITEM
-        self._group_tip = INVALID_ITEM
-        self._response = INVALID_ITEM
-        self._chromosome = INVALID_ITEM
-        self._ref_sequence_file = INVALID_ITEM
-        self._wga_seq_filename = INVALID_ITEM
-        self._no_wga_seq_filename = INVALID_ITEM
-        self._hmm_name = INVALID_ITEM
-        self._remove_dirs = INVALID_ITEM
-        self._use_spade = INVALID_ITEM
-
-    def as_map(self):
-        return {"chromosome": self._chromosome,
-                "hmm_name": self._hmm_name,
-                "ref_seq_filename": self._ref_sequence_file,
-                "wga_seq_filename": self._wga_seq_filename,
-                "no_wga_seq_filename": self._no_wga_seq_filename,
-                "path": self._path,
-                "group_tip": self._group_tip,
-                "remove_dirs": self._remove_dirs,
-                "use_spade": self._use_spade}
-
-    def check(self, request):
-
-        self._hmm_name = request.POST.get("hmm", "")
-        if self._hmm_name == "":
-            return not OK
-
-        self._chromosome = request.POST.get("chromosome", "")
-        if self._chromosome == "":
-            template = loader.get_template(self._template_html)
-            self.context.update({"error_found": "No  chromosome specified"})
-            self.response = HttpResponse(template.render(self._context, request))
-            return not OK
-
-        # do we have region files for this
-        # reference file and chromosome
-        self._path = extract_path(configuration=self._configuration,
-                                  ref_file=self._ref_sequence_file)
-
-        self._group_tip = request.POST.get("group_tip")
-        objects = RegionModel.objects.filter(group_tip__tip=self._group_tip,
-                                             chromosome=self._chromosome)
-
-        if len(objects) == 0:
-            template = loader.get_template(self._template_html)
-            self.context.update({"error_found": True,
-                                  "no_seq_chromosome": "No regions for chromosome {0}\
-             and group {1}".format(self._chromosome, self._group_tip)})
-
-            self.response = HttpResponse(template.render(self._context, request))
-            return not OK
-
-        region = objects[0]
-        self._wga_seq_filename = region.wga_seq_file
-        self._no_wga_seq_filename = region.no_wga_seq_file
-        self._ref_sequence_file = region.ref_seq_file
-
-        self._remove_dirs = request.POST.get('remove_dirs', False)
-        if self._remove_dirs == 'True':
-            self._remove_dirs = True
-
-        self._use_spade = request.POST.get('use_spade', False)
-        if self._use_spade == 'True':
-            self._use_spade = True
-
-        return OK
-"""
 
 class ViterbiComputeForm(ComputeFormBase):
 
@@ -267,9 +203,9 @@ class ViterbiComputeForm(ComputeFormBase):
 
                 try:
 
-                    group_tip = ViterbiSequenceGroupTip.objects.get(tip=sequence_group)
+                    group_tip = ViterbiSequenceGroupTipModel.objects.get(tip=sequence_group)
                 except ObjectDoesNotExist as e:
-                    model = ViterbiSequenceGroupTip()
+                    model = ViterbiSequenceGroupTipModel()
                     model.tip = sequence_group
                     model.save()
 
@@ -352,3 +288,101 @@ class SequenceComparisonComputeForm(ComputeFormBase):
 
         self._kwargs['distance_metric'] = distance_metric
         return OK
+
+
+class KmerComputeForm(ComputeFormBase):
+    """
+    Class to handle forms for kmer calculation
+    """
+
+    def __init__(self, template_html, configuration, context):
+        super(KmerComputeForm, self).__init__(template_html=template_html,
+                                              context=context,
+                                              configuration=configuration)
+
+        self.kwargs = {'kmer_size': INVALID_ITEM,
+                       'top_best_result': INVALID_ITEM,}
+
+    def check(self, request):
+
+        kmer_size = request.POST.get("kmer_size", "")
+
+        if kmer_size == "":
+            template = loader.get_template(self._template_html)
+            self.context.update({"error_found": True,
+                                 "err_kmer_size": "Empty kmer size"})
+
+            self.response = HttpResponse(template.render(self.context, request))
+            return not OK
+
+        kmer_size = int(kmer_size)
+        if kmer_size < 2:
+            template = loader.get_template(self._template_html)
+            self.context.update({"error_found": True,
+                                 "err_kmer_size": "kmer size cannot be less than 2"})
+
+            self.response = HttpResponse(template.render(self.context, request))
+            return not OK
+
+        top_best_result = request.POST.get("top_best_result", "")
+
+        if top_best_result == "":
+            template = loader.get_template(self._template_html)
+            self.context.update({"error_found": True,
+                                 "err_top_best_result": "Top best result cannot be empty"})
+
+            self.response = HttpResponse(template.render(self.context, request))
+            return not OK
+
+        top_best_result = int(top_best_result)
+        if top_best_result < 0:
+            template = loader.get_template(self._template_html)
+            self.context.update({"error_found": True,
+                                 "err_top_best_result": "Top best result should be greater than or equal to zero"})
+
+            self.response = HttpResponse(template.render(self.context, request))
+            return not OK
+
+        if self._group_tip != "all":
+
+            objects = RegionModel.objects.filter(group_tip__tip=self._group_tip)
+
+            if len(objects) == 0:
+                template = loader.get_template(self._template_html)
+                self.context.update({"error_found": True,
+                                      "no_seq_chromosome": "No regions for group {0}".format(self._group_tip)})
+
+                self.response = HttpResponse(template.render(self.context, request))
+                return not OK
+
+        self._remove_dirs = request.POST.get('remove_dirs', False)
+        if self._remove_dirs == 'True':
+            self._remove_dirs = True
+
+        self._use_spade = request.POST.get('use_spade', False)
+        if self._use_spade == 'True':
+            self._use_spade = True
+
+        self._sequence_group = request.POST.get("sequence_group", "None")
+        if self._sequence_group == "None":
+            self._sequence_group = request.POST.get("new_sequence_group", "")
+
+            if self._sequence_group == "":
+                template = loader.get_template(self.template_html)
+                self.context.update({"error_found": True,
+                                     "no_seq_group": "No sequence group specified"})
+
+                self.response = HttpResponse(template.render(self._context, request))
+                return not OK
+            else:
+
+                try:
+
+                    group_tip = ViterbiSequenceGroupTipModel.objects.get(tip=self._sequence_group)
+                except ObjectDoesNotExist as e:
+                    model = ViterbiSequenceGroupTipModel()
+                    model.tip = self._sequence_group
+                    model.save()
+
+        return OK
+

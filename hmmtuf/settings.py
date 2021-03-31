@@ -43,7 +43,8 @@ INSTALLED_APPS = [
         'django.contrib.contenttypes',
         'django.contrib.sessions',
         'django.contrib.messages',
-        'django.contrib.staticfiles'
+        'django.contrib.staticfiles',
+        'django_plotly_dash.apps.DjangoPlotlyDashConfig',
 ]
 
 # if we have django extensions then use it
@@ -56,7 +57,6 @@ INSTALLED_APPS.append('hmmtuf_home')
 INSTALLED_APPS.append('file_loader')
 INSTALLED_APPS.append('hmmtuf_compute')
 INSTALLED_APPS.append('hmm_creator')
-INSTALLED_APPS.append('repeats_analyser')
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
