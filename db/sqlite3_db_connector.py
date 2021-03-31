@@ -22,11 +22,15 @@ class SQLiteDBConnector(DBConnectorBase):
             print(str(e))
         return self._conn
 
-    def delete_all_tables(self):
+    def delete_all_tables(self, tbl_names: list=None) -> None:
         """
         Delete all the tables in the DB
         """
-        for name in SQLiteDBConnector.TABLES:
+
+        if tbl_names is None:
+            tbl_names = SQLiteDBConnector.TABLES
+
+        for name in tbl_names:
             self.delete_table(tbl_name=name)
 
     def create_table(self, table_name: str) -> None:
