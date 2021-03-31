@@ -182,6 +182,19 @@ def insert_distance_metric_result(database_wrap: SQLiteDBConnector,
     # get all the results directories
     results_dir = os.listdir(path=directory_path)
 
+    sql_repeats = '''SELECT id, hmm_state_id, chromosome, start_idx, end_idx, repeat_seq FROM repeats'''
+
+    repeats_rows = database_wrap.fetch_all(sql=sql_repeats)
+    repeats_map = {}
+    for item in repeats_rows:
+        key = (item[2], item[3], item[4], item[5])
+        value = (item[0], item[1])
+
+        if key in repeats_rows:
+            raise ValueError("Repeat {0} already encountered".format(key))
+
+        repeats_map[key] = value
+
     for result_dir in results_dir:
         result_dir_path = directory_path / result_dir
 
@@ -214,6 +227,9 @@ def insert_distance_metric_result(database_wrap: SQLiteDBConnector,
                             end_idx_1 = int(row[2])
                             seq = row[3]
 
+                            repeat_idx_1, hmm_state_id_1 = repeats_map[(chromosome1, start_idx_1, end_idx_1, seq)]
+
+                            """
                             # get the repeat with such an id
                             sql = '''SELECT id, hmm_state_id FROM repeats WHERE chromosome='%s' 
                             AND start_idx=%s AND end_idx=%s AND repeat_seq='%s' ''' % (chromosome1, start_idx_1, end_idx_1, seq)
@@ -232,13 +248,15 @@ def insert_distance_metric_result(database_wrap: SQLiteDBConnector,
                                                                                                              start_idx_1,
                                                                                                               end_idx_1))
 
-                            repeat_idx_1 = rows[0][0]
-                            hmm_state_id_1 = rows[0][1]
+                            """
+                            #repeat_idx_1 = rows[0][0]
+                            #hmm_state_id_1 = rows[0][1]
                             chromosome2 = row[5]
                             start_idx_2 = int(row[6])
                             end_idx_2 = int(row[7])
                             seq = row[8]
 
+                            """
                             sql = '''SELECT id, hmm_state_id FROM repeats WHERE chromosome='%s' 
                                      AND start_idx=%s AND end_idx=%s AND repeat_seq='%s' ''' % (chromosome2, start_idx_2,
                                                                                                 end_idx_2, seq)
@@ -257,9 +275,10 @@ def insert_distance_metric_result(database_wrap: SQLiteDBConnector,
                                     chromosome2,
                                     start_idx_2,
                                     end_idx_2, seq))
-
-                            repeat_idx_2 = rows[0][0]
-                            hmm_state_id_2 = rows[0][1]
+                            """
+                            repeat_idx_2, hmm_state_id_2 = repeats_map[(chromosome2, start_idx_2, end_idx_2, seq)]
+                            #repeat_idx_2 = rows[0][0]
+                            #hmm_state_id_2 = rows[0][1]
                             value = float(row[10])
                             is_normalized = 1
                             sequence_type_id = squence_types_dict["NORMAL"]
@@ -297,7 +316,7 @@ def insert_distance_metric_result(database_wrap: SQLiteDBConnector,
                         if len(batch_data) != 0:
                             database_wrap.execute_transaction(data=batch_data, sql=insert_sql)
                             batch_data = []
-    print("{0} Inserting metric {1}".format(INFO, metric_data[1]))
+    print("{0} Done....".format(INFO))
 
 
 def create_repeats_distances_table(database_wrap: SQLiteDBConnector,
@@ -328,21 +347,24 @@ def create_repeats_distances_table(database_wrap: SQLiteDBConnector,
                                               directory_path=directory_path)
 
     print("{0} Done...".format(INFO))
+
+
 def main(database_wrap: SQLiteDBConnector,
          repeats_file: Path,
          data_dir: Path,
          chromosomes_dir: Path,
          metrics: dir) -> None:
 
-    database_wrap.delete_all_tables()
-    #database_wrap.create_all_tables()
+    tbl_names = ['repeats_distances', ]
+    #database_wrap.delete_all_tables(tbl_names=None)
 
-    create_hmm_types_table(database_wrap=database_wrap)
-    create_distance_types_table(database_wrap=database_wrap)
-    create_distance_metrics_table(database_wrap=database_wrap, metrics=metrics)
-    create_repeats_table(database_wrap=database_wrap, repeats_file=repeats_file)
-    create_repeats_info_table(database_wrap=database_wrap, data_dir=chromosomes_dir)
-    create_gquads_info_table(database_wrap=database_wrap, data_dir=chromosomes_dir)
+    #create_hmm_types_table(database_wrap=database_wrap)
+    #create_distance_types_table(database_wrap=database_wrap)
+    #create_distance_metrics_table(database_wrap=database_wrap, metrics=metrics)
+    #create_repeats_table(database_wrap=database_wrap, repeats_file=repeats_file)
+    #create_repeats_info_table(database_wrap=database_wrap, data_dir=chromosomes_dir)
+    #create_gquads_info_table(database_wrap=database_wrap, data_dir=chromosomes_dir)
+
     create_repeats_distances_table(database_wrap=database_wrap,
                                    data_dir=data_dir, metrics=metrics)
 
@@ -354,26 +376,38 @@ if __name__ == '__main__':
     data_dir = Path("/home/alex/qi3/hmmtuf/computations/distances/")
     chromosomes_dir = Path("/home/alex/qi3/hmmtuf/computations/viterbi_paths/")
 
-    """
+
     metrics = {'ham': "Hamming", 'mlipns': "MLIPNS",
-               'lev': "Levenshtein", 'damlev': "DamerauLevenshtein",
-               'jwink': "JaroWinkler", 'str': "StrCmp95",
+               'lev': "Levenshtein",
+               'damlev': "DamerauLevenshtein",
+               'jwink': "JaroWinkler",
+               'str': "StrCmp95",
                'nw': "NeedlemanWunsch",
                'sw': "SmithWaterman",
                'got': "Gotoh",
-               'jac': "Jaccard", 'sor': "Sorensen",
+               'jac': "Jaccard",
+               'sor': "Sorensen",
                'tve': "Tversky", 'ov': "Overlap",
                'tan': "Tanimoto", 'cos': "Cosine",
-               'mon': "MongeElkan", 'bag': "Bag", 'lcsseq': "LCSSeq",
+               'mon': "MongeElkan",
+               'bag': "Bag",
+               'lcsseq': "LCSSeq",
                'lcsstr': "LCSStr", 'rat': "RatcliffObershelp",
                'ari': "ArithNCD", 'rle': "RLENCD",
                'bwt': "BWTRLENCD", 'sqr': "SqrtNCD",
                'ent': "EntropyNCD", 'bz2': "BZ2NCD", 'lzm': "LZMANCD",
                'zli': "ZLIBNCD", 'mra': "MRA", 'edi': "Editex",
                'pre': "Prefix", 'pos': "Postfix",
-               'len': "Length", 'id': "Identity", 'mat': "Matrix", }
-    """
-    metrics = {'sw': "SmithWaterman"} #, 'sor': "Sorensen", }
+               'len': "Length", 'id': "Identity", 'mat': "Matrix",
+              }
+
+    metrics = {'lcsseq': "LCSSeq", 'lcsstr': "LCSStr",
+               'lev': "Levenshtein", 'mlipns': "MLIPNS",  'mon': "MongeElkan"}
+    #{'tve': "Tversky", 'ov': "Overlap", 'tan': "Tanimoto"}
+    #{'nw': "NeedlemanWunsch", 'got': "Gotoh", 'jac': "Jaccard"}
+    #{'damlev': "DamerauLevenshtein", 'jwink': "JaroWinkler",}
+    #{"bag": "Bag", "cos": "Cosine"}
+    #{'str': "StrCmp95", 'sor': "Sorensen", }
 
     database_wrap = SQLiteDBConnector(db_file=db_file)
     database_wrap.connect()
