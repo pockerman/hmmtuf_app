@@ -388,6 +388,7 @@ class SQLiteDBConnector(DBConnectorBase):
         conn = sqlite3.connect(self._db_file)
         cursor = conn.cursor()
         cursor.execute(sql)
+        conn.commit()
 
     def create_table_from_columns(self, table_name: str, columns: list) -> None:
         """
