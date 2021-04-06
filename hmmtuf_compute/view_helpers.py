@@ -1,10 +1,11 @@
+import random
 from django.template import loader
 from django.http import HttpResponse
 from django.core.exceptions import ObjectDoesNotExist
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
-from dash.dependencies import Input, Output
+from dash.dependencies import Input, Output, State
 import plotly.express as px
 import pandas as pd
 
@@ -54,24 +55,24 @@ def get_kmer_view_result(request, task_id):
                                                 style={"textAlign": "left", "color": 'blue'}),
                                         html.H3(children="Task id: %s" % task_id,
                                                 style={"textAlign": "left", "color": 'black'}),
-                                        html.Button(children="Check task", id="check_task", n_clicks=task_id,
+                                        html.Button(children="Check task", id="check_task", n_clicks=0,
                                                     style={"textAlign": "center", "color": 'black'}),
-                                        html.Div(id='check_task-button-timestamp')])
+                                        dcc.Input(id="task_id", type="text", value="%s" % task_id),
+                                        html.Div(id='task_results'), ])
 
             # we also need to add
             # a callback to check on the result
-            @dash_kmer_viewer.kmer_viewer.callback(Output('check_task-button-timestamp', 'children'),
-                                                   Input('check_task', 'n_clicks'))
-            def fetch_results():
-                changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
-                if 'check_task' in changed_id:
-                    msg = 'Button 1 was most recently clicked'
-                elif 'btn-nclicks-2' in changed_id:
-                    msg = 'Button 2 was most recently clicked'
-                elif 'btn-nclicks-3' in changed_id:
-                    msg = 'Button 3 was most recently clicked'
+            @dash_kmer_viewer.kmer_viewer.callback(Output('task_results', 'children'),
+                                                   Input('check_task', 'n_clicks'),
+                                                   State('task_id', 'value'),)
+            def fetch_results(check_task_button, input_value):
+                print(check_task_button)
+                print(input_value)
+                choice = random.choice([0, 1])
+                if choice == 0:
+                    msg = 'Task pending'
                 else:
-                    msg = 'None of the buttons have been clicked yet'
+                    msg = "Task finished"
                 return html.Div(msg)
 
             return layout

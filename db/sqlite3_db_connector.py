@@ -42,7 +42,7 @@ class SQLiteDBConnector(DBConnectorBase):
             raise ValueError("Invalid table name. Name {0} not in {1}".format(table_name, SQLiteDBConnector.TABLES))
 
         if table_name == 'distance_metric_type':
-            sql= "CREATE TABLE IF NOT EXISTS distance_metric_type " \
+            sql = "CREATE TABLE IF NOT EXISTS distance_metric_type " \
                                        "(id INTEGER PRIMARY KEY AUTOINCREMENT, " \
                                        "type TEXT UNIQUE NOT NULL," \
                                        "short_cut TEXT UNIQUE NOT NULL)"
@@ -54,7 +54,7 @@ class SQLiteDBConnector(DBConnectorBase):
                       "chromosome TEXT NOT NULL," \
                       " start_idx INT NOT NULL, end_idx INT NOT NULL," \
                       "repeat_seq TEXT NOT NULL, hmm_state_id INTEGER NOT NULL, " \
-                      "gc FLOAT)"
+                      "gc FLOAT, gc_min FLOAT, gc_max FLOAT, has_repeats INT)"
         elif table_name == 'repeats_distances':
             sql = "CREATE TABLE IF NOT EXISTS repeats_distances (id INTEGER PRIMARY KEY AUTOINCREMENT, " \
                   "repeat_idx_1 INTEGER NOT NULL,  " \
@@ -388,6 +388,7 @@ class SQLiteDBConnector(DBConnectorBase):
         conn = sqlite3.connect(self._db_file)
         cursor = conn.cursor()
         cursor.execute(sql)
+        conn.commit()
 
     def create_table_from_columns(self, table_name: str, columns: list) -> None:
         """
