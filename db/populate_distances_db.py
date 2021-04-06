@@ -2,7 +2,7 @@ import csv
 import os
 from pathlib import Path
 
-from compute_engine.src.file_readers import NuclOutFileReader
+from compute_engine.src.file_readers import NuclOutFileReader, GQuadsFileReader
 from compute_engine.src.utils import INFO
 from db.sqlite3_db_connector import SQLiteDBConnector
 
@@ -49,7 +49,7 @@ def create_distance_metrics_table(database_wrap: SQLiteDBConnector,
     print("{0} Done...".format(INFO))
 
 
-def create_repeats_table(database_wrap: SQLiteDBConnector, repeats_file: Path) -> None:
+def create_repeats_table(database_wrap: SQLiteDBConnector, repeats_file: Path, data_dir: Path) -> None:
 
     print("{0} Creating table repeats...".format(INFO))
     database_wrap.create_table(table_name='repeats')
@@ -61,8 +61,12 @@ def create_repeats_table(database_wrap: SQLiteDBConnector, repeats_file: Path) -
     for state in hmm_states:
         hmm_state_dict[state[1]] = state[0]
 
-    file_reader = NuclOutFileReader(exclude_seqs=["NO_REPEATS"])
+    file_reader = NuclOutFileReader(exclude_seqs=[])
     seqs = file_reader(filename=repeats_file)
+
+    filename = directory_path / directory / 'gquads.txt'
+    gquads_reader = GQuadsFileReader()
+    gquads = gquads_reader(filename=filename)
 
     for seq in seqs:
         seq[-1] = seq[-1].strip()
@@ -229,53 +233,13 @@ def insert_distance_metric_result(database_wrap: SQLiteDBConnector,
 
                             repeat_idx_1, hmm_state_id_1 = repeats_map[(chromosome1, start_idx_1, end_idx_1, seq)]
 
-                            """
-                            # get the repeat with such an id
-                            sql = '''SELECT id, hmm_state_id FROM repeats WHERE chromosome='%s' 
-                            AND start_idx=%s AND end_idx=%s AND repeat_seq='%s' ''' % (chromosome1, start_idx_1, end_idx_1, seq)
 
-                            rows = database_wrap.fetch_all(sql=sql)
-
-                            if len(rows) == 0:
-                                raise ValueError("Repeat with (chromosome={0}, "
-                                                 "start_idx={1}, end_idx={2}) does not exist ".format(chromosome1,
-                                                                                                      start_idx_1,
-                                                                                                      end_idx_1))
-
-                            if len(rows) > 1:
-                                raise ValueError("Repeat with (chromosome={0}, "
-                                                 "start_idx={1}, end_idx={2}) exists multiple times ".format(chromosome1,
-                                                                                                             start_idx_1,
-                                                                                                              end_idx_1))
-
-                            """
-                            #repeat_idx_1 = rows[0][0]
-                            #hmm_state_id_1 = rows[0][1]
                             chromosome2 = row[5]
                             start_idx_2 = int(row[6])
                             end_idx_2 = int(row[7])
                             seq = row[8]
 
-                            """
-                            sql = '''SELECT id, hmm_state_id FROM repeats WHERE chromosome='%s' 
-                                     AND start_idx=%s AND end_idx=%s AND repeat_seq='%s' ''' % (chromosome2, start_idx_2,
-                                                                                                end_idx_2, seq)
 
-                            rows = database_wrap.fetch_all(sql=sql)
-
-                            if len(rows) == 0:
-                                raise ValueError("Repeat with (chromosome={0}, "
-                                                 "start_idx={1}, end_idx={2}, seq={3}) does not exist ".format(chromosome2,
-                                                                                                      start_idx_2,
-                                                                                                      end_idx_2, seq))
-
-                            if len(rows) > 1:
-                                raise ValueError("Repeat with (chromosome={0}, "
-                                                 "start_idx={1}, end_idx={2}, seq={3}) exists multiple times ".format(
-                                    chromosome2,
-                                    start_idx_2,
-                                    end_idx_2, seq))
-                            """
                             repeat_idx_2, hmm_state_id_2 = repeats_map[(chromosome2, start_idx_2, end_idx_2, seq)]
                             #repeat_idx_2 = rows[0][0]
                             #hmm_state_id_2 = rows[0][1]
@@ -356,13 +320,13 @@ def main(database_wrap: SQLiteDBConnector,
          metrics: dir) -> None:
 
     tbl_names = ['repeats_distances', ]
-    #database_wrap.delete_all_tables(tbl_names=None)
+    database_wrap.delete_all_tables(tbl_names=None)
 
-    #create_hmm_types_table(database_wrap=database_wrap)
-    #create_distance_types_table(database_wrap=database_wrap)
-    #create_distance_metrics_table(database_wrap=database_wrap, metrics=metrics)
-    #create_repeats_table(database_wrap=database_wrap, repeats_file=repeats_file)
-    #create_repeats_info_table(database_wrap=database_wrap, data_dir=chromosomes_dir)
+    create_hmm_types_table(database_wrap=database_wrap)
+    create_distance_types_table(database_wrap=database_wrap)
+    create_distance_metrics_table(database_wrap=database_wrap, metrics=metrics)
+    create_repeats_table(database_wrap=database_wrap, repeats_file=repeats_file, data_dir=chromosomes_dir)
+    create_repeats_info_table(database_wrap=database_wrap, data_dir=chromosomes_dir)
     #create_gquads_info_table(database_wrap=database_wrap, data_dir=chromosomes_dir)
 
     create_repeats_distances_table(database_wrap=database_wrap,
@@ -414,3 +378,5 @@ if __name__ == '__main__':
     main(database_wrap=database_wrap, repeats_file=repeats_file,
          chromosomes_dir=chromosomes_dir,
          data_dir=data_dir, metrics=metrics)
+
+
