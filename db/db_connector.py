@@ -8,7 +8,7 @@ class DBConnectorBase(object):
     TABLES = ['distance_metric_type',
               'distance_sequence_type', 'repeats',
               'hmm_state_types',
-              'repeats_distances', 'repeats_info', 'gquads_info']
+              'repeats_distances', ]
 
     @staticmethod
     def get_table_names() -> list:
@@ -144,50 +144,6 @@ class DBConnectorBase(object):
     def fetch_from_repeats_table_all(self) -> list:
         """
         Fetch all data from the repeats table
-        """
-        raise NotImplementedError()
-
-    @abstractmethod
-    def fetch_from_repeats_info_table_by_id(self, idx: int) -> tuple:
-        """
-        Fetch the unique entry in the repeats_info table
-        """
-        raise NotImplementedError()
-
-    @abstractmethod
-    def fetch_from_repeats_info_table_by_chromosome(self, chromosome: str) -> list:
-        """
-        Fetch all data in the repeats_info table corresponding to
-        the given chromosome
-        """
-        raise NotImplementedError()
-
-    @abstractmethod
-    def fetch_from_repeats_info_table_all(self) -> list:
-        """
-        Fetch all data in the repeats_info table
-        """
-        raise NotImplementedError()
-
-    @abstractmethod
-    def fetch_from_gquads_info_table_by_id(self, idx: int) -> tuple:
-        """
-        Fetch the unique entry in the gquads_info table
-        """
-        raise NotImplementedError()
-
-    @abstractmethod
-    def fetch_from_gquads_info_table_by_chromosome(self, chromosome: str) -> list:
-        """
-        Fetch all data in the gquads_info table corresponding to
-        the given chromosome
-        """
-        raise NotImplementedError()
-
-    @abstractmethod
-    def fetch_from_gquads_info_table_all(self) -> list:
-        """
-        Fetch all data in the gquads_info table
         """
         raise NotImplementedError()
 
