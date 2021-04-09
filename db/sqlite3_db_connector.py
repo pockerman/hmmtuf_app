@@ -54,7 +54,8 @@ class SQLiteDBConnector(DBConnectorBase):
                       "chromosome TEXT NOT NULL," \
                       " start_idx INT NOT NULL, end_idx INT NOT NULL," \
                       "repeat_seq TEXT NOT NULL, hmm_state_id INTEGER NOT NULL, " \
-                      "gc FLOAT, gc_min FLOAT, gc_max FLOAT, has_repeats INT)"
+                      "gc FLOAT, gc_min FLOAT, gc_max FLOAT, has_repeats INT," \
+                  "n_repeats INT, align_seq TEXT, unit_seq TEXT)"
         elif table_name == 'repeats_distances':
             sql = "CREATE TABLE IF NOT EXISTS repeats_distances (id INTEGER PRIMARY KEY AUTOINCREMENT, " \
                   "repeat_idx_1 INTEGER NOT NULL,  " \
@@ -106,8 +107,7 @@ class SQLiteDBConnector(DBConnectorBase):
         Print the column names for the given table
         """
 
-        conn = sqlite3.connect(self._db_file)
-        cursor = conn.cursor()
+        cursor = self.cursor
         sql = "PRAGMA table_info(%s)" % table_name
         cursor.execute(sql)
         return cursor.fetchall()
@@ -117,8 +117,7 @@ class SQLiteDBConnector(DBConnectorBase):
         Fetch the metric type corresponding to the given metric_type
         """
 
-        conn = sqlite3.connect(self._db_file)
-        cursor = conn.cursor()
+        cursor = self.cursor
         sql = '''SELECT id, type, short_cut from distance_metric_type where type="%s"''' % metric_type
         cursor.execute(sql)
         return cursor.fetchone()
@@ -128,8 +127,7 @@ class SQLiteDBConnector(DBConnectorBase):
         Fetch the metric type corresponding to the given short cut
         """
 
-        conn = sqlite3.connect(self._db_file)
-        cursor = conn.cursor()
+        cursor = self.cursor
         sql = '''SELECT id, type, short_cut from distance_metric_type where short_cut="%s"''' % short_cut
         cursor.execute(sql)
         return cursor.fetchone()
@@ -139,8 +137,7 @@ class SQLiteDBConnector(DBConnectorBase):
         Fetch the metric type corresponding to the given idx
         """
 
-        conn = sqlite3.connect(self._db_file)
-        cursor = conn.cursor()
+        cursor = self.cursor
         sql = '''SELECT id, type, short_cut from distance_metric_type where id=%s''' % idx
         cursor.execute(sql)
         return cursor.fetchone()
@@ -150,9 +147,8 @@ class SQLiteDBConnector(DBConnectorBase):
         Fetch all the metric types
         """
 
-        conn = sqlite3.connect(self._db_file)
         sql = '''SELECT * FROM distance_metric_type'''
-        cursor = conn.cursor()
+        cursor = self.cursor
         cursor.execute(sql)
         rows = cursor.fetchall()
         return rows
@@ -162,8 +158,7 @@ class SQLiteDBConnector(DBConnectorBase):
         Fetch the sequence type corresponding to the given seq_type
         """
 
-        conn = sqlite3.connect(self._db_file)
-        cursor = conn.cursor()
+        cursor = self.cursor
         sql = '''SELECT id, type from distance_sequence_type where type="%s"''' % seq_type
         cursor.execute(sql)
         return cursor.fetchone()
@@ -173,8 +168,7 @@ class SQLiteDBConnector(DBConnectorBase):
         Fetch the sequence type corresponding to the given idx
         """
 
-        conn = sqlite3.connect(self._db_file)
-        cursor = conn.cursor()
+        cursor = self.cursor
         sql = '''SELECT id, type from distance_sequence_type where id=%s''' % idx
         cursor.execute(sql)
         return cursor.fetchone()
@@ -184,8 +178,7 @@ class SQLiteDBConnector(DBConnectorBase):
         Returns all the rows in the distance_sequence_type table
         """
 
-        conn = sqlite3.connect(self._db_file)
-        cursor = conn.cursor()
+        cursor = self.cursor
         sql = '''SELECT * from distance_sequence_type'''
         cursor.execute(sql)
         return cursor.fetchall()
@@ -195,8 +188,7 @@ class SQLiteDBConnector(DBConnectorBase):
         Fetch the repeat corresponding to the given idx
         """
 
-        conn = sqlite3.connect(self._db_file)
-        cursor = conn.cursor()
+        cursor = self.cursor
         sql = '''SELECT * from repeats where id=%s''' % idx
         cursor.execute(sql)
         return cursor.fetchone()
@@ -206,8 +198,7 @@ class SQLiteDBConnector(DBConnectorBase):
         Fetch the repeats from the given chromosome
         """
 
-        conn = sqlite3.connect(self._db_file)
-        cursor = conn.cursor()
+        cursor = self.cursor
         sql = '''SELECT * from repeats where chromosome="%s"''' % chromosome
         cursor.execute(sql)
         return cursor.fetchall()
@@ -217,8 +208,7 @@ class SQLiteDBConnector(DBConnectorBase):
         Fetch the repeats with the given [start_idx, end_idx)
         """
 
-        conn = sqlite3.connect(self._db_file)
-        cursor = conn.cursor()
+        cursor = self.cursor
         sql = '''SELECT * from repeats where start_idx=%s and end_idx=%s''' % (start_idx, end_idx)
         cursor.execute(sql)
         return cursor.fetchall()
@@ -228,8 +218,7 @@ class SQLiteDBConnector(DBConnectorBase):
         Fetch the repeats with the given HMM state
         """
 
-        conn = sqlite3.connect(self._db_file)
-        cursor = conn.cursor()
+        cursor = self.cursor
         sql = '''SELECT * from repeats where hmm_state_id=%s''' % hmm_state_id
         cursor.execute(sql)
         return cursor.fetchall()
@@ -239,77 +228,8 @@ class SQLiteDBConnector(DBConnectorBase):
         Fetch all data from the repeats table
         """
 
-        conn = sqlite3.connect(self._db_file)
-        cursor = conn.cursor()
+        cursor = self.cursor
         sql = '''SELECT * from repeats'''
-        cursor.execute(sql)
-        return cursor.fetchall()
-
-    def fetch_from_repeats_info_table_by_id(self, idx: int) -> tuple:
-        """
-        Fetch the unique entry in the repeats_info table
-        """
-
-        conn = sqlite3.connect(self._db_file)
-        cursor = conn.cursor()
-        sql = '''SELECT * from repeats_info where id=%s''' % idx
-        cursor.execute(sql)
-        return cursor.fetchone()
-
-    def fetch_from_repeats_info_table_by_chromosome(self, chromosome: str) -> list:
-        """
-        Fetch all data in the repeats_info table corresponding to
-        the given chromosome
-        """
-
-        conn = sqlite3.connect(self._db_file)
-        cursor = conn.cursor()
-        sql = '''SELECT * from repeats_info where chromosome="%s"''' % chromosome
-        cursor.execute(sql)
-        return cursor.fetchall()
-
-    def fetch_from_repeats_info_table_all(self) -> list:
-        """
-        Fetch all data in the repeats_info table
-        """
-
-        conn = sqlite3.connect(self._db_file)
-        cursor = conn.cursor()
-        sql = '''SELECT * from repeats_info'''
-        cursor.execute(sql)
-        return cursor.fetchall()
-
-    def fetch_from_gquads_info_table_by_id(self, idx: int) -> tuple:
-        """
-        Fetch the unique entry in the gquads_info table
-        """
-
-        conn = sqlite3.connect(self._db_file)
-        cursor = conn.cursor()
-        sql = '''SELECT * from gquads_info where id=%s''' % idx
-        cursor.execute(sql)
-        return cursor.fetchone()
-
-    def fetch_from_gquads_info_table_by_chromosome(self, chromosome: str) -> list:
-        """
-        Fetch all data in the gquads_info table corresponding to
-        the given chromosome
-        """
-
-        conn = sqlite3.connect(self._db_file)
-        cursor = conn.cursor()
-        sql = '''SELECT * from gquads_info where chromosome="%s"''' % chromosome
-        cursor.execute(sql)
-        return cursor.fetchall()
-
-    def fetch_from_gquads_info_table_all(self) -> list:
-        """
-        Fetch all data in the gquads_info table
-        """
-
-        conn = sqlite3.connect(self._db_file)
-        cursor = conn.cursor()
-        sql = '''SELECT * from gquads_info'''
         cursor.execute(sql)
         return cursor.fetchall()
 
@@ -318,8 +238,8 @@ class SQLiteDBConnector(DBConnectorBase):
         Return the hmm_state_types table tuple
         corresponding from to the id
         """
-        conn = sqlite3.connect(self._db_file)
-        cursor = conn.cursor()
+
+        cursor = self.cursor
         sql = '''SELECT * from hmm_state_types where id=%s''' % idx
         cursor.execute(sql)
         return cursor.fetchone()
@@ -329,8 +249,8 @@ class SQLiteDBConnector(DBConnectorBase):
         Return the hmm_state_types table tuple
         corresponding from to the type
         """
-        conn = sqlite3.connect(self._db_file)
-        cursor = conn.cursor()
+
+        cursor = self.cursor
         sql = '''SELECT * from hmm_state_types where type="%s"''' % hmm_type
         cursor.execute(sql)
         return cursor.fetchone()
@@ -339,8 +259,8 @@ class SQLiteDBConnector(DBConnectorBase):
         """
         Return the hmm_state_types
         """
-        conn = sqlite3.connect(self._db_file)
-        cursor = conn.cursor()
+
+        cursor = self.cursor
         sql = '''SELECT * from hmm_state_types'''
         cursor.execute(sql)
         return cursor.fetchall()
@@ -350,8 +270,7 @@ class SQLiteDBConnector(DBConnectorBase):
         Execute the given SQL and fetch one result
         """
 
-        conn = sqlite3.connect(self._db_file)
-        cursor = conn.cursor()
+        cursor = self.cursor
         cursor.execute(sql)
         return cursor.fetchone()
 
@@ -360,15 +279,13 @@ class SQLiteDBConnector(DBConnectorBase):
         Execute the given SQL and fetch all results
         """
 
-        conn = sqlite3.connect(self._db_file)
-        cursor = conn.cursor()
+        cursor = self.cursor
         cursor.execute(sql)
         return cursor.fetchall()
 
     def execute_transaction(self, data, sql) -> None:
 
-        conn = sqlite3.connect(self._db_file)
-        cursor = conn.cursor()
+        cursor = self.cursor
         cursor.execute("BEGIN TRANSACTION")
 
         for item in data:
@@ -384,11 +301,12 @@ class SQLiteDBConnector(DBConnectorBase):
         self._conn.commit()
 
     def execute_sql(self, sql: str) -> None:
-
-        conn = sqlite3.connect(self._db_file)
-        cursor = conn.cursor()
+        """
+        Execute the SQL
+        """
+        cursor = self.cursor
         cursor.execute(sql)
-        conn.commit()
+        self._conn.commit()
 
     def create_table_from_columns(self, table_name: str, columns: list) -> None:
         """
@@ -411,6 +329,12 @@ class SQLiteDBConnector(DBConnectorBase):
         self.cursor.execute(sql)
         self._conn.commit()
 
+    def create_tmp_table(self, sql: str) -> None:
+
+        cursor = self.cursor
+        cursor.execute(sql)
+        self._conn.commit()
+
     def delete_table(self, tbl_name: str) -> None:
         """
         Delete the table with the given name
@@ -418,5 +342,6 @@ class SQLiteDBConnector(DBConnectorBase):
         """
 
         sql = "DROP TABLE IF EXISTS {0};".format(tbl_name)
-        self.cursor.execute(sql)
+        cursor = self.cursor
+        cursor.execute(sql)
         self._conn.commit()
