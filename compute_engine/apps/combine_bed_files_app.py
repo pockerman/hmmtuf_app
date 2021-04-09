@@ -16,6 +16,7 @@ def main(infile_dir: Path, input_filename: str,
         outfile_writer = csv.writer(out_fh, delimiter=',')
         dir_list = os.listdir(infile_dir)
 
+        found_repeats = dict()
         for directory in dir_list:
 
             directory_path = infile_dir / directory
@@ -32,17 +33,35 @@ def main(infile_dir: Path, input_filename: str,
                     gquads_reader = GQuadsFileReader()
                     gquads = gquads_reader(filename=filename)
 
+                    filename = directory_path / directory / 'repeates_info_file.bed'
+                    repeats_info_reader = RepeatsInfoFileReader()
+                    repeats = repeats_info_reader(filename=filename)
+
                     for s in seqs:
                         chromosome = s[0]
                         start = s[1]
                         end = s[2]
                         key = (chromosome, start, end)
 
-                        if key == ('chr11', 48924773,48925773):
-                            print(gquads[key])
-
                         value = gquads[key]
                         s.extend(value)
+
+                        # we have no repeats
+                        if s[3] == 'NO_REPEATS':
+                            values = [0, "NO_REPEATS", "NO_REPEATS"]
+                            s.extend(values)
+                        else:
+                            # we have repeats
+                            repeats_val = repeats[key]
+
+                            if key not in found_repeats:
+                                found_repeats[key] = 0
+                            else:
+                                found_repeats[key] += 1
+
+                            values = repeats_val[found_repeats[key]]
+                            s.extend(values)
+
                         outfile_writer.writerow(s)
 
 if __name__ == '__main__':
