@@ -97,38 +97,6 @@ def create_repeats_table(database_wrap: SQLiteDBConnector, repeats_file: Path) -
         database_wrap.execute(sql=sql, values=values)
     print("{0} Done...".format(INFO))
 
-"""
-def create_repeats_info_table(database_wrap: SQLiteDBConnector,
-                              data_dir: Path, delimiter="\t") -> None:
-
-    print("{0} Creating table repeats_info...".format(INFO))
-    database_wrap.create_table(table_name="repeats_info")
-    data_directories = os.listdir(path=data_dir)
-
-    for directory in data_directories:
-        directory_path = data_dir / directory
-
-        if directory_path.is_dir():
-            # this is a directory so do work
-            tmp_path = directory_path / directory / 'repeates_info_file.bed'
-            with open(tmp_path, 'r', newline="\n") as fh:
-
-                for line in fh:
-                    line = line.split(delimiter)
-                    chromosome = line[0].strip()
-                    start_idx = int(line[1].strip())
-                    end_idx = int(line[2].strip())
-                    max_repeats_count = int(line[3].strip())
-                    align_seq = line[4].strip().upper()
-                    unit_seq = line[5].strip().upper()
-
-                    sql = '''INSERT INTO repeats_info(chromosome, 
-                    start_idx, end_idx,  max_repeats_count, 
-                    align_seq,  unit_seq) values(?, ?, ?, ?, ?, ?)'''
-                    values = (chromosome, start_idx, end_idx, max_repeats_count, align_seq, unit_seq)
-                    database_wrap.execute(sql=sql, values=values)
-    print("{0} Done...".format(INFO))
-"""
 
 def insert_distance_metric_result(database_wrap: SQLiteDBConnector,
                                   directory_path: Path, metric_data: tuple,
@@ -288,8 +256,6 @@ def main(database_wrap: SQLiteDBConnector,
     create_distance_types_table(database_wrap=database_wrap)
     create_distance_metrics_table(database_wrap=database_wrap, metrics=metrics)
     create_repeats_table(database_wrap=database_wrap, repeats_file=repeats_file)
-    #create_repeats_info_table(database_wrap=database_wrap, data_dir=chromosomes_dir)
-
     create_repeats_distances_table(database_wrap=database_wrap,
                                    data_dir=data_dir, metrics=metrics)
 
