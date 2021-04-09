@@ -136,17 +136,23 @@ class RepeatsInfoFileReader(object):
     def __call__(self, filename) -> dict:
         with open(filename, 'r', newline='\n') as fh:
 
-            data_dir = []
+            data_dir = dict()
             for line in fh:
                 data = line.split("\t")
 
                 chromosome = str(data[0])
                 start = int(data[1])
                 end = int(data[2])
+
+                key = (chromosome, start, end)
                 n_repeats = int(data[3])
                 seq1 = str(data[4].strip())
                 seq2 = str(data[5].strip())
-                data_dir.append([chromosome, start, end, n_repeats, seq1, seq2])
+
+                if key in data_dir:
+                    data_dir[key].append([n_repeats, seq1, seq2])
+                else:
+                    data_dir[key] = [[n_repeats, seq1, seq2]]
 
             return data_dir
 
