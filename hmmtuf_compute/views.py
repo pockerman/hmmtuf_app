@@ -11,12 +11,12 @@ from hmmtuf import INVALID_TASK_ID, INVALID_ITEM, ENABLE_SPADE
 from hmmtuf.celery import celery_app
 from hmmtuf_home.models import HMMModel, RegionModel, RegionGroupTipModel, ViterbiSequenceGroupTipModel
 
-from hmmtuf_compute import dash_kmer_viewer
+from hmmtuf_compute import dash_viewer
 from . import models
 from . import forms
 from . view_helpers import get_result_view_context
 from . view_helpers import view_viterbi_path_exception_context
-from . view_helpers import handle_success_view, get_kmer_view_result
+from . view_helpers import handle_success_view, get_kmer_view_result, get_repeats_distances_plot
 
 
 def success_schedule_group_viterbi_compute_view(request, task_id):
@@ -285,6 +285,15 @@ def schedule_kmers_calculation_view(request):
     return HttpResponse(template.render(context, request))
 
 
+def view_repeats_distances_plot(request):
+    """
+    Serves the view for Dash based view for
+    plotting repeats distances
+    """
+    dash_viewer.repeats_plot_viewer.layout = get_repeats_distances_plot(request=request)
+    return redirect(to="/django_plotly_dash/app/repeats_plot_viewer_app/")
+
+
 def view_kmers(request, task_id):
     """
     Serves the kmers view for the computation identified
@@ -292,7 +301,7 @@ def view_kmers(request, task_id):
     """
 
     # set up the Dash viewer layout
-    dash_kmer_viewer.kmer_viewer.layout = get_kmer_view_result(request=request, task_id=task_id)
+    dash_viewer.kmer_viewer.layout = get_kmer_view_result(request=request, task_id=task_id)
     #import dash
     #import dash_core_components as dcc
     #import dash_html_components as html

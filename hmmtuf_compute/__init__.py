@@ -1,3 +1,3 @@
-from .apps import HmmtufComputeConfigWithViewer
+from .apps import HmmtufComputeConfigWithDashViewer
 hmmtuf_compute_app_config = 'hmmtuf_compute.apps.HmmtufComputeConfig'
-dash_kmer_viewer = HmmtufComputeConfigWithViewer()
+dash_viewer = HmmtufComputeConfigWithDashViewer()
