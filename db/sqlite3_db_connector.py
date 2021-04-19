@@ -63,25 +63,9 @@ class SQLiteDBConnector(DBConnectorBase):
                   "hmm_state_id_1 INTEGER NOT NULL, " \
                   "hmm_state_id_2 INTEGER NOT NULL, " \
                   "value FLOAT, " \
-                                "metric_type_id INT NOT NULL, " \
-                                "sequence_type_id INT NOT NULL, " \
-                                "is_normalized INT NOT NULL)"
-        elif table_name == 'repeats_info':
-            sql = "CREATE TABLE IF NOT EXISTS repeats_info(id INTEGER PRIMARY KEY AUTOINCREMENT," \
-                           "chromosome TEXT NOT NULL," \
-                           "start_idx INTEGER NOT NULL," \
-                           "end_idx INTEGER NOT NULL," \
-                           "max_repeats_count INTEGER NOT NULL," \
-                           "align_seq TEXT NOT NULL," \
-                           "unit_seq TEXT NOT NULL)"
-        elif table_name == 'gquads_info':
-            sql = "CREATE TABLE IF NOT EXISTS gquads_info(id INTEGER PRIMARY KEY AUTOINCREMENT, " \
-                          "chromosome TEXT NOT NULL, " \
-                          "start_idx INTEGER NOT NULL, " \
-                          "end_idx INTEGER NOT NULL, " \
-                          "average_gc_count FLOAT NOT NULL," \
-                          "min_gc_count FLOAT," \
-                          "max_gc_count FLOAT)"
+                  "metric_type_id INT NOT NULL, " \
+                  "sequence_type_id INT NOT NULL, " \
+                  "is_normalized INT NOT NULL)"
         elif table_name == 'hmm_state_types':
             sql = "CREATE TABLE IF NOT EXISTS hmm_state_types(id INTEGER PRIMARY KEY AUTOINCREMENT," \
                   "type TEXT NOT NULL)"
