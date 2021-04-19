@@ -8,6 +8,9 @@ import dash_html_components as html
 from dash.dependencies import Input, Output, State
 import dash
 
+from db.db_connector import DBConnectorBase
+from compute_engine.src.exceptions import InvalidGCLimiter, InvalidGCLimitType, NoDataQuery
+
 # TODO: maybe move these to DB?
 gc_limit_type = [(0, "Select"), (1, "AVG"), (2, "MIN"), (3, "MAX")]
 gc_limit = [(0, "Select"), (1, "<"), (2, ">"), (3, "<="), (4, ">="), (5, "=")]
@@ -24,10 +27,7 @@ uique_dist_types = [(0, 'Select'), (1, 'Bag'), (2, 'Cosine'),
                     (17, 'SmithWaterman'), (18, 'Tanimoto'), (19, 'Tversky')]
 
 
-def get_layout():
-
-    global uique_seq_types
-    global uique_dist_types
+def get_layout(uique_seq_types: dict, uique_dist_types: dict) -> html.Div:
 
     layout = html.Div([
         html.H1("Distances Plot"),
@@ -89,7 +89,8 @@ def get_layout():
     ])
     return layout
 
-def create_plot_from_state_type(state_type_id, metric_type_id, sequence_type_id):
+def create_plot_from_state_type(state_type_id: int, metric_type_id: int,
+                                sequence_type_id: int, db_connector: DBConnectorBase) -> tuple:
     """
     Create the plot based on the
     state_type_id, metric_type_id, sequence_type_id
@@ -104,9 +105,7 @@ def create_plot_from_state_type(state_type_id, metric_type_id, sequence_type_id)
 
     try:
         print("{0} Executing sql={1}".format(INFO, sql))
-        local_db = SQLiteDBConnector(db_file=db_file)
-        local_db.connect()
-        rows = local_db.fetch_all(sql=sql)
+        rows = db_connector.fetch_all(sql=sql)
         print("{0} Fetched number of rows={1}".format(INFO, len(rows)))
     except Exception as e:
         rows = []
@@ -131,7 +130,8 @@ def create_plot_from_state_type(state_type_id, metric_type_id, sequence_type_id)
     return error_message, fig, len(rows)
 
 
-def form_gc_sql(state_type_id, gc_limit_type, gc_limiter, gc_value):
+def form_gc_sql(state_type_id: int, gc_limit_type,
+                gc_limiter, gc_value: float) -> str:
     """
     Create the sql when GC limit is used
     """
@@ -205,8 +205,11 @@ def form_gc_sql(state_type_id, gc_limit_type, gc_limiter, gc_value):
     return sql
 
 
-def create_figure_plot(state_type_id, metric_type_id,
-                       sequence_type_id, gc_limit_type, gc_limiter, gc_value, btn_clicks):
+def create_figure_plot(state_type_id: int, metric_type_id: int,
+                       sequence_type_id: int, gc_limit_type: int,
+                       gc_limiter: int, gc_value: float, btn_clicks: int,
+                       db_connector: DBConnectorBase) -> tuple:
+
     if btn_clicks == 0:
 
         # nothing to compute
@@ -224,7 +227,8 @@ def create_figure_plot(state_type_id, metric_type_id,
             # we don't want GC limiters
             return create_plot_from_state_type(state_type_id=state_type_id,
                                                metric_type_id=metric_type_id,
-                                               sequence_type_id=sequence_type_id)
+                                               sequence_type_id=sequence_type_id,
+                                               db_connector=db_connector)
         else:
 
             ## error handling
@@ -255,9 +259,9 @@ def create_figure_plot(state_type_id, metric_type_id,
 
                 try:
 
-                    local_db = SQLiteDBConnector(db_file=db_file)
-                    local_db.connect()
-                    local_db.create_tmp_table(sql=sql)
+                   # local_db = SQLiteDBConnector(db_file=db_file)
+                   # local_db.connect()
+                    db_connector.create_tmp_table(sql=sql)
 
                     sql = "SELECT COUNT(*) FROM temp_repeats"
                     rows = local_db.fetch_all(sql=sql)
@@ -278,7 +282,7 @@ def create_figure_plot(state_type_id, metric_type_id,
                         sql += " AND sequence_type_id={0}".format(sequence_type_id)
 
                         print("{0} Executing sql={1}".format(INFO, sql))
-                        rows = local_db.fetch_all(sql=sql)
+                        rows = db_connector.fetch_all(sql=sql)
                         print("{0} Fetched number of rows={1}".format(INFO, len(rows)))
 
                         error_message = ""
@@ -291,7 +295,7 @@ def create_figure_plot(state_type_id, metric_type_id,
                 finally:
                     print("{0} Deleting table...".format(INFO))
                     sql = '''DROP TABLE IF EXISTS temp_repeats'''
-                    local_db.execute_sql(sql=sql)
+                    db_connector.execute_sql(sql=sql)
 
     counts, bins = np.histogram(rows, bins=35)
     bins = 0.5 * (bins[:-1] + bins[1:])

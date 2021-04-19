@@ -290,6 +290,7 @@ def view_repeats_distances_plot(request):
     Serves the view for Dash based view for
     plotting repeats distances
     """
+
     dash_viewer.repeats_plot_viewer.layout = get_repeats_distances_plot(request=request)
     return redirect(to="/django_plotly_dash/app/repeats_plot_viewer_app/")
 
