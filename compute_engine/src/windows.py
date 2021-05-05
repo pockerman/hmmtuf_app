@@ -18,7 +18,7 @@ class WindowType(Enum):
         elif string.upper() == 'N_WIN':
             return WindowType.N_WIN
 
-        raise Error("Invalid WindowType. "
+        raise Error("Invalid Window Type. "
                     "Type {0} not in {1}".format(string,
                                                  ["WGA",
                                                   "NO_WGA",
@@ -245,21 +245,28 @@ class MixedWindowView(object):
         :param statistics:
         :return:
         """
+
+        wtype = name
+
+        # attempt to convert from string
+        if isinstance(wtype, str):
+            wtype = WindowType.from_string(wtype)
+
         if self.is_gap_window():
-            if name == WindowType.BOTH:
+            if wtype == WindowType.BOTH:
                 return (Window.N_WINDOW_MARKER, Window.N_WINDOW_MARKER)
             else:
                 return Window.N_WINDOW_MARKER
 
-        if name == WindowType.BOTH:
+        if wtype == WindowType.BOTH:
             return (self._windows[WindowType.WGA].get_rd_statistic(statistic=statistics),
                     self._windows[WindowType.NO_WGA].get_rd_statistic(statistic=statistics))
-        elif name == WindowType.WGA:
+        elif wtype == WindowType.WGA:
             return self._windows[WindowType.WGA].get_rd_statistic(statistic=statistics)
-        elif name == WindowType.NO_WGA:
+        elif wtype == WindowType.NO_WGA:
             return self._windows[WindowType.NO_WGA].get_rd_statistic(statistic=statistics)
 
-        raise Error("Windowtype {0}"
-                    " not in {1}".format(name, [WindowType.BOTH.name,
+        raise Error("Window type {0}"
+                    " not in {1}".format(wtype, [WindowType.BOTH.name,
                                                 WindowType.WGA.name,
                                                 WindowType.NO_WGA.name]))
