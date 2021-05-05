@@ -1,7 +1,7 @@
 """
 Helpers for calculating HMM Viterbi paths
 """
-
+from pathlib import Path
 import csv
 import numpy as np
 from pomegranate import *
@@ -287,8 +287,9 @@ def save_segments(segments, chromosome, filename):
             writer.writerow(row)
 
 
-def create_viterbi_path(sequence, hmm_model, chr,
-                        filename, append_or_write, gap_state_obs=(-999.0, -999.0)):
+def create_viterbi_path(sequence, hmm_model, chromosome: str,
+                        filename: Path, append_or_write: str,
+                        gap_state_obs: tuple=(-999.0, -999.0)) -> tuple:
 
     observations = []
     for i in range(len(sequence)):
@@ -315,7 +316,7 @@ def create_viterbi_path(sequence, hmm_model, chr,
 
                 r = (int(sequence[item][1][0]), int(sequence[item][1][1]))
                 name = viterbi_path[1][item + 1][1].name
-                f.write(chr + ":" + str(item) + ":" + str(r) + ":" + str(sequence[item][0]) + ":" + name + "\n")
+                f.write(chromosome + ":" + str(item) + ":" + str(r) + ":" + str(sequence[item][0]) + ":" + name + "\n")
                 sequence_viterbi_state.append((item, viterbi_path[1][item + 1][1].name))
 
         print("{0} There should be {1} gaps".format(INFO, counter))
