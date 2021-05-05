@@ -1,5 +1,3 @@
-WARNING="WARNING: "
-
 
 class Error(Exception):
     """
@@ -32,6 +30,9 @@ class InvalidGCLimiter(Exception):
         self.expression = expression
         self.message = message
 
+    def __str__(self) -> str:
+        return self.message
+
 
 class InvalidGCLimitType(Exception):
     """
@@ -43,6 +44,9 @@ class InvalidGCLimitType(Exception):
         self.expression = expression
         self.message = message
 
+    def __str__(self) -> str:
+        return self.message
+
 
 class NoDataQuery(Exception):
     """
@@ -53,5 +57,8 @@ class NoDataQuery(Exception):
     def __init__(self, expression, message) -> None:
         self.expression = expression
         self.message = message
+
+    def __str__(self) -> str:
+        return self.message
 
 
