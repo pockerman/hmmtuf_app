@@ -2,90 +2,95 @@ import random
 from django.template import loader
 from django.http import HttpResponse
 from django.core.exceptions import ObjectDoesNotExist
-import dash
+
 import dash_core_components as dcc
 import dash_html_components as html
 from dash.dependencies import Input, Output, State
-import plotly.express as px
-import pandas as pd
+import dash
 
-
+from db.sqlite3_db_connector import SQLiteDBConnector
 from compute_engine.src.utils import get_sequence_name, get_tdf_file
 from compute_engine.src.enumeration_types import JobResultEnum, JobType
+from compute_engine.src.dash_helpers import create_figure_plot, get_layout
+
 from compute_engine import INFO
-from hmmtuf_compute import dash_kmer_viewer
-from hmmtuf.celery import celery_app
+from hmmtuf_compute import dash_viewer
 from hmmtuf.helpers import make_bed_path
 from hmmtuf.helpers import get_configuration
 from hmmtuf import INVALID_TASK_ID
+from hmmtuf.config import DATABASES
+from hmmtuf_home.models import DistanceSequenceTypeModel, DistanceMetricTypeModel
 
 from .models import ViterbiComputationModel, GroupViterbiComputationModel, KmerComputationModel
 
 
+def get_repeats_distances_plot(request):
+
+    # we also need to add
+    # a callback to check on the result
+    @dash_viewer.repeats_plot_viewer.callback(Output("error-messages-id", component_property='children'),
+                                              Output("normal-bar-chart", "figure"),
+                                              Output("normal-n-distances", component_property='children'),
+                                              Output("tuf-bar-chart", "figure"),
+                                              Output("tuf-n-distances", component_property='children'),
+                                              Output("core-bar-chart", "figure"),
+                                              Output("core-n-distances", component_property='children'),
+                                              [Input("dropdown-sequence", "value"),
+                                               Input("dropdown-distance", "value"),
+                                               Input("dropdown-gc-limit-type", "value"),
+                                               Input("dropdown-gc-limit", "value"),
+                                               Input("gc-limit-value", "value"),
+                                               Input("compute-btn", "n_clicks")
+                                               ])
+    def update_bar_chart(seq_type, distance_type, gc_limit_type,
+                         gc_limiter, gc_value, btn_clicked) -> tuple:
+
+        print("{0} Calling callback= update_bar_chart... ".format(INFO))
+        print("{0} {1} ".format(INFO, dash.callback_context.triggered))
+
+        if len(dash.callback_context.triggered) == 0:
+            btn_clicks = 0
+        else:
+
+            # get the changes
+            changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
+
+            # if the compute bth is in the changes
+            # this means we triger a compute
+            if 'compute-btn' in changed_id:
+                btn_clicks = 1
+            else:
+                btn_clicks = 0
+
+        print("{0} Button clicks={1}".format(INFO, btn_clicks))
+        metric_type_id = distance_type
+        sequence_type_id = seq_type
+        error_message = ""
+
+        figs_ids = [1, 2, 3]
+        figs = []
+        for fid in figs_ids:
+            db_connector = SQLiteDBConnector(db_file=DATABASES["default"]["NAME"])
+            db_connector.connect()
+            error_message, fig, rows = create_figure_plot(state_type_id=fid,
+                                                          metric_type_id=metric_type_id,
+                                                          sequence_type_id=sequence_type_id,
+                                                          gc_limit_type=gc_limit_type,
+                                                          gc_limiter=gc_limiter,
+                                                          gc_value=gc_value, btn_clicks=btn_clicks,
+                                                          db_connector=db_connector)
+            figs.append(fig)
+            figs.append(rows)
+
+        return error_message, figs[0], figs[1], figs[2], figs[3], figs[4], figs[5],
+
+    uique_seq_types = DistanceSequenceTypeModel.objects.all()
+    uique_dist_types = DistanceMetricTypeModel.objects.all()
+    return get_layout(uique_seq_types=uique_seq_types, uique_dist_types=uique_dist_types)
+
+
 def get_kmer_view_result(request, task_id):
-    # return
-    # template_html = 'hmmtuf_compute/kmer_result_view.html'
-    # template = loader.get_template(template_html)
-    try:
-
-        # if the task exists do not ask celery. This means
-        # that either the task failed or succeed
-        # task = KmerComputationModel.objects.get(task_id=task_id)
-        context = {"show_get_results_button": True,
-                   "error_message": "This is a test"}  # get_result_view_context(task=task, task_id=task_id)
-
-        if 'error_task_failed' in context:
-            # the task failed so
-            # Dash view should show this
-            layout = html.Div(children=[
-                html.H1(children='Kmer Viewer',
-                        style={"textAlign": "center", "color": '#7FDBFF'}),
-                html.H2(children="Kmer calculation failed",
-                        style={"textAlign": "left", "color": 'red'}),
-                html.H3(children="Task id: %s" % task_id,
-                        style={"textAlign": "left", "color": 'black'}),
-                html.H4(children="Error message: %s" % context["error_message"],
-                        style={"textAlign": "left", "color": 'black'})])
-            return layout
-        elif "show_get_results_button" in context:
-            # result is not ready yet
-            layout = html.Div(children=[html.H1(children='Kmer Viewer',
-                                                style={"textAlign": "center", "color": '#7FDBFF'}),
-                                        html.H2(children="Kmer calculation pending",
-                                                style={"textAlign": "left", "color": 'blue'}),
-                                        html.H3(children="Task id: %s" % task_id,
-                                                style={"textAlign": "left", "color": 'black'}),
-                                        html.Button(children="Check task", id="check_task", n_clicks=0,
-                                                    style={"textAlign": "center", "color": 'black'}),
-                                        dcc.Input(id="task_id", type="text", value="%s" % task_id),
-                                        html.Div(id='task_results'), ])
-
-            # we also need to add
-            # a callback to check on the result
-            @dash_kmer_viewer.kmer_viewer.callback(Output('task_results', 'children'),
-                                                   Input('check_task', 'n_clicks'),
-                                                   State('task_id', 'value'),)
-            def fetch_results(check_task_button, input_value):
-                print(check_task_button)
-                print(input_value)
-                choice = random.choice([0, 1])
-                if choice == 0:
-                    msg = 'Task pending'
-                else:
-                    msg = "Task finished"
-                return html.Div(msg)
-
-            return layout
-
-    except ObjectDoesNotExist:
-
-        # try to ask celery
-        # check if the computation is ready
-        # if yes collect the results
-        # otherwise return the html
-        task = celery_app.AsyncResult(task_id)
-        context = view_viterbi_path_exception_context(task=task, task_id=task_id)
-        return HttpResponse(template.render(context, request))
+    raise NotImplementedError("Not Implemented")
 
 
 def get_result_view_context(task, task_id):

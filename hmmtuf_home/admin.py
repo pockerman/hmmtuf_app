@@ -9,8 +9,6 @@ from .models import DistanceMetricTypeModel
 from .models import DistanceSequenceTypeModel
 from .models import RepeatsModel
 from .models import RepeatsDistancesModel
-from .models import RepeatsInfoModel
-from .models import GQuadsInfoModel
 from .models import HHMStateTypesModel
 
 
@@ -56,31 +54,15 @@ class RepeatsAdmin(admin.ModelAdmin):
 
 
 class RepeatsDistancesAdmin(admin.ModelAdmin):
-    fields = ['chromosome1', 'start_idx_1', 'end_idx_1',
-              'chromosome2', 'start_idx_2', 'end_idx_2',
-              'value', 'metric_type_id', 'sequence_type_id', 'is_normalized']
-    list_display = ('chromosome1', 'start_idx_1', 'end_idx_1',
-                    'chromosome2', 'start_idx_2', 'end_idx_2',
-                    'value', 'metric_type_id', 'sequence_type_id', 'is_normalized')
-
-
-class RepeatsInfoAdmin(admin.ModelAdmin):
-    fields = ['chromosome', 'start_idx', 'end_idx',
-              'max_repeats_count', ]
-    list_display = ('chromosome', 'start_idx', 'end_idx',
-                    'max_repeats_count', )
-
-
-class GQuadsInfoAdmin(admin.ModelAdmin):
-    fields = ['chromosome', 'start_idx', 'end_idx',
-              'average_gc_count',  'min_gc_count', 'max_gc_count', ]
-    list_display = ('chromosome', 'start_idx', 'end_idx',
-                    'average_gc_count',  'min_gc_count', 'max_gc_count',)
+    fields = ['repeat_idx_1', 'repeat_idx_2', 'hmm_state_idx_1',
+              'hmm_state_idx_2',  'value', 'metric_type_id', 'sequence_type_id', 'is_normalized']
+    list_display = ('repeat_idx_1', 'repeat_idx_2', 'hmm_state_idx_1',
+                     'hmm_state_idx_2',  'value', 'metric_type_id', 'sequence_type_id', 'is_normalized')
 
 
 class HHMStateTypesModelAdmin(admin.ModelAdmin):
     fields = ['type', ]
-    list_display = ('type',  )
+    list_display = ('type', )
 
 
 admin.site.register(DistanceMetricTypeModel, DistanceMetricTypeAdmin)
@@ -92,6 +74,4 @@ admin.site.register(RegionModel, RegionModelAdmin)
 admin.site.register(RegionGroupTipModel, RegionGroupTipModelAdmin)
 admin.site.register(ViterbiSequenceGroupTipModel, ViterbiSequenceGroupTipModelAdmin)
 admin.site.register(ViterbiSequenceModel, ViterbiSequenceModelAdmin)
-admin.site.register(RepeatsInfoModel, RepeatsInfoAdmin)
-admin.site.register(GQuadsInfoModel, GQuadsInfoAdmin)
 admin.site.register(HHMStateTypesModel, HHMStateTypesModelAdmin)

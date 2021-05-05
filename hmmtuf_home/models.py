@@ -258,6 +258,9 @@ class HHMStateTypesModel(models.Model):
     class Meta:
         db_table = 'hmm_state_types'
 
+    def __str__(self):
+        return "%s " % self.type
+
 
 class RepeatsModel(models.Model):
     """
@@ -281,6 +284,24 @@ class RepeatsModel(models.Model):
     # gc percentage
     gc = models.FloatField(default=0.0)
 
+    # min GC
+    gc_min = models.FloatField(default=0.0)
+
+    # max GC
+    gc_max = models.FloatField(default=0.0)
+
+    # whether the region contains repeats
+    has_repeats = models.BooleanField(default=False)
+
+    # number of repeats
+    n_repeats = models.IntegerField(default=0)
+
+    # the alignement sequence
+    align_seq = models.CharField(max_length=500, default=None)
+
+    # unit seq sequence
+    unit_seq = models.CharField(max_length=500, default=None)
+
     class Meta:
         db_table = 'repeats'
 
@@ -290,23 +311,25 @@ class RepeatsDistancesModel(models.Model):
     DB model for distances between the repeats
     """
 
-    # the chromosome
-    chromosome1 = models.CharField(max_length=100, unique=False)
-
     # the start index
-    start_idx_1 = models.IntegerField(unique=False)
+    repeat_idx_1 = models.ForeignKey(RepeatsModel, on_delete=models.CASCADE,
+                                     related_name='%(class)s_repeat_idx_1',
+                                     default=None)
 
     # the end index
-    end_idx_1 = models.IntegerField(unique=False)
-
-    # the chromosome
-    chromosome2 = models.CharField(max_length=100, unique=False)
+    repeat_idx_2 = models.ForeignKey(RepeatsModel, on_delete=models.CASCADE,
+                                     related_name='%(class)s_repeat_idx_2',
+                                     default=None)
 
     # the start index
-    start_idx_2 = models.IntegerField(unique=False)
+    hmm_state_idx_1 = models.ForeignKey(HHMStateTypesModel, on_delete=models.CASCADE,
+                                        related_name='%(class)s_hmm_state_idx_1',
+                                        default=None)
 
     # the end index
-    end_idx_2 = models.IntegerField(unique=False)
+    hmm_state_idx_2 = models.ForeignKey(HHMStateTypesModel, on_delete=models.CASCADE,
+                                        related_name='%(class)s_hmm_state_idx_2',
+                                        default=None)
 
     # the metric value computed
     value = models.FloatField()
@@ -326,34 +349,6 @@ class RepeatsDistancesModel(models.Model):
         db_table = 'repeats_distances'
 
 
-class RepeatsInfoModel(models.Model):
-    """
-    DB model for repeats
-    """
-    chromosome = models.CharField(max_length=100, unique=False)
-    start_idx = models.IntegerField(unique=False)
-    end_idx = models.IntegerField(unique=False)
-    max_repeats_count = models.IntegerField(unique=False)
-    align_seq = models.CharField(max_length=1000, unique=False)
-    unit_seq = models.CharField(max_length=1000, unique=False)
-
-    class Meta:
-        db_table = 'repeats_info'
-
-
-class GQuadsInfoModel(models.Model):
-    """
-    DB model for gquads
-    """
-    chromosome = models.CharField(max_length=100, unique=False)
-    start_idx = models.IntegerField(unique=False)
-    end_idx = models.IntegerField(unique=False)
-    average_gc_count = models.FloatField(0.0)
-    min_gc_count = models.FloatField(0.0)
-    max_gc_count = models.FloatField(0.0)
-
-    class Meta:
-        db_table = 'gquads_info'
 
 
 
