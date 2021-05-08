@@ -23,6 +23,8 @@ class GroupViterbiComputationModel(ComputationModel):
     which tries to fill in as many fields as possible. Upon successful
     completion of the task all fields should have valid values
     """
+    
+# TODO: Add here the job type
 
     # the tip used for the computation
     group_tip = models.CharField(max_length=100, null=True)

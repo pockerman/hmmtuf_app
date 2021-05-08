@@ -10,19 +10,15 @@ from compute_engine.src.enumeration_types import JobType, JobResultEnum
 from compute_engine.src import hmm_loader, tufdel, viterbi_calculation_helpers as viterbi_helpers
 from compute_engine.src.windows import WindowType
 from compute_engine.src.region import Region
-from compute_engine.src.string_sequence_calculator import TextDistanceCalculator
-
 from hmmtuf import INVALID_ITEM
 from hmmtuf.helpers import make_viterbi_path_filename
 from hmmtuf.helpers import make_viterbi_path
 from hmmtuf.helpers import make_tuf_del_tuf_path_filename
 from hmmtuf.helpers import make_viterbi_sequence_path_filename
 from hmmtuf.helpers import make_viterbi_sequence_path
-from hmmtuf.helpers import make_viterbi_sequence_comparison_path_filename
-from hmmtuf.helpers import make_viterbi_sequence_comparison_path
+
 from hmmtuf_home.models import RegionModel, \
-    HMMModel, ViterbiSequenceModel, \
-    ViterbiSequenceGroupTipModel, RegionGroupTipModel
+    HMMModel, ViterbiSequenceModel, RegionGroupTipModel
 
 from hmmtuf_compute.tasks_helpers import build_files_map, update_for_exception
 
@@ -210,7 +206,7 @@ def compute_group_viterbi_path_all(task_id, hmm_name, window_type,
                                                 remove_dirs=remove_dirs)
 
                     sequence = ViterbiSequenceModel()
-                    group = ViterbiSequenceGroupTipModel.objects.get(tip=sequence_group)
+                    group = RegionGroupTipModel.objects.get(tip=sequence_group)
                     sequence.group_tip = group
                     sequence.file_sequence = make_viterbi_sequence_path_filename(task_id=task_id, extra_path=path_extra)
                     sequence.region = region_model
@@ -265,7 +261,7 @@ def compute_group_viterbi_path_all(task_id, hmm_name, window_type,
 
 
 def compute_group_viterbi_path(task_id, hmm_name, window_type, group_tip,
-                               remove_dirs, use_spade, sequence_group, scheduler_id=None):
+                               remove_dirs, use_spade, sequence_group=None, scheduler_id=None):
     """
     Compute the Viterbi paths for a group of sequences. If use_spade is True
     it also uses the SPADE application to compute the core repeats and
@@ -296,7 +292,7 @@ def compute_group_viterbi_path(task_id, hmm_name, window_type, group_tip,
     computation.hmm_filename = hmm_name
     computation.hmm_path_img = INVALID_ITEM
     computation.group_tip = group_tip
-    computation.ref_seq_file = regions[0].ref_seq_file
+    computation.ref_seq_filename = regions[0].ref_seq_file
     computation.wga_seq_filename = regions[0].wga_seq_file
     computation.no_wag_seq_filename = regions[0].no_wga_seq_file
     computation.scheduler_id = scheduler_id
@@ -335,6 +331,7 @@ def compute_group_viterbi_path(task_id, hmm_name, window_type, group_tip,
         computation.save()
         return result
 
+# Delete these
     hmm_path_img = hmm_path_img + hmm_name + '.png'
     hmm_loader.save_hmm_image(hmm_model=hmm_model, path=hmm_path_img)
     computation.hmm_path_img = hmm_path_img
@@ -347,6 +344,7 @@ def compute_group_viterbi_path(task_id, hmm_name, window_type, group_tip,
     counter_region_id = 0
     for region_model in regions:
 
+        print("{0} Working with region {1}".format(INFO, region_model.file_region.name))
         region_filename = region_model.file_region.name
         region = Region.load(filename=region_filename)
         region.get_mixed_windows()
@@ -362,9 +360,13 @@ def compute_group_viterbi_path(task_id, hmm_name, window_type, group_tip,
             os.mkdir(task_path + chromosome)
         except FileExistsError as e:
             print("{0} Directory {1} exists".format(INFO, task_path + chromosome))
+            #import pdb
+            #pdb.set_trace()
 
         path_extra = chromosome + "/" + region_model.name
         path = task_path + path_extra + "/"
+
+        print("{0} Creating directory {1}".format(INFO, path))
         os.mkdir(path)
 
         viterbi_path_filename = make_viterbi_path_filename(task_id=task_id, extra_path=path_extra)
@@ -402,7 +404,7 @@ def compute_group_viterbi_path(task_id, hmm_name, window_type, group_tip,
                                             remove_dirs=remove_dirs)
 
                 sequence = ViterbiSequenceModel()
-                group = ViterbiSequenceGroupTipModel.objects.get(tip=sequence_group)
+                group = RegionGroupTipModel.objects.get(tip=sequence_group)
                 sequence.group_tip = group
                 sequence.file_sequence = make_viterbi_sequence_path_filename(task_id=task_id, extra_path=path_extra)
                 sequence.region = region_model
@@ -434,10 +436,12 @@ def compute_group_viterbi_path(task_id, hmm_name, window_type, group_tip,
                 names = files_created_map[idx].keys()
 
                 for name in names:
-                    print(
-                        "{0} Concatenating bed {1} to {2}".format(INFO, files_created_map[idx][name], out_path + name))
+                    print("{0} Concatenating bed {1} to {2}".format(INFO,
+                                                                    files_created_map[idx][name],
+                                                                    out_path + name))
                     # concatenate the files
-                    tufdel.concatenate_bed_files(files_created_map[idx][name], outfile=out_path + name)
+                    tufdel.concatenate_bed_files(files_created_map[idx][name],
+                                                 outfile=out_path + name)
         except Exception as e:
             result, computation = update_for_exception(result=result, computation=computation,
                                                        err_msg=str(e))
@@ -567,7 +571,7 @@ def compute_viterbi_path(task_id, hmm_name, chromosome,
                         remove_dirs=remove_dirs)
 
             sequence = ViterbiSequenceModel()
-            group = ViterbiSequenceGroupTipModel.objects.get(tip=sequence_group)
+            group = RegionGroupTipModel.objects.get(tip=sequence_group)
             sequence.group_tip = group
             sequence.file_sequence = make_viterbi_sequence_path_filename(task_id=task_id)
             sequence.region = region_model
