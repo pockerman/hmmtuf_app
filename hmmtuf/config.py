@@ -9,7 +9,15 @@ LOCAL_DEPLOY = False
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 
-USE_CELERY = True
+USE_CELERY = False
+
+# Ray configuration
+USE_RAY = True
+RAY_PROCESSES = 2
+RAY_GPUS = 0
+RAY_DASHBORD_URL = ""
+RAY_REDIS_PORT = None
+
 ENABLE_SPADE = True
 SPADE_PATH = "%s/compute_engine/SPADE/" % BASE_DIR
 DATA_PATH = "%s/data/" % BASE_DIR
