@@ -38,7 +38,9 @@ class ClassifierType(Enum):
 
 
 class FileReaderType(Enum):
-
+    """
+    Enumeration to distinguish various file readers
+    """
     TUF_BED = 0
     TDT_BED = 1
     NUCL_OUT = 3
