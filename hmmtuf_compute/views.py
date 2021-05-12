@@ -6,12 +6,11 @@ from django.core.exceptions import ObjectDoesNotExist
 from compute_engine.src.windows import WindowType
 from compute_engine import OK
 
-
 from hmmtuf import INVALID_TASK_ID, INVALID_ITEM, ENABLE_SPADE
 from hmmtuf.celery import celery_app
-from hmmtuf_home.models import HMMModel, RegionModel, RegionGroupTipModel, ViterbiSequenceGroupTipModel
-
+from hmmtuf_home.models import HMMModel, RegionModel, RegionGroupTipModel
 from hmmtuf_compute import dash_viewer
+
 from . import models
 from . import forms
 from . view_helpers import get_result_view_context
@@ -64,7 +63,7 @@ def schedule_group_viterbi_compute_view(request):
     template_html = 'hmmtuf_compute/schedule_group_viterbi_compute_view.html'
     template = loader.get_template(template_html)
 
-    db_group_tips = ViterbiSequenceGroupTipModel.objects.all()
+    db_group_tips = RegionGroupTipModel.objects.all()
     sequence_groups = ["None"]
 
     for item in db_group_tips:
@@ -96,6 +95,7 @@ def schedule_group_viterbi_compute_view(request):
         result = form.check(request=request)
         if result is not OK:
             return form.response
+
 
         kwargs = form.kwargs
         task_id = models.GroupViterbiComputationModel.compute(data=kwargs)
@@ -178,7 +178,7 @@ def schedule_hmm_viterbi_compute_view(request):
     template_html = 'hmmtuf_compute/schedule_viterbi_compute_view.html'
     template = loader.get_template(template_html)
 
-    db_group_tips = ViterbiSequenceGroupTipModel.objects.all().order_by('tip')
+    db_group_tips = RegionGroupTipModel.objects.all().order_by('tip')
     group_tips = ["None"]
 
     for item in db_group_tips:
@@ -272,11 +272,7 @@ def schedule_kmers_calculation_view(request):
         form = forms.KmerComputeForm(template_html=template_html,
                                      context=context, configuration=None)
 
-        #if form.check(request=request) is not OK:
-        #    return form.response
 
-        # the id of the task
-        #task_id = models.CompareViterbiSequenceComputationModel.compute(data=form.kwargs)
         task_id = 0
 
         # return the id for the computation

@@ -3,7 +3,6 @@ from django.contrib import admin
 from .models import HMMModel
 from .models import RegionModel
 from .models import RegionGroupTipModel
-from .models import ViterbiSequenceGroupTipModel
 from .models import ViterbiSequenceModel
 from .models import DistanceMetricTypeModel
 from .models import DistanceSequenceTypeModel
@@ -19,18 +18,14 @@ class HMMModelAdmin(admin.ModelAdmin):
 
 class RegionModelAdmin(admin.ModelAdmin):
     fields = ['name', 'chromosome', 'chromosome_index',
-              'file_region', 'wga_seq_file', 'no_wga_seq_file', 'extension', ]
+              'file_region', 'ref_seq_file', 'wga_seq_file', 'no_wga_seq_file',
+              'start_idx', 'end_idx', 'group_tip']
     list_display = ('name', 'chromosome', 'start_idx', 'end_idx', 'group_tip')
 
 
 class RegionGroupTipModelAdmin(admin.ModelAdmin):
     fields = ['tip', 'chromosome']
     list_display = ('id', 'tip', 'chromosome')
-
-
-class ViterbiSequenceGroupTipModelAdmin(admin.ModelAdmin):
-    fields = ['tip']
-    list_display = ('id', 'tip')
 
 
 class ViterbiSequenceModelAdmin(admin.ModelAdmin):
@@ -72,6 +67,5 @@ admin.site.register(RepeatsDistancesModel, RepeatsDistancesAdmin)
 admin.site.register(HMMModel, HMMModelAdmin)
 admin.site.register(RegionModel, RegionModelAdmin)
 admin.site.register(RegionGroupTipModel, RegionGroupTipModelAdmin)
-admin.site.register(ViterbiSequenceGroupTipModel, ViterbiSequenceGroupTipModelAdmin)
 admin.site.register(ViterbiSequenceModel, ViterbiSequenceModelAdmin)
 admin.site.register(HHMStateTypesModel, HHMStateTypesModelAdmin)

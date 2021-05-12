@@ -165,6 +165,7 @@ class RegionModel(FilesModel):
         return inst
 
 
+"""
 class ViterbiSequenceGroupTipModel(models.Model):
 
     # tip used to group Viterbi sequence  models
@@ -175,12 +176,13 @@ class ViterbiSequenceGroupTipModel(models.Model):
 
     def __str__(self):
         return "%s" % self.tip
+"""
 
 
 class ViterbiSequenceModel(models.Model):
 
     # the group tip
-    group_tip = models.ForeignKey(ViterbiSequenceGroupTipModel, on_delete=models.CASCADE, null=False)
+    group_tip = models.ForeignKey(RegionGroupTipModel, on_delete=models.CASCADE, null=False)
 
     # the file representing the region
     file_sequence = models.FileField(null=False)

@@ -164,7 +164,8 @@ def do_TDT(tdtarray, outfile):
                       '_' + gcpercent(seq) + '\t' + str(gquad) + str(mscore) + '\n')
 
 def main(path, fas_file_name, chromosome,
-         chr_idx, viterbi_file, nucleods_path, remove_dirs=False):
+         chr_idx, viterbi_file, nucleods_path,
+         remove_dirs=False, test_me = False):
 
     print("{0} Start TUF-DEL-TUF".format(INFO))
 
@@ -239,10 +240,6 @@ def main(path, fas_file_name, chromosome,
     chr = ''
     ptemp = True
     chrlistsorted = {chr_idx: viterbi_file}
-
-    # variable to enable local test
-    # should allow set for the outside?
-    test_me = False
 
     if not test_me:
         for i in sorted(chrlistsorted):

@@ -9,7 +9,7 @@ from compute_engine import OK
 from hmmtuf import VITERBI_PATH_FILENAME
 from hmmtuf import INVALID_ITEM
 from hmmtuf.settings import VITERBI_PATHS_FILES_ROOT
-from hmmtuf_home.models import HMMModel, RegionModel, ViterbiSequenceGroupTipModel
+from hmmtuf_home.models import HMMModel, RegionModel, RegionGroupTipModel
 
 
 class ComputeFormBase(object):
@@ -107,9 +107,21 @@ class GroupViterbiComputeForm(ComputeFormBase):
 
         self._sequence_group = request.POST.get("sequence_group", "None")
         if self._sequence_group == "None":
+            self._sequence_group = self._group_tip
+
+        self.kwargs = {"hmm_name": self._hmm_name,
+                       "group_tip": self._group_tip,
+                       "remove_dirs": self._remove_dirs,
+                       "use_spade": self._use_spade,
+                       "sequence_group": self._sequence_group,
+                       "scheduler_id": self._scheduler_id}
+
+        """
+        if self._sequence_group == "None":
             self._sequence_group = request.POST.get("new_sequence_group", "")
 
             if self._sequence_group == "":
+                self.
                 template = loader.get_template(self.template_html)
                 self.context.update({"error_found": True,
                                      "no_seq_group": "No sequence group specified"})
@@ -119,12 +131,12 @@ class GroupViterbiComputeForm(ComputeFormBase):
             else:
 
                 try:
-
                     group_tip = ViterbiSequenceGroupTipModel.objects.get(tip=self._sequence_group)
                 except ObjectDoesNotExist as e:
                     model = ViterbiSequenceGroupTipModel()
                     model.tip = self._sequence_group
                     model.save()
+        """
 
         return OK
 
@@ -203,9 +215,9 @@ class ViterbiComputeForm(ComputeFormBase):
 
                 try:
 
-                    group_tip = ViterbiSequenceGroupTipModel.objects.get(tip=sequence_group)
+                    group_tip = RegionGroupTipModel.objects.get(tip=sequence_group)
                 except ObjectDoesNotExist as e:
-                    model = ViterbiSequenceGroupTipModel()
+                    model = RegionGroupTipModel()
                     model.tip = sequence_group
                     model.save()
 
@@ -378,9 +390,9 @@ class KmerComputeForm(ComputeFormBase):
 
                 try:
 
-                    group_tip = ViterbiSequenceGroupTipModel.objects.get(tip=self._sequence_group)
+                    group_tip = RegionGroupTipModel.objects.get(tip=self._sequence_group)
                 except ObjectDoesNotExist as e:
-                    model = ViterbiSequenceGroupTipModel()
+                    model = RegionGroupTipModel()
                     model.tip = self._sequence_group
                     model.save()
 
