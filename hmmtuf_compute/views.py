@@ -64,10 +64,6 @@ def schedule_group_viterbi_compute_view(request):
     template = loader.get_template(template_html)
 
     db_group_tips = RegionGroupTipModel.objects.all()
-    sequence_groups = ["None"]
-
-    for item in db_group_tips:
-        sequence_groups.append(item.tip)
 
     # get the hmms we have
     hmms = HMMModel.objects.all()
@@ -83,7 +79,7 @@ def schedule_group_viterbi_compute_view(request):
 
     group_tips = RegionGroupTipModel.objects.all()
     context = {"hmm_names": hmm_names,
-               "group_tips": group_tips, "sequence_groups": sequence_groups}
+               "group_tips": group_tips, }
 
     if ENABLE_SPADE:
         context.update({"use_spade": True})
@@ -95,7 +91,6 @@ def schedule_group_viterbi_compute_view(request):
         result = form.check(request=request)
         if result is not OK:
             return form.response
-
 
         kwargs = form.kwargs
         task_id = models.GroupViterbiComputationModel.compute(data=kwargs)
