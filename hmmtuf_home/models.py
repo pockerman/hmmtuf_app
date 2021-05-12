@@ -30,7 +30,6 @@ class ComputationModel(models.Model):
     result = models.CharField(max_length=50, choices=RESULT_OPTIONS)
     error_explanation = models.CharField(max_length=500, default=DEFAULT_ERROR_EXPLANATION)
     computation_type = models.CharField(max_length=100)
-    scheduler_id = models.CharField(max_length=200, null=True)
 
     class Meta:
         abstract = True
