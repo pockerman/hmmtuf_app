@@ -4,6 +4,9 @@ Utility functions for reading various
 """
 
 import csv
+from pathlib import Path
+
+from compute_engine.src.enumeration_types import FileReaderType
 
 def read_line_nucl_out_file(line: str, delimiter='\t') -> tuple:
     line_data = line.split(delimiter)
@@ -26,7 +29,7 @@ def read_sequence_from_nucl_out_file(filename: str, exclude_seqs: list, delimite
                 seqs.append(seq)
 
         return seqs
-
+"""
 def read_nucl_out_file(filename: str, exclude_seqs: list=["NO_REPEATS"], delimiter: str='\t'):
 
     with open(filename, 'r', newline="\n") as fh:
@@ -39,6 +42,7 @@ def read_nucl_out_file(filename: str, exclude_seqs: list=["NO_REPEATS"], delimit
                 seqs.append([chromosome, start, end, seq, state])
 
         return seqs
+"""
 
 
 class CsvFileReader(object):
@@ -47,7 +51,7 @@ class CsvFileReader(object):
         self._delimiter = delimiter
 
 
-    def __call__(self, filename) -> list:
+    def __call__(self, filename: Path) -> list:
         with open(filename, 'r', newline="\n") as fh:
             reader = csv.reader(fh, delimiter=self._delimiter)
 
@@ -63,10 +67,26 @@ class NuclOutFileReader(object):
         self._delimiter = delimiter
         self._exclude_seqs = exclude_seqs
 
-    def __call__(self, filename) -> list:
-        return read_nucl_out_file(filename=filename,
-                                  exclude_seqs=self._exclude_seqs,
-                                  delimiter=self._delimiter)
+    def __call__(self, filename: Path) -> list:
+        with open(filename, 'r', newline="\n") as fh:
+            lines = []
+
+            for line in fh:
+                lines.append(line)
+            return lines
+
+        """
+        with open(filename, 'r', newline="\n") as fh:
+            seqs = []
+
+            for line in fh:
+                chromosome, start, end, seq, state = read_line_nucl_out_file(line=line, delimiter=self._delimiter)
+
+                if seq not in self._exclude_seqs:
+                    seqs.append([chromosome, start, end, seq, state])
+
+            return seqs
+        """
 
 class NuclOutSeqFileReader(object):
 
@@ -74,7 +94,7 @@ class NuclOutSeqFileReader(object):
         self._delimiter = delimiter
         self._exclude_seqs = exclude_seqs
 
-    def __call__(self, filename) -> list:
+    def __call__(self, filename: Path) -> list:
         return read_sequence_from_nucl_out_file(filename=filename,
                                                 exclude_seqs=self._exclude_seqs,
                                                 delimiter=self._delimiter)
@@ -84,7 +104,15 @@ class GQuadsFileReader(object):
     def __init__(self) -> None:
         pass
 
-    def __call__(self, filename) -> dict:
+    def __call__(self, filename: Path) -> list:
+        with open(filename, 'r', newline='\n') as fh:
+
+            lines = []
+            for line in fh:
+                lines.append(line)
+            return lines
+
+    def read_as_dict(filename: Path) -> dict:
         with open(filename, 'r', newline='\n') as fh:
 
             data_dir = dict()
@@ -133,7 +161,14 @@ class RepeatsInfoFileReader(object):
     def __init__(self) -> None:
         pass
 
-    def __call__(self, filename) -> dict:
+    def __call__(self, filename: Path) -> list:
+        with open(filename, 'r', newline='\n') as fh:
+            lines = []
+            for line in fh:
+                lines.append(line)
+        return lines
+
+    def get_as_fict(self, filename: Path) -> dict:
         with open(filename, 'r', newline='\n') as fh:
 
             data_dir = dict()
@@ -155,6 +190,106 @@ class RepeatsInfoFileReader(object):
                     data_dir[key] = [[n_repeats, seq1, seq2]]
 
             return data_dir
+            
+            
+class TufFileReader(object):
+
+	def __init__(self) -> None:
+		pass
+		
+	def __call__(self, filename: Path) -> list:
+		
+		with open(filename, 'r', newline='\n') as fh:
+			lines = []
+			for line in fh:
+				lines.append(line)
+		return lines
+
+
+class DeletionFileReader(TufFileReader):
+    def __init__(self) -> None:
+        super(DeletionFileReader, self).__init__()
+
+
+class DuplicationFileReader(TufFileReader):
+    def __init__(self) -> None:
+        super(DuplicationFileReader, self).__init__()
+
+
+class GapFileReader(TufFileReader):
+    def __init__(self) -> None:
+        super(GapFileReader, self).__init__()
+
+
+class NormalFileReader(TufFileReader):
+    def __init__(self) -> None:
+        super(NormalFileReader, self).__init__()
+
+
+class TdtFileReader(TufFileReader):
+    def __init__(self) -> None:
+        super(TdtFileReader, self).__init__()
+
+
+class QuadFileReader(TufFileReader):
+    def __init__(self) -> None:
+        super(QuadFileReader, self).__init__()
+
+
+class RepFileReader(TufFileReader):
+    def __init__(self) -> None:
+        super(RepFileReader, self).__init__()
+
+
+class ViterbiBedGraphReader(TufFileReader):
+    def __init__(self) -> None:
+        super(ViterbiBedGraphReader, self).__init__()
+
+
+class FileReaderFactory(object):
+    def __init__(self, reader_type: FileReaderType) -> None:
+        self._reader_type = reader_type
+
+    def __call__(self, filename: Path, **kwargs):
+
+        if self._reader_type == FileReaderType.TUF_BED:
+            reader = TufFileReader()
+            return reader(filename=filename)
+        elif self._reader_type == FileReaderType.DELETION_BED:
+            reader = DeletionFileReader()
+            return reader(filename=filename)
+        elif self._reader_type == FileReaderType.DUPLICATION_BED:
+            reader = DuplicationFileReader()
+            return reader(filename=filename)
+        elif self._reader_type == FileReaderType.GAP_BED:
+            reader = GapFileReader()
+            return reader(filename=filename)
+        elif self._reader_type == FileReaderType.NORMAL_BED:
+            reader = NormalFileReader()
+            return reader(filename=filename)
+        elif self._reader_type == FileReaderType.TDT_BED:
+            reader = TdtFileReader()
+            return reader(filename=filename)
+        elif self._reader_type == FileReaderType.VITERBI_BED_GRAPH:
+            reader = ViterbiBedGraphReader()
+            return reader(filename=filename)
+        elif self._reader_type == FileReaderType.QUAD_BED:
+            reader = QuadFileReader()
+            return reader(filename=filename)
+        elif self._reader_type == FileReaderType.REP_BED:
+            reader = RepFileReader()
+            return reader(filename=filename)
+        elif self._reader_type == FileReaderType.REPEATS_INFO_BED:
+            reader = RepeatsInfoFileReader()
+            return reader(filename=filename)
+        elif self._reader_type == FileReaderType.GQUADS:
+            reader = GQuadsFileReader()
+            return reader(filename=filename)
+        elif self._reader_type == FileReaderType.NUCL_OUT:
+            reader = NuclOutFileReader(exclude_seqs=kwargs["exclude_seqs"] if "exclude_seqs" in kwargs else [])
+            return reader(filename=filename)
+        else:
+            raise ValueError("Unknown FileReaderType={0}".format(self._reader_type))
 
 
 

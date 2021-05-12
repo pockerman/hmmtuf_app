@@ -10,6 +10,8 @@ from compute_engine.src.enumeration_types import JobType, JobResultEnum
 from compute_engine.src import hmm_loader, tufdel, viterbi_calculation_helpers as viterbi_helpers
 from compute_engine.src.windows import WindowType
 from compute_engine.src.region import Region
+from compute_engine.src import tuf_core_helpers
+
 from hmmtuf import INVALID_ITEM
 from hmmtuf.helpers import make_viterbi_path_filename
 from hmmtuf.helpers import make_viterbi_path
@@ -342,6 +344,10 @@ def compute_group_viterbi_path(task_id, hmm_name, window_type, group_tip,
 
     files_created_map = dict()
     counter_region_id = 0
+
+    #import pdb
+    #pdb.set_trace()
+
     for region_model in regions:
 
         print("{0} Working with region {1}".format(INFO, region_model.file_region.name))
@@ -401,7 +407,7 @@ def compute_group_viterbi_path(task_id, hmm_name, window_type, group_tip,
                                             viterbi_file=viterbi_path_filename,
                                             nucleods_path=make_viterbi_sequence_path(task_id=task_id,
                                                                                      extra_path=path_extra),
-                                            remove_dirs=remove_dirs)
+                                            remove_dirs=remove_dirs, test_me=False)
 
                 sequence = ViterbiSequenceModel()
                 group = RegionGroupTipModel.objects.get(tip=sequence_group)

@@ -119,8 +119,32 @@ if __name__ == '__main__':
     regions_store_path = Path('/home/alex/qi3/hmmtuf/regions/')
     regions_org_files_path = Path('/home/alex/qi3/hmmtuf/data/regions/')
     seq_data_path = Path('/home/alex/qi3/hmmtuf/data/')
-    main(db_filename=db_filename,
-         db_input_filename=db_input_filename,
-         regions_store_path=regions_store_path,
-         regions_org_files_path=regions_org_files_path,
-         seq_data_path=seq_data_path)
+    #main(db_filename=db_filename,
+    #     db_input_filename=db_input_filename,
+    #     regions_store_path=regions_store_path,
+    #     regions_org_files_path=regions_org_files_path,
+    #     seq_data_path=seq_data_path)
+
+    sql = '''INSERT INTO region_model (name, extension, file_region, 
+                                       chromosome,  chromosome_index, 
+                                       ref_seq_file, wga_seq_file, no_wga_seq_file, 
+                                       start_idx, end_idx, group_tip_id ) values(?, ?, ?, ?, ?, ?, 
+                                                        ?, ?, ?, ?, ?)'''
+
+    region_name = 'region_7_chr16'
+    file_region = "/home/alex/qi3/hmmtuf/regions/region_7_chr16.txt"
+    chromosome = 'chr16'
+    start_idx = 30000000
+    end_idx = 35000000
+    chromosome_idx = 16
+    tip_id = 7
+    ref_seq_file = "/home/alex/qi3/hmmtuf/data/GCA_000001405.15_GRCh38_no_alt_analysis_set.fna"
+    wga_seq_file = "/home/alex/qi3/hmmtuf/data/m605_verysensitive_trim_sorted.bam"
+    no_wga_seq_file = "/home/alex/qi3/hmmtuf/data/m585_verysensitive_trim_sorted.bam"
+
+    conn = connect(db_file=db_filename)
+    cur = conn.cursor()
+    cur.execute(sql, (region_name, 'txt', str(file_region),
+                      chromosome, chromosome_idx, str(ref_seq_file),
+                      str(wga_seq_file), str(no_wga_seq_file), start_idx, end_idx, tip_id))
+    conn.commit()

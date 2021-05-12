@@ -37,3 +37,20 @@ class ClassifierType(Enum):
     SKLEARN_LOGISTIC_REGRESSOR = 0
     PYTORCH_LOGISTIC_REGRESSOR = 1
 
+
+class FileReaderType(Enum):
+
+    TUF_BED = 0
+    TDT_BED = 1
+    NUCL_OUT = 3
+    GQUADS = 4
+    DELETION_BED = 5
+    DUPLICATION_BED = 6
+    GAP_BED = 7
+    NORMAL_BED = 8
+    VITERBI_BED_GRAPH = 9
+    QUAD_BED = 10
+    REP_BED = 11
+    REPEATS_INFO_BED = 12
+
+

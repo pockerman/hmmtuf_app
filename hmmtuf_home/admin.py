@@ -18,7 +18,8 @@ class HMMModelAdmin(admin.ModelAdmin):
 
 class RegionModelAdmin(admin.ModelAdmin):
     fields = ['name', 'chromosome', 'chromosome_index',
-              'file_region', 'wga_seq_file', 'no_wga_seq_file', 'extension', ]
+              'file_region', 'ref_seq_file', 'wga_seq_file', 'no_wga_seq_file',
+              'start_idx', 'end_idx', 'group_tip']
     list_display = ('name', 'chromosome', 'start_idx', 'end_idx', 'group_tip')
 
 
