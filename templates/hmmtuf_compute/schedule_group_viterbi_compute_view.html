@@ -50,20 +50,6 @@
     </div>
     <br/>
 
-    <div class="control-group form-group">
-        <div class="controls">
-            <label>Distance sequence group:</label><br/>
-            <select name="sequence_group">
-                {% for group in sequence_groups %}
-                    <option value="{{ group }}">{{ group }}</option>
-                {% endfor %}
-            </select>
-        </div>
-    </div>
-    <br/>
-
-    <label for="new_sequence_group">New distance sequence group:</label><br>
-    <input type="text" name="new_sequence_group" value=""><br>
 
     {% if use_spade %}
     <br/>
