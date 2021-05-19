@@ -273,6 +273,9 @@ def compute_group_viterbi_path(task_id, hmm_name, window_type, group_tip,
     logger.info("Computing Group Viterbi path")
     from .models import GroupViterbiComputationModel
 
+    #import pdb
+    #pdb.set_trace()
+
     print("{0} task_id: {1}".format(INFO, task_id))
     print("{0} group_tip: {1}".format(INFO, group_tip))
     print("{0} scheduler_id {1}".format(INFO, scheduler_id))
