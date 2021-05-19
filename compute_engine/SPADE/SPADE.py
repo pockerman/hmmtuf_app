@@ -706,7 +706,7 @@ class HRA(object):
         header = "\tPositoin\nPeriod\t"
         header += "\t".join(list(map(str,list(range(1,self.period_matrix.shape[1]+1))))) + "\n"
         savetxt(f, np.concatenate((np.array([list(range(p_min,p_max+1))]).T,
-                                   self.period_matrix[p_min:p_max+1,:].astype(np.int)), axis=1),
+                                   self.period_matrix[p_min:p_max+1,:].astype(np.int64)), axis=1),
                 delimiter="\t", fmt=":.0f", header=header)
         #####
         #        Position
@@ -1060,7 +1060,7 @@ class HRA(object):
             self.se_sets_list[i].sort()
             p_min = period - max(int(round(0.2*period)),5) if period - max(int(round(0.2*period)),5) > 0 else 0
             p_max = period + max(int(round(0.2*period)),5) if period + max(int(round(0.2*period)),5) < 1000 else 1000
-            matrix = self.period_matrix[p_min:p_max+1,:].astype(np.int)
+            matrix = self.period_matrix[p_min:p_max+1,:].astype(np.int64)
             score_array   = self.region_score_array
             se_sets       = self.se_sets_list[i]
             intensity     = 0
@@ -1103,7 +1103,7 @@ class HRA(object):
                         if add_period % period == 0 or period % add_period == 0:
                             p_min = add_period - max(int(round(0.2*add_period)),5) if period - max(int(round(0.2*add_period)),5) > 0 else 0
                             p_max = add_period + max(int(round(0.2*add_period)),5) if period + max(int(round(0.2*add_period)),5) < 1000 else 1000
-                            add_matrix = self.period_matrix[p_min:p_max+1,:].astype(np.int)
+                            add_matrix = self.period_matrix[p_min:p_max+1,:].astype(np.int64)
                             periodicity += np.sum(add_matrix[add_matrix.shape[0]/2-int(round(0.2*add_period)):add_matrix.shape[0]/2+int(round(0.2*add_period))+1,start:end]) / np.sum(score_array[start:end])
             else:
                 periodicity = 0
