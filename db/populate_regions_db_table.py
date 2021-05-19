@@ -4,6 +4,7 @@ import csv
 from shutil import copyfile
 from pathlib import Path
 
+INFO = "INFO: "
 
 def connect(db_file):
     conn = None
@@ -14,7 +15,7 @@ def connect(db_file):
     return conn
 
 
-def fillin_group_tip_tbl(db_filename: Path, db_input_filename: Path):
+def fillin_group_tip_tbl(db_filename: Path, db_input_filename: Path) -> None:
 
     with open(db_input_filename, 'r', newline='\n') as csvfile:
         reader = csv.reader(csvfile, delimiter=',')
@@ -125,22 +126,25 @@ if __name__ == '__main__':
     #     regions_org_files_path=regions_org_files_path,
     #     seq_data_path=seq_data_path)
 
+
     sql = '''INSERT INTO region_model (name, extension, file_region, 
                                        chromosome,  chromosome_index, 
                                        ref_seq_file, wga_seq_file, no_wga_seq_file, 
                                        start_idx, end_idx, group_tip_id ) values(?, ?, ?, ?, ?, ?, 
                                                         ?, ?, ?, ?, ?)'''
 
-    region_name = 'region_7_chr16'
-    file_region = "/home/alex/qi3/hmmtuf/regions/region_7_chr16.txt"
-    chromosome = 'chr16'
-    start_idx = 30000000
-    end_idx = 35000000
-    chromosome_idx = 16
-    tip_id = 7
+    region_name = 'region_6_chr21'
+    file_region = "/home/alex/qi3/hmmtuf/regions/region_6_chr21.txt"
+    chromosome = 'chr21'
+    start_idx = 46000000
+    end_idx = 46709983
+    chromosome_idx = 21
+    tip_id = 13
     ref_seq_file = "/home/alex/qi3/hmmtuf/data/GCA_000001405.15_GRCh38_no_alt_analysis_set.fna"
     wga_seq_file = "/home/alex/qi3/hmmtuf/data/m605_verysensitive_trim_sorted.bam"
     no_wga_seq_file = "/home/alex/qi3/hmmtuf/data/m585_verysensitive_trim_sorted.bam"
+
+    print("{0} Add region {1} for chromosome {2} with file {3}".format(INFO, region_name, chromosome, file_region))
 
     conn = connect(db_file=db_filename)
     cur = conn.cursor()
