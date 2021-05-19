@@ -44,6 +44,7 @@ def tuf_bed_files(dir_list: list, infile_dir: Path, outfile: Path) -> None:
 
 def main(infile_dir: Path, input_filename: str,
          output_file_dir: Path, output_filename: str, file_reader: FileReaderType,
+         filename: str,
          **options) -> None:
 
 
@@ -79,15 +80,13 @@ def main(infile_dir: Path, input_filename: str,
 
                 directory_files = os.listdir(directory_path)
 
-                if directory in directory_files and not 'tuf.bed' in directory_files:
+                if directory in directory_files and not filename in directory_files:
 
                     new_directory_path = directory_path / directory
-
 
                     print("{0} processing directory {1}".format(INFO, new_directory_path))
 
                     # reade the file
-                    factory = FileReaderFactory(reader_type=FileReaderType.TUF_BED)
                     lines = reader(filename=new_directory_path / input_filename)
 
                     for line in lines:
@@ -98,66 +97,7 @@ def main(infile_dir: Path, input_filename: str,
                 else:
                     raise ValueError("Invalid directory stucture")
 
-    """
-    if file_reader == FileReaderType.TUF_BED:
-        return tuf_bed_files(dir_list=dir_list, infile_dir=infile_dir,
-                             outfile=output_file_dir / output_filename)
 
-
-    with open(output_file_dir / output_filename, 'w', newline="\n") as out_fh:
-
-        outfile_writer = csv.writer(out_fh, delimiter=',')
-
-
-
-        found_repeats = dict()
-        for directory in dir_list:
-
-            directory_path = infile_dir / directory
-            if os.path.isdir(directory_path):
-
-                    print("{0} processing directory {1}".format(INFO, directory))
-                    filename = directory_path / directory / input_filename
-                    print(filename)
-
-                    seq_reader = NuclOutFileReader(exclude_seqs=[])
-                    seqs = seq_reader(filename=filename)
-
-                    filename = directory_path / directory / 'gquads.txt'
-                    gquads_reader = GQuadsFileReader()
-                    gquads = gquads_reader(filename=filename)
-
-                    filename = directory_path / directory / 'repeates_info_file.bed'
-                    repeats_info_reader = RepeatsInfoFileReader()
-                    repeats = repeats_info_reader(filename=filename)
-
-                    for s in seqs:
-                        chromosome = s[0]
-                        start = s[1]
-                        end = s[2]
-                        key = (chromosome, start, end)
-
-                        value = gquads[key]
-                        s.extend(value)
-
-                        # we have no repeats
-                        if s[3] == 'NO_REPEATS':
-                            values = [0, "NO_REPEATS", "NO_REPEATS"]
-                            s.extend(values)
-                        else:
-                            # we have repeats
-                            repeats_val = repeats[key]
-
-                            if key not in found_repeats:
-                                found_repeats[key] = 0
-                            else:
-                                found_repeats[key] += 1
-
-                            values = repeats_val[found_repeats[key]]
-                            s.extend(values)
-
-                        outfile_writer.writerow(s)
-    """
 
 if __name__ == '__main__':
 
@@ -181,6 +121,7 @@ if __name__ == '__main__':
 
         main(infile_dir=INPUT_FILE_DIR, input_filename=input_filename,
             output_file_dir=OUTPUT_FILE_DIR, output_filename=output_file_name,
-            file_reader=input_filenames[filename])
+            file_reader=input_filenames[filename],
+             filename=filename)
 
     print("{0} Finished...".format(INFO))
