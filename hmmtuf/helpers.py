@@ -1,3 +1,4 @@
+from pathlib import Path
 from .settings import VITERBI_PATHS_FILES_ROOT
 from .settings import HMM_FILES_ROOT
 from .constants import VITERBI_PATH_FILENAME
@@ -17,57 +18,57 @@ def make_hmm_file_path(hmm_name):
     return HMM_FILES_ROOT + hmm_name
 
 
-def make_viterbi_path_filename(task_id, extra_path=None):
+def make_viterbi_path_filename(task_id: str, extra_path: str=None) -> Path:
 
     if extra_path is None:
-        return VITERBI_PATHS_FILES_ROOT + task_id.replace('-', '_') + "/" + VITERBI_PATH_FILENAME
+        return Path(VITERBI_PATHS_FILES_ROOT + task_id.replace('-', '_') + "/" + VITERBI_PATH_FILENAME)
     else:
-        return VITERBI_PATHS_FILES_ROOT + task_id.replace('-', '_') + "/" + extra_path + "/" + VITERBI_PATH_FILENAME
+        return Path(VITERBI_PATHS_FILES_ROOT + task_id.replace('-', '_') + "/" + extra_path + "/" + VITERBI_PATH_FILENAME)
 
 
-def make_tuf_del_tuf_path_filename(task_id, extra_path=None):
+def make_tuf_del_tuf_path_filename(task_id: str, extra_path: str=None) -> Path:
 
     if extra_path is None:
-        return VITERBI_PATHS_FILES_ROOT + task_id.replace('-', '_') + "/" + TUF_DEL_TUF_PATH_FILENAME
+        return Path(VITERBI_PATHS_FILES_ROOT + task_id.replace('-', '_') + "/" + TUF_DEL_TUF_PATH_FILENAME)
     else:
-        return VITERBI_PATHS_FILES_ROOT + task_id.replace('-', '_') + "/" + extra_path + "/" + TUF_DEL_TUF_PATH_FILENAME
+        return Path(VITERBI_PATHS_FILES_ROOT + task_id.replace('-', '_') + "/" + extra_path + "/" + TUF_DEL_TUF_PATH_FILENAME)
 
 
-def make_viterbi_sequence_path_filename(task_id, extra_path=None):
+def make_viterbi_sequence_path_filename(task_id: str, extra_path: str=None) -> Path:
 
     if extra_path is None:
-        return VITERBI_SEQ_FILES_ROOT + task_id.replace('-', '_') + "/" + VITERBI_SEQUENCE_FILENAME
+        return Path(VITERBI_SEQ_FILES_ROOT + task_id.replace('-', '_') + "/" + VITERBI_SEQUENCE_FILENAME)
     else:
-        return VITERBI_SEQ_FILES_ROOT + task_id.replace('-', '_') + "/" + extra_path + "/" + VITERBI_SEQUENCE_FILENAME
+        return Path(VITERBI_SEQ_FILES_ROOT + task_id.replace('-', '_') + "/" + extra_path + "/" + VITERBI_SEQUENCE_FILENAME)
 
 
-def make_viterbi_sequence_path(task_id, extra_path=None):
+def make_viterbi_sequence_path(task_id:str, extra_path: str=None) -> Path:
 
     if extra_path is None:
-        return VITERBI_SEQ_FILES_ROOT + task_id.replace('-', '_') + "/"
+        return Path(VITERBI_SEQ_FILES_ROOT + task_id.replace('-', '_') + "/")
     else:
-        return VITERBI_SEQ_FILES_ROOT + task_id.replace('-', '_') + "/" + extra_path + "/"
+        return Path(VITERBI_SEQ_FILES_ROOT + task_id.replace('-', '_') + "/" + extra_path + "/")
 
 
-def make_viterbi_sequence_comparison_path_filename(task_id, extra_path=None):
+def make_viterbi_sequence_comparison_path_filename(task_id: str, extra_path: str=None) -> Path:
     if extra_path is None:
-        return VITERBI_SEQ_COMPARISON_FILES_ROOT + task_id.replace('-', '_') + \
-               "/" + VITERBI_SEQUENCE_COMPARISON_FILENAME
+        return Path(VITERBI_SEQ_COMPARISON_FILES_ROOT + task_id.replace('-', '_') + \
+               "/" + VITERBI_SEQUENCE_COMPARISON_FILENAME)
     else:
-        return VITERBI_SEQ_COMPARISON_FILES_ROOT + task_id.replace('-', '_') + \
-               "/" + extra_path + "/" + VITERBI_SEQUENCE_COMPARISON_FILENAME
+        return Path(VITERBI_SEQ_COMPARISON_FILES_ROOT + task_id.replace('-', '_') + \
+               "/" + extra_path + "/" + VITERBI_SEQUENCE_COMPARISON_FILENAME)
 
 
-def make_viterbi_sequence_comparison_path(task_id, extra_path=None):
+def make_viterbi_sequence_comparison_path(task_id: str, extra_path: str=None) -> Path:
 
     if extra_path is None:
-        return VITERBI_SEQ_COMPARISON_FILES_ROOT + task_id.replace('-', '_') + "/"
+        return Path(VITERBI_SEQ_COMPARISON_FILES_ROOT + task_id.replace('-', '_') + "/")
     else:
-        return VITERBI_SEQ_COMPARISON_FILES_ROOT + task_id.replace('-', '_') + "/" + extra_path + "/"
+        return Path(VITERBI_SEQ_COMPARISON_FILES_ROOT + task_id.replace('-', '_') + "/" + extra_path + "/")
 
 
-def make_viterbi_path(task_id):
-    return VITERBI_PATHS_FILES_ROOT + task_id.replace('-', '_') + "/"
+def make_viterbi_path(task_id: str) -> Path:
+    return Path(VITERBI_PATHS_FILES_ROOT + task_id.replace('-', '_') + "/")
 
 
 def make_ref_sequence_path_filename(filename):
@@ -85,5 +86,5 @@ def make_ref_sequence_path_filename(filename):
                      "in configuration given".format(filename))
 
 
-def make_bed_path(task_id, bed_name):
-    return VITERBI_PATHS_FILES_ROOT + task_id.replace('-', '_') + "/" + bed_name
+def make_bed_path(task_id: str, bed_name: str) -> Path:
+    return Path(VITERBI_PATHS_FILES_ROOT + task_id.replace('-', '_') + "/" + bed_name)

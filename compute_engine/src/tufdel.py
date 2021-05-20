@@ -163,11 +163,17 @@ def do_TDT(tdtarray, outfile):
                       '-' + str(tdt['end']) + '_' + tdt['type'] +
                       '_' + gcpercent(seq) + '\t' + str(gquad) + str(mscore) + '\n')
 
-def main(path, fas_file_name, chromosome,
-         chr_idx, viterbi_file, nucleods_path,
-         remove_dirs=False, test_me = False):
+def main(path: str, fas_file_name: str, chromosome: str,
+         chr_idx: int, viterbi_file: str, nucleods_path: str,
+         remove_dirs: bool=False, test_me: bool= False):
 
     print("{0} Start TUF-DEL-TUF".format(INFO))
+
+    if not path.endswith("/"):
+        path = path + "/"
+
+    if not nucleods_path.endswith("/"):
+        nucleods_path = nucleods_path + "/"
 
     global fas
     global outbedgraph
@@ -186,12 +192,18 @@ def main(path, fas_file_name, chromosome,
     global PATH
     global SPADE_OUTPATH
 
+    print("{0} Path {1}".format(INFO, path))
+    print("{0} FAS file {1}".format(INFO, fas_file_name))
+    print("{0} Viterbi file {1}".format(INFO, viterbi_file))
+    print("{0} Nucleods {1}".format(INFO, nucleods_path))
+
+    #path = path + "/"
     NUCL_FILENAME = 'nucl_out.bed'
     OUT_REPEATS_INFO_FILENAME = "repeates_info_file.bed"
     PATH = path
 
     if ENABLE_SPADE:
-        os.mkdir(PATH + "repeats")
+        os.mkdir(PATH +  "repeats")
         os.mkdir(PATH + "spade_output")
         SPADE_OUTPATH = PATH + "spade_output/"
 
@@ -231,8 +243,8 @@ def main(path, fas_file_name, chromosome,
     outquad = open(path + "quad.bed", "w")
     outrep = open(path + "rep.bed", "w")
     quadout = open(path + 'gquads.txt', 'w')
-    nucl_out = open(path + NUCL_FILENAME, 'w')
-    out_repeats_info = open(path + OUT_REPEATS_INFO_FILENAME, 'w')
+    nucl_out = open(path  + NUCL_FILENAME, 'w')
+    out_repeats_info = open(path  + OUT_REPEATS_INFO_FILENAME, 'w')
 
     prevstate = ""
     start = 0
@@ -367,13 +379,16 @@ def main(path, fas_file_name, chromosome,
     outrep.close()
     nucl_out.close()
     out_repeats_info.close()
+    print("{0} Closing files...".format(INFO))
+    import  pdb
+    pdb.set_trace()
 
     if remove_dirs:
         print("{0} Removing directories".format(INFO))
         remove_directories(chromosome=chromosome, spade_output=SPADE_OUTPATH)
 
     if path + NUCL_FILENAME != nucleods_path + NUCL_FILENAME:
-        print("{0} Copying {1} to {2}".format(INFO, path + NUCL_FILENAME, nucleods_path + NUCL_FILENAME))
+        print("{0} Copying  {1} to {2}".format(INFO, path + NUCL_FILENAME, nucleods_path + NUCL_FILENAME))
 
         # copy the nucleods file produced
         shutil.copyfile(path + NUCL_FILENAME, nucleods_path + NUCL_FILENAME)

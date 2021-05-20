@@ -82,7 +82,7 @@ class ViterbiPathCalulation(RayActorBase):
             sequence_viterbi_state = viterbi_helpers.create_viterbi_path(sequence=sequence, hmm_model=hmm_model,
                                                                          chromosome=chromosome,
                                                                          filename=viterbi_path_filename,
-                                                                         append_or_write='w+')
+                                                                         append_or_write='w')
 
             tuf_delete_tuf = viterbi_helpers.filter_viterbi_path(path=viterbi_path[1][1:],
                                                                  wstate='TUF',
@@ -91,7 +91,7 @@ class ViterbiPathCalulation(RayActorBase):
 
             segments = viterbi_helpers.get_start_end_segment(tuf_delete_tuf, sequence)
 
-            filename = self._input['tuf_del_tuf_path_filename']
+            filename = self._input['tuf_del_tuf_filename']
             viterbi_helpers.save_segments(segments=segments, chromosome=chromosome, filename=filename)
             self.state = JobResultEnum.SUCCESS
         except Exception as e:
@@ -103,7 +103,7 @@ class ViterbiPathCalulation(RayActorBase):
         return self._output
 
 
-class SpadeCalculation(object):
+class SpadeCalculation(RayActorBase):
     """
     Wrap the Spade calculation
     """
@@ -126,14 +126,18 @@ class SpadeCalculation(object):
             test_me = self._input["test_me"]
             nucleods_path = self._input["nucleods_path"]
             remove_dirs = self._input["remove_dirs"]
-            files_created = tufdel.main(path=path, fas_file_name=ref_seq_file, chromosome=chromosome,
-                                        chr_idx=chromosome_index,
-                                        viterbi_file=viterbi_path_filename,
-                                        nucleods_path=make_viterbi_sequence_path(task_id=task_id,
-                                                                                 extra_path=path_extra),
+            path = self._input["path"]
+            test_me = self._input["test_me"]
+            files_created = tufdel.main(path=str(path),
+                                        fas_file_name=str(ref_seq_file),
+                                        chromosome=chromosome,
+                                        chr_idx=chromosome_idx,
+                                        viterbi_file=str(viterbi_path_filename),
+                                        nucleods_path=str(nucleods_path),
                                         remove_dirs=remove_dirs, test_me=False)
 
-            self.output = files_created
+            self.output["files_created"] = files_created
+            self.state = JobResultEnum.SUCCESS
         except Exception as e:
             self.state = JobResultEnum.FAILURE
             self.set_output_value("error_msg", "Key {0} not found".format(str(e)))

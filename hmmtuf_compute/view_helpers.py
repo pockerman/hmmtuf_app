@@ -21,7 +21,7 @@ from hmmtuf import INVALID_TASK_ID
 from hmmtuf.config import DATABASES
 from hmmtuf_home.models import DistanceSequenceTypeModel, DistanceMetricTypeModel
 
-from .models import ViterbiComputationModel, GroupViterbiComputationModel, KmerComputationModel
+from .models import ViterbiComputationModel, GroupViterbiComputationModel
 
 
 def get_repeats_distances_plot(request):

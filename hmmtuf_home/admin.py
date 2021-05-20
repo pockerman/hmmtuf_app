@@ -12,7 +12,7 @@ from .models import HHMStateTypesModel
 
 
 class HMMModelAdmin(admin.ModelAdmin):
-    fields = ['name', 'file_hmm', 'extension']
+    fields = ['name', 'file_hmm']
     list_display = ('name', 'file_hmm')
 
 

@@ -4,6 +4,7 @@ Utility functions for reading various
 """
 
 import csv
+import json
 from pathlib import Path
 
 from compute_engine.src.enumeration_types import FileReaderType
@@ -75,18 +76,6 @@ class NuclOutFileReader(object):
                 lines.append(line)
             return lines
 
-        """
-        with open(filename, 'r', newline="\n") as fh:
-            seqs = []
-
-            for line in fh:
-                chromosome, start, end, seq, state = read_line_nucl_out_file(line=line, delimiter=self._delimiter)
-
-                if seq not in self._exclude_seqs:
-                    seqs.append([chromosome, start, end, seq, state])
-
-            return seqs
-        """
 
 class NuclOutSeqFileReader(object):
 
@@ -244,6 +233,20 @@ class RepFileReader(TufFileReader):
 class ViterbiBedGraphReader(TufFileReader):
     def __init__(self) -> None:
         super(ViterbiBedGraphReader, self).__init__()
+
+
+class JsonReader(object):
+    def __init__(self) -> None:
+        pass
+
+    def __call__(self, filename: Path) -> dict:
+        """
+        Read the json configuration file and
+        return a map with the config entries
+        """
+        with open(filename) as json_file:
+            json_input = json.load(json_file)
+            return json_input
 
 
 class FileReaderFactory(object):

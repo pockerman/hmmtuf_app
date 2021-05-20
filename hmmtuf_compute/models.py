@@ -5,7 +5,8 @@ from compute_engine import INFO, INVALID_STR
 from compute_engine.src.enumeration_types import JobType, JobResultEnum
 from compute_engine.src.windows import WindowType
 from hmmtuf import INVALID_ITEM
-from hmmtuf.settings import USE_CELERY
+
+from hmmtuf.config import USE_CELERY
 from hmmtuf_home.models import ComputationModel
 from hmmtuf_home.models import RepeatsModel
 from hmmtuf_home.models import RegionModel
@@ -14,8 +15,6 @@ from hmmtuf_home.models import RegionGroupTipModel
 
 from .tasks import compute_viterbi_path_task
 from .tasks import compute_group_viterbi_path_task
-from .tasks import compute_group_viterbi_path_all_task
-from .ray_tasks import compute_group_viterbi_task
 
 
 class GroupViterbiComputationModel(ComputationModel):
@@ -33,10 +32,10 @@ class GroupViterbiComputationModel(ComputationModel):
     JOB_TYPE = JobType.GROUP_VITERBI.name
 
     # the tip used for the computation
-    group_tip = models.ForeignKey(RegionGroupTipModel) #CharField(max_length=100, null=True)
+    group_tip = models.ForeignKey(RegionGroupTipModel, on_delete=models.CASCADE)
 
     # the hmm model used for the computation
-    hmm = models.ForeignKey(HMMModel)
+    hmm = models.ForeignKey(HMMModel, on_delete=models.CASCADE)
 
     # number of regions
     number_regions = models.IntegerField(null=True)
@@ -94,58 +93,24 @@ class GroupViterbiComputationModel(ComputationModel):
     def compute(data):
 
         hmm_name = data['hmm_name']
-        window_type = 'BOTH'
 
         if USE_CELERY:
+            # schedule the computation
+            task = compute_group_viterbi_path_task.delay(hmm_name=hmm_name,
+                                                             group_tip=data["group_tip"],
+                                                             remove_dirs=data["remove_dirs"],
+                                                             use_spade=data["use_spade"])
 
-            if data["group_tip"] == 'all':
-                task = compute_group_viterbi_path_all_task.delay(hmm_name=hmm_name,
-                                                                 window_type=window_type,
-                                                                 remove_dirs=data["remove_dirs"],
-                                                                 use_spade=data["use_spade"],
-                                                                 sequence_group=data['sequence_group'])
-            else:
-                # schedule the computation
-                #task = compute_group_viterbi_path_task.delay(hmm_name=hmm_name,
-                #                                             window_type=window_type,
-                #                                             group_tip=data["group_tip"],
-                #                                             remove_dirs=data["remove_dirs"],
-                #                                             use_spade=data["use_spade"],
-                #                                             sequence_group=data["sequence_group"])
-
-                import uuid
-                task_id = str(uuid.uuid4())
-                compute_group_viterbi_task(task_id=task_id, hmm_name=hmm_name, use_spade=data["use_spade"],
-                                           remove_dirs=data["remove_dirs"], group_tip=data["group_tip"])
-            return task_id
+            return task.id
         else:
 
             import uuid
-
-            if data["group_tip"] == 'all':
-
-                from .tasks import compute_group_viterbi_path_all
-                task_id = str(uuid.uuid4())
-                compute_group_viterbi_path_all(task_id=task_id,
-                                               hmm_name=hmm_name,
-                                               window_type=window_type,
-                                               remove_dirs=data["remove_dirs"],
-                                               use_spade=data["use_spade"],
-                                               sequence_group=data["sequence_group"])
-                return task_id
-
-            else:
-                from .tasks import compute_group_viterbi_path
-                task_id = str(uuid.uuid4())
-                compute_group_viterbi_path(task_id=task_id,
-                                           hmm_name=hmm_name,
-                                           window_type=window_type,
-                                           group_tip=data["group_tip"],
-                                           remove_dirs=data["remove_dirs"],
-                                           use_spade=data["use_spade"],
-                                           scheduler_id=data["scheduler_id"],
-                                           sequence_group=data["sequence_group"])
-                return task_id
+            from .tasks import compute_group_viterbi_path
+            task_id = str(uuid.uuid4())
+            compute_group_viterbi_path(task_id=task_id, hmm_name=hmm_name,
+                                        group_tip=data["group_tip"],
+                                       remove_dirs=data["remove_dirs"], use_spade=data["use_spade"])
+            return task_id
 
     @staticmethod
     def get_invalid_map(task, result):
@@ -183,10 +148,10 @@ class ViterbiComputationModel(ComputationModel):
     file_viterbi_path = models.FileField(null=True)
 
     # the region the computed viterbi path corresponds to
-    region = models.ForeignKey(RegionModel)
+    region = models.ForeignKey(RegionModel, on_delete=models.CASCADE)
 
     # the hmm model used for the computation
-    hmm = models.ForeignKey(max_length=500, null=True)
+    hmm = models.ForeignKey(HMMModel, on_delete=models.CASCADE)
 
     # sequence size
     seq_size = models.IntegerField(null=True)
