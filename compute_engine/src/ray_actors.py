@@ -134,7 +134,7 @@ class SpadeCalculation(RayActorBase):
                                         chr_idx=chromosome_idx,
                                         viterbi_file=str(viterbi_path_filename),
                                         nucleods_path=str(nucleods_path),
-                                        remove_dirs=remove_dirs, test_me=False)
+                                        remove_dirs=remove_dirs, test_me=test_me)
 
             self.output["files_created"] = files_created
             self.state = JobResultEnum.SUCCESS

@@ -13,7 +13,7 @@ class ViterbiComputationAdmin(admin.ModelAdmin):
 
 
 class GroupViterbiComputationAdmin(admin.ModelAdmin):
-    fields = ['task_id', 'result', 'error_explanation', 'group_tip', ]
+    fields = ['task_id', 'result', 'error_explanation', 'group_tip', 'computation_type']
     list_display = ('task_id', 'result', 'error_explanation', 'group_tip')
 
 

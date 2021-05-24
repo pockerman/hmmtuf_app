@@ -19,7 +19,7 @@ from hmmtuf.helpers import make_bed_path
 from hmmtuf.helpers import get_configuration
 from hmmtuf import INVALID_TASK_ID
 from hmmtuf.config import DATABASES
-from hmmtuf_home.models import DistanceSequenceTypeModel, DistanceMetricTypeModel
+from hmmtuf_home.models import DistanceSequenceTypeModel, DistanceMetricTypeModel, RegionGroupTipModel, RegionModel
 
 from .models import ViterbiComputationModel, GroupViterbiComputationModel
 
@@ -111,57 +111,37 @@ def get_result_view_context(task, task_id):
     else:
         # this is success
         configuration = get_configuration()
-        wga_name = task.wga_seq_filename.split("/")[-1]
-        wga_seq_name = get_sequence_name(configuration=configuration, seq=wga_name)
-        wga_tdf_file = get_tdf_file(configuration=configuration, seq=wga_name)
-
-        no_wga_name = task.no_wag_seq_filename.split("/")[-1]
-        no_wga_seq_name = get_sequence_name(configuration=configuration, seq=no_wga_name)
-        no_wga_tdf_file = get_tdf_file(configuration=configuration, seq=no_wga_name)
-
-        if task.computation_type == JobType.VITERBI_GROUP_ALL.name:
-            context = {'task_status': task.result,
-                       "computation": task,
-                       "wga_seq_name": wga_seq_name,
-                       "no_wga_seq_name": no_wga_seq_name,
-                       "wga_tdf_file": wga_tdf_file,
-                       "no_wga_tdf_file": no_wga_tdf_file,
-                       "normal_bed_url": make_bed_path(task_id=task_id, bed_name='normal.bed'),
-                       "tuf_bed_url": make_bed_path(task_id=task_id, bed_name='tuf.bed'),
-                       "deletion_bed_url": make_bed_path(task_id=task_id, bed_name="deletion.bed"),
-                       "duplication_bed_url": make_bed_path(task_id=task_id, bed_name="duplication.bed"),
-                       "gap_bed_url": make_bed_path(task_id=task_id, bed_name="gap.bed"),
-                       "repeats_bed_url": make_bed_path(task_id=task_id, bed_name="rep.bed"),
-                       "quad_bed_url": make_bed_path(task_id=task_id, bed_name="quad.bed"),
-                       "tdt_bed_url": make_bed_path(task_id=task_id, bed_name="tdt.bed"),
-                       "locus": task.chromosome,
-                       "start_region_idx": task.start_region_idx,
-                       "end_region_idx": task.end_region_idx}
-            return context
 
         if task.computation_type == JobType.GROUP_VITERBI.name:
+            regions = RegionModel.objects.filter(group_tip__tip=task.group_tip).order_by('start_idx')
+
+            chromosome = regions[0].chromosome
+
+            wga_name = regions[0].wga_seq_file.split("/")[-1]
+            wga_seq_name = get_sequence_name(configuration=configuration, seq=wga_name)
+            wga_tdf_file = get_tdf_file(configuration=configuration, seq=wga_name)
+
+            no_wga_name = regions[0].no_wga_seq_file.split("/")[-1]
+            no_wga_seq_name = get_sequence_name(configuration=configuration, seq=no_wga_name)
+            no_wga_tdf_file = get_tdf_file(configuration=configuration, seq=no_wga_name)
+
             context = {'task_status': task.result,
                        "computation": task,
                        "wga_seq_name": wga_seq_name,
                        "no_wga_seq_name": no_wga_seq_name,
                        "wga_tdf_file": wga_tdf_file,
                        "no_wga_tdf_file": no_wga_tdf_file,
-                       "normal_bed_url": make_bed_path(task_id=task_id, bed_name=task.chromosome + '/normal.bed'),
-                       "tuf_bed_url": make_bed_path(task_id=task_id, bed_name=task.chromosome + '/tuf.bed'),
-                       "deletion_bed_url": make_bed_path(task_id=task_id, bed_name=task.chromosome + "/deletion.bed"),
-                       "duplication_bed_url": make_bed_path(task_id=task_id, bed_name=task.chromosome + "/duplication.bed"),
-                       "gap_bed_url": make_bed_path(task_id=task_id, bed_name=task.chromosome + "/gap.bed"),
-                       "repeats_bed_url": make_bed_path(task_id=task_id, bed_name=task.chromosome + "/rep.bed"),
-                       "quad_bed_url": make_bed_path(task_id=task_id, bed_name=task.chromosome + "/quad.bed"),
-                       "tdt_bed_url": make_bed_path(task_id=task_id, bed_name=task.chromosome + "/tdt.bed"),
-                       "locus": task.chromosome,
+                       "normal_bed_url": make_bed_path(task_id=task_id, bed_name=chromosome + '/normal.bed'),
+                       "tuf_bed_url": make_bed_path(task_id=task_id, bed_name=chromosome + '/tuf.bed'),
+                       "deletion_bed_url": make_bed_path(task_id=task_id, bed_name=chromosome + "/deletion.bed"),
+                       "duplication_bed_url": make_bed_path(task_id=task_id, bed_name=chromosome + "/duplication.bed"),
+                       "gap_bed_url": make_bed_path(task_id=task_id, bed_name=chromosome + "/gap.bed"),
+                       "repeats_bed_url": make_bed_path(task_id=task_id, bed_name=chromosome + "/rep.bed"),
+                       "quad_bed_url": make_bed_path(task_id=task_id, bed_name=chromosome + "/quad.bed"),
+                       "tdt_bed_url": make_bed_path(task_id=task_id, bed_name=chromosome + "/tdt.bed"),
+                       "locus": chromosome,
                        "start_region_idx": task.start_region_idx,
                        "end_region_idx": task.end_region_idx}
-            return context
-
-        if task.computation_type == JobType.KMER.name:
-            context = {'task_status': task.result,
-                       "computation": task,}
             return context
 
         context = {'task_status': task.result,

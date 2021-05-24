@@ -380,8 +380,6 @@ def main(path: str, fas_file_name: str, chromosome: str,
     nucl_out.close()
     out_repeats_info.close()
     print("{0} Closing files...".format(INFO))
-    import  pdb
-    pdb.set_trace()
 
     if remove_dirs:
         print("{0} Removing directories".format(INFO))
