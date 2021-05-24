@@ -3,7 +3,7 @@ import copy
 from django.db import models
 from django.core.exceptions import ObjectDoesNotExist
 
-from compute_engine import INFO, INVALID_STR
+from compute_engine import INFO
 from compute_engine.src.enumeration_types import JobType, JobResultEnum
 
 from hmmtuf.config import USE_CELERY
@@ -138,6 +138,9 @@ class ViterbiComputationModel(ViterbiComputationModel):
     @staticmethod
     def build_from_map(map_data, save):
 
+        """
+        Build a ViterbiComputationModel model from map data
+        """
         try:
             computation = ViterbiComputationModel.objects.get(task_id=map_data["task_id"])
             return computation
@@ -147,9 +150,11 @@ class ViterbiComputationModel(ViterbiComputationModel):
             computation.task_id = map_data["task_id"]
             computation.result = map_data["result"]
             computation.error_explanation = map_data["error_explanation"]
-            computation.computation_type = map_data["computation_type"]
+            computation.computation_type = ViterbiComputationModel.JOB_TYPE
             computation.hmm = map_data["hmm"]
             computation.group_tip = map_data["group_tip"]
+            computation.start_region_idx = map_data["start_region_idx"]
+            computation.end_region_idx = map_data["end_region_idx"]
 
             if save:
                 computation.save()
@@ -166,8 +171,8 @@ class ViterbiComputationModel(ViterbiComputationModel):
         if USE_CELERY:
 
             # schedule the computation
-            task = compute_viterbi_path_task.delay(hmm_name=hmm_name, region_filename=region_filename,
-                                                   hmm_filename=hmm_filename,  remove_dirs=data["remove_dirs"],
+            task = compute_viterbi_path_task.delay(region_filename=region_filename,
+                                                   hmm_name=hmm_name,  remove_dirs=data["remove_dirs"],
                                                    use_spade=data["use_spade"])
             return task.id
         else:
@@ -175,8 +180,8 @@ class ViterbiComputationModel(ViterbiComputationModel):
             import uuid
             from .tasks import compute_viterbi_path
             task_id = str(uuid.uuid4())
-            compute_viterbi_path(task_id=task_id, hmm_name=hmm_name,
-                                 region_filename=region_filename, hmm_filename=hmm_filename,
+            compute_viterbi_path(task_id=task_id,
+                                 region_filename=region_filename, hmm_name=hmm_name,
                                  remove_dirs=data["remove_dirs"], use_spade=data["use_spade"], )
             return task_id
 

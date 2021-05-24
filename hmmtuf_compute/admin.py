@@ -8,7 +8,7 @@ from .models import GroupViterbiComputationModel
 
 
 class ViterbiComputationAdmin(admin.ModelAdmin):
-    fields = ['task_id',  'result', 'error_explanation', ]
+    fields = ['task_id',  'result', 'error_explanation', 'group_tip', 'computation_type']
     list_display = ('task_id', 'result', 'error_explanation')
 
 
