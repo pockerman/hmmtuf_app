@@ -1,11 +1,7 @@
-import random
 from django.template import loader
 from django.http import HttpResponse
-from django.core.exceptions import ObjectDoesNotExist
 
-import dash_core_components as dcc
-import dash_html_components as html
-from dash.dependencies import Input, Output, State
+from dash.dependencies import Input, Output
 import dash
 
 from db.sqlite3_db_connector import SQLiteDBConnector

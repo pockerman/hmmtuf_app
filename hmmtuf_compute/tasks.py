@@ -7,22 +7,15 @@ from celery.utils.log import get_task_logger
 from pathlib import Path
 
 from compute_engine import INFO, ERROR, DEFAULT_ERROR_EXPLANATION
-from compute_engine.src.enumeration_types import JobType, JobResultEnum
-from compute_engine.src import hmm_loader, tufdel, viterbi_calculation_helpers as viterbi_helpers
-from compute_engine.src.windows import WindowType
-from compute_engine.src.region import Region
+from compute_engine.src.enumeration_types import JobResultEnum
+from compute_engine.src import tufdel
 from compute_engine.src.ray_actors import ViterbiPathCalulation, SpadeCalculation
-from compute_engine.src import tuf_core_helpers
 
-from hmmtuf import INVALID_ITEM
 from hmmtuf.helpers import make_viterbi_path_filename
 from hmmtuf.helpers import make_viterbi_path
 from hmmtuf.helpers import make_tuf_del_tuf_path_filename
-from hmmtuf.helpers import make_viterbi_sequence_path_filename
 from hmmtuf.helpers import make_viterbi_sequence_path
-
 from hmmtuf_home.models import RegionModel, HMMModel,  RegionGroupTipModel
-
 from hmmtuf_compute.tasks_helpers import build_files_map, update_for_exception
 
 logger = get_task_logger(__name__)
@@ -51,8 +44,6 @@ def compute_group_viterbi_path(task_id, hmm_name, group_tip, remove_dirs, use_sp
     it also uses the SPADE application to compute the core repeats and
     concatenates the results into common files
     """
-
-    import pdb
 
     logger.info("Computing Group Viterbi path")
     from .models import GroupViterbiComputationModel
@@ -223,6 +214,7 @@ def compute_viterbi_path(task_id, region_filename,
     region_model = RegionModel.objects.get(file_region=region_filename)
 
     viterbi_path_filename = make_viterbi_path_filename(task_id=task_id)
+    tuf_del_tuf_filename = make_tuf_del_tuf_path_filename(task_id=task_id)
     task_path = make_viterbi_path(task_id=task_id)
 
     print("{0} task_id: {1}".format(INFO, task_id))
@@ -230,27 +222,17 @@ def compute_viterbi_path(task_id, region_filename,
     print("{0} remove_dirs {1}".format(INFO, remove_dirs))
 
     # the HMM DB model
-    hmm_model_db = HMMModel.objects.get(name=hmm_name)
-
-    # build the hmm model from the file
-    hmm_model = hmm_loader.build_hmm(hmm_file=hmm_model_db.file_hmm.name)
+    db_hmm_model = HMMModel.objects.get(name=hmm_name)
 
     # create a computation object in the DB
     computation = ViterbiComputationModel.build_from_map(map_data={"task_id": task_id, "result": JobResultEnum.PENDING.name,
                                                           "error_explanation": DEFAULT_ERROR_EXPLANATION,
-                                                          "group_tip": region_model.group_tip, "hmm": hmm_model_db,
+                                                          "group_tip": region_model.group_tip, "hmm": db_hmm_model,
                                                            "start_region_idx": region_model.start_idx,
                                                            "end_region_idx": region_model.end_idx}, save=True)
 
     # access the created computation object
     result = ViterbiComputationModel.get_as_map(model=computation)
-
-    if hmm_model is None:
-        result["result"] = JobResultEnum.FAILURE.name
-        result["error_explanation"] = "Could not build HMM model"
-        return result
-
-    task_id = task_id.replace('-', '_')
 
     try:
         os.mkdir(task_path)
@@ -263,55 +245,38 @@ def compute_viterbi_path(task_id, region_filename,
         computation.save()
         return result
 
-    region = Region.load(filename=region_filename)
-    region.get_mixed_windows()
-
     try:
-        sequence = region.get_region_as_rd_mean_sequences_with_windows(size=None, window_type='BOTH',
-                                                                       n_seqs=1, exclude_gaps=False)
 
-        viterbi_path, observations, \
-        sequence_viterbi_state = viterbi_helpers.create_viterbi_path(sequence=sequence, hmm_model=hmm_model,
-                                                                     chromosome=region_model.chromosome, filename=viterbi_path_filename,
-                                                                     append_or_write='w+')
+        actor_input = {"ref_seq_file": region_model.ref_seq_file,
+                       "chromosome": region_model.chromosome,
+                       "chromosome_idx": region_model.chromosome_index,
+                       "viterbi_path_filename": viterbi_path_filename,
+                       "test_me": False,
+                       'path': task_path,
+                       "nucleods_path": task_path,
+                       "remove_dirs": remove_dirs,
+                       "hmm_model_filename": db_hmm_model.file_hmm.name,
+                       "region_filename": Path(region_model.file_region.name),
+                       "tuf_del_tuf_filename": tuf_del_tuf_filename}
+        viterbi_calculator = ViterbiPathCalulation(input=actor_input)
+        viterbi_calculator.start()
 
-        tuf_delete_tuf = viterbi_helpers.filter_viterbi_path(path=viterbi_path[1][1:],
-                                                             wstate='TUF', limit_state='Deletion', min_subsequence=1)
-
-        segments = viterbi_helpers.get_start_end_segment(tuf_delete_tuf, sequence)
-
-        filename = make_tuf_del_tuf_path_filename(task_id=task_id)
-        viterbi_helpers.save_segments(segments=segments, chromosome=region_model.chromosome, filename=filename)
+        print("{0} Viterbi Output {1}".format(INFO, viterbi_calculator.output))
 
         if use_spade:
 
-            # this may fail and we  account for it
-            # in the exception handler below
-            #os.mkdir(make_viterbi_sequence_path(task_id=task_id))
+            spade_calculator = SpadeCalculation(input=actor_input)
+            spade_calculator.start()
+            print("{0} Spade calculator output {1}".format(INFO, spade_calculator.output))
 
-            # get the TUF-DEL-TUF i.e the repeats
-            tufdel.main(path=str(task_path), fas_file_name=region_model.ref_seq_file,
-                        chromosome=region_model.chromosome, chr_idx=region_model.chromosome_index,
-                        viterbi_file=str(viterbi_path_filename),
-                        nucleods_path=str(make_viterbi_sequence_path(task_id=task_id)),
-                        remove_dirs=remove_dirs)
+            if spade_calculator.state == JobResultEnum.FAILURE:
+                print("{0} SPADE calculation errored".format(ERROR))
+                result, computation = update_for_exception(result=result,
+                                                           computation=computation,
+                                                           err_msg=spade_calculator.output["error_msg"])
 
-        """
-        wga_obs = []
-        no_wga_obs = []
-        no_gaps_obs = []
-
-        number_of_gaps = 0
-        for obs in observations:
-
-            # do not account for gaps
-            if obs != (-999.0, -999.0):
-                wga_obs.append(obs[0])
-                no_wga_obs.append(obs[1])
-                no_gaps_obs.append((obs[1], obs[0]))
-            else:
-                number_of_gaps += 1
-        """
+                computation.save()
+                return result
 
         result["result"] = JobResultEnum.SUCCESS.name
         computation.result = JobResultEnum.SUCCESS.name

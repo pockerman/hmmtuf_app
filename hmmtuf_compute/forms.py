@@ -1,15 +1,10 @@
 from abc import abstractmethod
 from django.http import HttpResponse
 from django.template import loader
-from django.core.exceptions import ObjectDoesNotExist
 
-from compute_engine.src.string_sequence_calculator import TextDistanceCalculator
 from compute_engine import OK
-
-from hmmtuf import VITERBI_PATH_FILENAME
 from hmmtuf import INVALID_ITEM
-from hmmtuf.settings import VITERBI_PATHS_FILES_ROOT
-from hmmtuf_home.models import HMMModel, RegionModel, RegionGroupTipModel
+from hmmtuf_home.models import HMMModel, RegionModel
 
 
 class ComputeFormBase(object):
@@ -69,11 +64,6 @@ class GroupViterbiComputeForm(ComputeFormBase):
                        "group_tip": self._group_tip,
                        "remove_dirs": self._remove_dirs,
                        "use_spade": self._use_spade}
-
-    """
-    def as_map(self):
-        return self.kwargs
-    """
 
     def check(self, request):
 
