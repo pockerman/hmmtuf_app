@@ -86,13 +86,13 @@ def fill_in_region_tbl(db_filename: Path, db_input_filename: Path,
                 region_name_extension = region_name + '.txt'
                 file_region = regions_store_path / region_name_extension
 
-                sql = '''INSERT INTO region_model (name, extension,  file_region, 
+                sql = '''INSERT INTO region_model (name, file_region, 
                                                     chromosome,  chromosome_index, 
                                                     ref_seq_file, wga_seq_file, no_wga_seq_file, 
-                                                    start_idx, end_idx, group_tip_id ) values(?, ?, ?, ?, ?, ?, 
+                                                    start_idx, end_idx, group_tip_id ) values(?,  ?, ?, ?, ?, 
                                                     ?, ?, ?, ?, ?)'''
 
-                cur.execute(sql, (region_name, 'txt', str(file_region),
+                cur.execute(sql, (region_name, str(file_region),
                                   chromosome, chromosome_idx, str(ref_seq_file),
                                   str(wga_seq_file), str(no_wga_seq_file), start_idx, end_idx, tip_id))
                 conn.commit()
@@ -115,18 +115,19 @@ def main(db_filename: Path, db_input_filename: Path,
 
 if __name__ == '__main__':
 
-    db_filename = Path('../hmmtuf_db.sqlite3')
+    db_filename = Path('../hmmtuf_db_ray.sqlite3')
     db_input_filename = Path('/home/alex/qi3/hmmtuf/data/regions/regions_descriptions.csv')
     regions_store_path = Path('/home/alex/qi3/hmmtuf/regions/')
     regions_org_files_path = Path('/home/alex/qi3/hmmtuf/data/regions/')
     seq_data_path = Path('/home/alex/qi3/hmmtuf/data/')
-    #main(db_filename=db_filename,
-    #     db_input_filename=db_input_filename,
-    #     regions_store_path=regions_store_path,
-    #     regions_org_files_path=regions_org_files_path,
-    #     seq_data_path=seq_data_path)
+    main(db_filename=db_filename,
+         db_input_filename=db_input_filename,
+         regions_store_path=regions_store_path,
+         regions_org_files_path=regions_org_files_path,
+         seq_data_path=seq_data_path)
 
 
+    """
     sql = '''INSERT INTO region_model (name, extension, file_region, 
                                        chromosome,  chromosome_index, 
                                        ref_seq_file, wga_seq_file, no_wga_seq_file, 
@@ -152,3 +153,4 @@ if __name__ == '__main__':
                       chromosome, chromosome_idx, str(ref_seq_file),
                       str(wga_seq_file), str(no_wga_seq_file), start_idx, end_idx, tip_id))
     conn.commit()
+    """

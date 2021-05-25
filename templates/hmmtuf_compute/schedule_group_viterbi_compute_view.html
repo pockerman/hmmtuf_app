@@ -8,9 +8,10 @@
 
 {% if error_empty_hmm_list %}
         <p>ERROR: {{ error_empty_hmm_list }} <a href="/load_file/load_hmm">Create HMM models</a></p>
+{% elif no_group_list %}
+        <p>ERROR: {{ no_group_list }}</p>
 {% else %}
     {% if error_found %}
-
         {% if no_seq_chromosome %}
         <p>ERROR: {{ no_seq_chromosome }}. <a href="/load_file/load_region">Load region.</a></p>
         {% elif no_seq_group %}
@@ -41,7 +42,6 @@
         <div class="controls">
             <label>Group tip:</label><br/>
             <select name="group_tip">
-                <option value="all">All</option>
                 {% for group in group_tips %}
                     <option value="{{ group.tip }}">{{ group.tip }}</option>
                 {% endfor %}
@@ -50,23 +50,7 @@
     </div>
     <br/>
 
-    <div class="control-group form-group">
-        <div class="controls">
-            <label>Distance sequence group:</label><br/>
-            <select name="sequence_group">
-                {% for group in sequence_groups %}
-                    <option value="{{ group }}">{{ group }}</option>
-                {% endfor %}
-            </select>
-        </div>
-    </div>
-    <br/>
-
-    <label for="new_sequence_group">New distance sequence group:</label><br>
-    <input type="text" name="new_sequence_group" value=""><br>
-
     {% if use_spade %}
-    <br/>
     <input type="checkbox" name="use_spade" value="True">
     <label for="use_spade">Use SPADE</label><br><br>
 

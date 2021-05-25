@@ -8,12 +8,11 @@ DEBUG = True
 LOCAL_DEPLOY = False
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
-
-USE_CELERY = True
+USE_CELERY = False
 ENABLE_SPADE = True
 SPADE_PATH = "%s/compute_engine/SPADE/" % BASE_DIR
 DATA_PATH = "%s/data/" % BASE_DIR
-
+DB_NAME = 'hmmtuf_db_ray.sqlite3'
 USE_DJANGO_EXTENSIONS = True
 
 files_dict = {
@@ -43,7 +42,7 @@ files_dict = {
 DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'hmmtuf_db.sqlite3',
+            'NAME': BASE_DIR / DB_NAME,
         }
 }
 
@@ -110,8 +109,8 @@ if DEBUG:
     VITERBI_PATHS_FILES_URL = '%s/computations/viterbi_paths/' % BASE_DIR
 
     # path to where to store the computed Viterbi paths
-    VITERBI_SEQ_FILES_ROOT = '%s/computations/viterbi_seqs/' % BASE_DIR
-    VITERBI_SEQ_FILES_URL = '%s/computations/viterbi_seqs/' % BASE_DIR
+    VITERBI_SEQ_FILES_ROOT = '%s/computations/viterbi_paths/' % BASE_DIR
+    VITERBI_SEQ_FILES_URL = '%s/computations/viterbi_paths/' % BASE_DIR
 
     # path to where to store the computed comparison of Viterbi paths
     VITERBI_SEQ_COMPARISON_FILES_ROOT = '%s/computations/viterbi_seqs_comparisons/' % BASE_DIR
@@ -173,8 +172,8 @@ else:
     VITERBI_PATHS_FILES_URL = '%s/computations/viterbi_paths/' % BASE_DIR
 
     # path to where to store the computed Viterbi paths
-    VITERBI_SEQ_FILES_ROOT = '%s/computations/viterbi_seqs/' % BASE_DIR
-    VITERBI_SEQ_FILES_URL = '%s/computations/viterbi_seqs/' % BASE_DIR
+    VITERBI_SEQ_FILES_ROOT = '%s/computations/viterbi_paths/' % BASE_DIR
+    VITERBI_SEQ_FILES_URL = '%s/computations/viterbi_paths/' % BASE_DIR
 
     # path to where to store the computed comparison of Viterbi paths
     VITERBI_SEQ_COMPARISON_FILES_ROOT = '%s/computations/viterbi_seqs_comparisons/' % BASE_DIR

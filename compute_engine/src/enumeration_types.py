@@ -17,7 +17,6 @@ class JobType(Enum):
     """
     VITERBI = 0
     EXTRACT_REGION = 1
-    #MULTI_VITERBI = 2
     GROUP_VITERBI = 3
     VITERBI_SEQUENCE_COMPARE = 4
     VITERBI_GROUP_ALL = 5
@@ -39,7 +38,9 @@ class ClassifierType(Enum):
 
 
 class FileReaderType(Enum):
-
+    """
+    Enumeration to distinguish various file readers
+    """
     TUF_BED = 0
     TDT_BED = 1
     NUCL_OUT = 3

@@ -30,7 +30,6 @@ class ComputationModel(models.Model):
     result = models.CharField(max_length=50, choices=RESULT_OPTIONS)
     error_explanation = models.CharField(max_length=500, default=DEFAULT_ERROR_EXPLANATION)
     computation_type = models.CharField(max_length=100)
-    scheduler_id = models.CharField(max_length=200, null=True)
 
     class Meta:
         abstract = True
@@ -43,9 +42,6 @@ class FilesModel(models.Model):
 
     # a user defined name to distinguish
     name = models.CharField(max_length=100, unique=True)
-
-    # the extension of the file
-    extension = models.CharField(max_length=10)
 
     class Meta:
         abstract = True
@@ -163,20 +159,6 @@ class RegionModel(FilesModel):
         if save:
             inst.save()
         return inst
-
-
-"""
-class ViterbiSequenceGroupTipModel(models.Model):
-
-    # tip used to group Viterbi sequence  models
-    tip = models.CharField(max_length=100, unique=True)
-
-    class Meta:
-        db_table = 'viterbi_seq_group_tip'
-
-    def __str__(self):
-        return "%s" % self.tip
-"""
 
 
 class ViterbiSequenceModel(models.Model):

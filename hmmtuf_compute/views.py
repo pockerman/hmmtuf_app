@@ -25,31 +25,12 @@ def success_schedule_group_viterbi_compute_view(request, task_id):
                                template_html=template_html, task_id=task_id)
 
 
-def success_schedule_group_viterbi_compute_all_view(request, task_id):
-    """
-    Success view for group Viterbi calculation
-    """
-    template_html = 'hmmtuf_compute/success_schedule_group_viterbi_compute_all_view.html'
-    return handle_success_view(request=request,
-                               template_html=template_html, task_id=task_id)
-
-
 def success_schedule_viterbi_compute_view(request, task_id):
     """
     Success redirect after scheduling a Viterbi path computation
     """
 
     template_html = 'hmmtuf_compute/success_schedule_viterbi_compute_view.html'
-    return handle_success_view(request=request,
-                               template_html=template_html, task_id=task_id)
-
-
-def success_schedule_kmer_compute_view(request, task_id):
-    """
-    Success redirect after scheduling a Viterbi path computation
-    """
-
-    template_html = 'hmmtuf_compute/success_schedule_kmer_compute_view.html'
     return handle_success_view(request=request,
                                template_html=template_html, task_id=task_id)
 
@@ -63,12 +44,6 @@ def schedule_group_viterbi_compute_view(request):
     template_html = 'hmmtuf_compute/schedule_group_viterbi_compute_view.html'
     template = loader.get_template(template_html)
 
-    db_group_tips = RegionGroupTipModel.objects.all()
-    sequence_groups = ["None"]
-
-    for item in db_group_tips:
-        sequence_groups.append(item.tip)
-
     # get the hmms we have
     hmms = HMMModel.objects.all()
 
@@ -77,13 +52,18 @@ def schedule_group_viterbi_compute_view(request):
         template = loader.get_template(template_html)
         return HttpResponse(template.render(context, request))
 
+    db_group_tips = RegionGroupTipModel.objects.all()
+    if len(db_group_tips) == 0:
+        context = {"no_group_list": "Chromosome groups have not been created."}
+        template = loader.get_template(template_html)
+        return HttpResponse(template.render(context, request))
+
     hmm_names = []
     for item in hmms:
         hmm_names.append(item.name)
 
-    group_tips = RegionGroupTipModel.objects.all()
     context = {"hmm_names": hmm_names,
-               "group_tips": group_tips, "sequence_groups": sequence_groups}
+               "group_tips": db_group_tips, }
 
     if ENABLE_SPADE:
         context.update({"use_spade": True})
@@ -96,44 +76,13 @@ def schedule_group_viterbi_compute_view(request):
         if result is not OK:
             return form.response
 
-
         kwargs = form.kwargs
         task_id = models.GroupViterbiComputationModel.compute(data=kwargs)
-
-        if kwargs["group_tip"] == 'all':
-            return redirect('success_schedule_group_viterbi_compute_all_view', task_id=task_id)
 
         # return the id for the computation
         return redirect('success_schedule_group_viterbi_compute_view', task_id=task_id)
 
     return HttpResponse(template.render(context, request))
-
-
-def view_group_viterbi_all(request, task_id):
-    template_html = 'hmmtuf_compute/group_viterbi_result_all_view.html'
-    template = loader.get_template(template_html)
-
-    try:
-        # if the task exists do not ask celery. This means
-        # that either the task failed or succeed
-        task = models.GroupViterbiComputationModel.objects.get(task_id=task_id)
-        context = get_result_view_context(task=task, task_id=task_id)
-        return HttpResponse(template.render(context, request))
-
-    except ObjectDoesNotExist:
-
-        # try to ask celery
-        # check if the computation is ready
-        # if yes collect the results
-        # otherwise return the html
-        task = celery_app.AsyncResult(task_id)
-
-        if task is None:
-            return success_schedule_group_viterbi_compute_view(request, task_id=INVALID_TASK_ID)
-
-        context = view_viterbi_path_exception_context(task=task, task_id=task_id,
-                                                      model=models.GroupViterbiComputationModel.__name__)
-        return HttpResponse(template.render(context, request))
 
 
 def view_group_viterbi_path(request, task_id):
@@ -257,30 +206,6 @@ def view_viterbi_path(request, task_id):
         return HttpResponse(template.render(context, request))
 
 
-def schedule_kmers_calculation_view(request):
-    """
-    Scedule a kmers calculation
-    """
-
-    template_html = "hmmtuf_compute/schedule_kmers_calculation_view.html"
-    template = loader.get_template(template_name=template_html)
-
-    context = {}
-
-    if request.method == 'POST':
-
-        form = forms.KmerComputeForm(template_html=template_html,
-                                     context=context, configuration=None)
-
-
-        task_id = 0
-
-        # return the id for the computation
-        return redirect('success_schedule_kmer_compute_view', task_id=task_id)
-
-    return HttpResponse(template.render(context, request))
-
-
 def view_repeats_distances_plot(request):
     """
     Serves the view for Dash based view for
@@ -289,49 +214,6 @@ def view_repeats_distances_plot(request):
 
     dash_viewer.repeats_plot_viewer.layout = get_repeats_distances_plot(request=request)
     return redirect(to="/django_plotly_dash/app/repeats_plot_viewer_app/")
-
-
-def view_kmers(request, task_id):
-    """
-    Serves the kmers view for the computation identified
-    by the task_id
-    """
-
-    # set up the Dash viewer layout
-    dash_viewer.kmer_viewer.layout = get_kmer_view_result(request=request, task_id=task_id)
-    #import dash
-    #import dash_core_components as dcc
-    #import dash_html_components as html
-    #import plotly.express as px
-    #from django_plotly_dash import DjangoDash
-    #import pandas as pd
-
-
-
-    # organize data into a Pandas DF
-    #df = pd.DataFrame({
-    #    "Kmer": ["AAAA", "TTTT", "ATTA", "GGGG", "AGGG", "ACTG"],
-    #    "Amount": [4, 1, 2, 2, 4, 5],
-       # "City": ["SF", "SF", "SF", "Montreal", "Montreal", "Montreal"]
-    #})
-
-    # the figure to dispay
-    #fig = px.bar(df, x="Kmer", y="Amount", color="Kmer", barmode="group")
-
-    # set up the layout for the app
-    """
-    hmmtuf_compute_app_config_with_viewer.kmer_viewer.layout = html.Div(children=[
-        html.H1(children='Kmer Viewer', style={"textAlign": "center", "color": '#7FDBFF'}),
-        dcc.Graph(
-            id='example-graph',
-            figure=fig
-        )
-    ])
-    """
-
-    # after building the data for the
-    # app redirect to view
-    return redirect(to="/django_plotly_dash/app/kmer_viewer_app/")
 
 
 

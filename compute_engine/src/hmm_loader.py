@@ -1,9 +1,10 @@
+from pathlib import Path
 from pomegranate import *
 import matplotlib.pyplot as plt
 
 from compute_engine.src.constants import INFO
 
-def build_hmm(hmm_file):
+def build_hmm(hmm_file: Path):
 
     print("{0} Building HMM from file {1}".format(INFO, hmm_file))
     with open(hmm_file) as json_file:
