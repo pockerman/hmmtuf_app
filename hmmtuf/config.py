@@ -12,7 +12,7 @@ USE_CELERY = False
 ENABLE_SPADE = True
 SPADE_PATH = "%s/compute_engine/SPADE/" % BASE_DIR
 DATA_PATH = "%s/data/" % BASE_DIR
-
+DB_NAME = 'hmmtuf_db_ray.sqlite3'
 USE_DJANGO_EXTENSIONS = True
 
 files_dict = {
@@ -42,7 +42,7 @@ files_dict = {
 DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'hmmtuf_db_ray.sqlite3',
+            'NAME': BASE_DIR / DB_NAME,
         }
 }
 
