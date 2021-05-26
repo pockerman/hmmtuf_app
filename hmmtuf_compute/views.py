@@ -15,7 +15,7 @@ from . import models
 from . import forms
 from . view_helpers import get_result_view_context
 from . view_helpers import view_viterbi_path_exception_context
-from . view_helpers import handle_success_view, get_kmer_view_result, get_repeats_distances_plot
+from . view_helpers import handle_success_view, get_repeats_distances_plot
 
 
 def success_schedule_group_viterbi_compute_view(request, task_id):

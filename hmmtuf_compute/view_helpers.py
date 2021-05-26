@@ -80,13 +80,19 @@ def get_repeats_distances_plot(request):
 
         return error_message, figs[0], figs[1], figs[2], figs[3], figs[4], figs[5],
 
-    uique_seq_types = DistanceSequenceTypeModel.objects.all()
-    uique_dist_types = DistanceMetricTypeModel.objects.all()
-    return get_layout(uique_seq_types=uique_seq_types, uique_dist_types=uique_dist_types)
+    seq_types = DistanceSequenceTypeModel.objects.all()
+    dist_types = DistanceMetricTypeModel.objects.all()
 
+    unique_seq_types = [(0, 'Select')]
+    unique_dist_types = [(0, 'Select')]
 
-def get_kmer_view_result(request, task_id):
-    raise NotImplementedError("Not Implemented")
+    for i, x in enumerate(dist_types):
+        unique_dist_types.append((i + 1, x.type))
+
+    for i, x in enumerate(seq_types):
+        unique_seq_types.append((i + 1, x.type))
+
+    return get_layout(unique_seq_types=unique_seq_types, unique_dist_types=unique_dist_types)
 
 
 def get_result_view_context(task, task_id):

@@ -12,6 +12,9 @@ from hmmtuf.config import DB_NAME
 from hmmtuf_compute.models import GroupViterbiComputationModel, ViterbiComputationModel
 from .models import RegionModel
 from .models import HMMModel
+from .models import DistanceSequenceTypeModel
+from .models import DistanceMetricTypeModel
+
 
 # Create your views here.
 def home_view(request):
@@ -29,9 +32,11 @@ def home_view(request):
     n_failed_tasks += len(ViterbiComputationModel.objects.filter(result=JobResultEnum.FAILURE.name))
     n_pending_tasks = len(GroupViterbiComputationModel.objects.filter(result=JobResultEnum.PENDING.name))
     n_pending_tasks += len(ViterbiComputationModel.objects.filter(result=JobResultEnum.PENDING.name))
+    n_dist_metrics = len(DistanceMetricTypeModel.objects.all())
 
     context = {"db_name": DB_NAME,
                 "n_regions": n_regions,
+               "n_dist_metrics": n_dist_metrics,
                "n_hmm_models": n_hmm_models,
                "n_total_tasks": n_tasks,
                "n_success_tasks": n_success_tasks,

@@ -1,6 +1,7 @@
 """
 Various helpers for plotting with Dash
 """
+from typing import List, Tuple
 import numpy as np
 import plotly.express as px
 import dash_core_components as dcc
@@ -17,33 +18,33 @@ gc_limit = [(0, "Select"), (1, "<"), (2, ">"), (3, "<="), (4, ">="), (5, "=")]
 gc_limit_map = {0: "Select", 1: "<", 2: ">", 3: "<=", 4: ">=", 5: "="}
 
 # TODO: move these to DB
-uique_seq_types = [(0, 'Select'), (1, 'NORMAL'), (2, 'PURINE'), (3, 'AMINO'), (4, 'WEAK_HYDROGEN')]
-uique_dist_types = [(0, 'Select'), (1, 'Bag'), (2, 'Cosine'),
-                     (3, 'DamerauLevenshtein'), (4, 'Gotoh'), (5, 'Hamming'),
-                     (6, 'Jaccard'), (7, 'JaroWinkler'), (8, 'LCSSeq'),
-                    (9, 'LCSStr'), (10, 'Levenshtein'), (11, 'MLIPNS'),
-                    (12, 'MongeElkan'), (13, 'NeedlemanWunsch'),
-                    (14, 'Overlap'), (15, 'Sorensen'), (16, 'StrCmp95'),
-                    (17, 'SmithWaterman'), (18, 'Tanimoto'), (19, 'Tversky')]
+#uique_seq_types = [(0, 'Select'), (1, 'NORMAL'), (2, 'PURINE'), (3, 'AMINO'), (4, 'WEAK_HYDROGEN')]
+#uique_dist_types = [(0, 'Select'), (1, 'Bag'), (2, 'Cosine'),
+#                     (3, 'DamerauLevenshtein'), (4, 'Gotoh'), (5, 'Hamming'),
+#                     (6, 'Jaccard'), (7, 'JaroWinkler'), (8, 'LCSSeq'),
+#                    (9, 'LCSStr'), (10, 'Levenshtein'), (11, 'MLIPNS'),
+#                    (12, 'MongeElkan'), (13, 'NeedlemanWunsch'),
+#                    (14, 'Overlap'), (15, 'Sorensen'), (16, 'StrCmp95'),
+#                    (17, 'SmithWaterman'), (18, 'Tanimoto'), (19, 'Tversky')]
 
 
-def get_layout(uique_seq_types: dict, uique_dist_types: dict) -> html.Div:
+def get_layout(unique_seq_types: List[Tuple], unique_dist_types: List[Tuple]) -> html.Div:
 
     layout = html.Div([
         html.H1("Distances Plot"),
         html.H3("Sequence type"),
         dcc.Dropdown(
             id="dropdown-sequence",
-            options=[{"label": x[1], "value": x[0]} for x in uique_seq_types],
-            value=uique_seq_types[0][0],
+            options=[{"label": x[1], "value": x[0]} for x in unique_seq_types],
+            value=unique_seq_types[0][0],
             clearable=False,
         ),
 
         html.H3("Distance type"),
         dcc.Dropdown(
             id="dropdown-distance",
-            options=[{"label": x[1], "value": x[0]} for x in uique_dist_types],
-            value=uique_dist_types[0][0],
+            options=[{"label": x[1], "value": x[0]} for x in unique_dist_types],
+            value=unique_dist_types[0][0],
             clearable=False,
         ),
 
