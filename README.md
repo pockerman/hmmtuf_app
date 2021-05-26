@@ -13,10 +13,13 @@ their own developed models. The application uses <a href="https://pomegranate.re
 representing a hidden Markov model. We provide a default Markov model which can be found at ```hmmtuf_app/hmm_files/HMM1.json```. 
 The report in ```hmmtuf_app/notes/hmmtuf_model_report.pdf``` describes how this model was developed.
 
-The application currently supports two types of computations
+The application currently supports the following computations
 
 - Compute the <a href="https://en.wikipedia.org/wiki/Viterbi_algorithm">Viterbi path</a> of a single region
 - Compute the Viterbi path over all regions of a chromosome
+- Compute the repeats over a computed Viterbi path
+- Compute distances between repeats
+- Visualize distances distributions
 
 
 <img src="imgs/img_group.png" style="width:60%" />
