@@ -69,8 +69,6 @@ def fill_in_region_tbl(db_filename: Path, db_input_filename: Path,
                 row = cur.fetchone()
                 tip_id = row[0]
 
-                #cur = conn.cursor()
-
                 chromosome = line[0]
                 ref_seq_file = seq_data_path / line[3]
                 wga_seq_file = seq_data_path / line[4]
@@ -101,9 +99,44 @@ def fill_in_region_tbl(db_filename: Path, db_input_filename: Path,
                 copyfile(src=regions_org_files_path / chromosome / region_file_name, dst=regions_store_path / region_name)
 
 
+def fillin_distance_metrics_table(db_filename: Path, distance_metrics: dir) -> None:
+
+    print("{0} Creating table {1}...".format(INFO, "distance_metric_type"))
+
+    conn = connect(db_file=db_filename)
+    cur = conn.cursor()
+
+    for met in distance_metrics:
+        sql = '''INSERT INTO distance_metric_type(type, short_cut) values(?,?)'''
+        cur.execute(sql, (distance_metrics[met], met))
+        conn.commit()
+
+    print("{0} Done...".format(INFO))
+
+
+def fillin_distance_types_table(db_filename: Path) -> None:
+
+    print("{0} Creating table {1}...".format(INFO, "distance_sequence_type"))
+    conn = connect(db_file=db_filename)
+    cur = conn.cursor()
+
+    CHOICES = [("NORMAL", "NORMAL"),
+               ("PURINE", "PURINE"),
+               ("AMINO", "AMINO"),
+               ("WEAK_HYDROGEN", "WEAK_HYDROGEN"), ]
+
+    for choice in CHOICES:
+        sql = '''INSERT INTO distance_sequence_type(type) values(?)'''
+        cur.execute(sql, (choice[0],))
+        conn.commit()
+
+    print("{0} Done...".format(INFO))
+
+
 def main(db_filename: Path, db_input_filename: Path,
-         regions_store_path: Path,
-         regions_org_files_path: Path, seq_data_path: Path) -> None:
+         regions_store_path: Path, regions_org_files_path: Path,
+         seq_data_path: Path, distance_metrics: dict) -> None:
+
 
     fillin_group_tip_tbl(db_filename=db_filename, db_input_filename=db_input_filename)
     fill_in_region_tbl(db_filename=db_filename,
@@ -111,6 +144,9 @@ def main(db_filename: Path, db_input_filename: Path,
                        regions_store_path=regions_store_path,
                        regions_org_files_path=regions_org_files_path,
                        seq_data_path=seq_data_path)
+
+    fillin_distance_metrics_table(db_filename=db_filename, distance_metrics=distance_metrics)
+    fillin_distance_types_table(db_filename=db_filename)
 
 
 if __name__ == '__main__':
@@ -120,37 +156,17 @@ if __name__ == '__main__':
     regions_store_path = Path('/home/alex/qi3/hmmtuf/regions/')
     regions_org_files_path = Path('/home/alex/qi3/hmmtuf/data/regions/')
     seq_data_path = Path('/home/alex/qi3/hmmtuf/data/')
+
+    distance_metrics = {"bag": "Bag", "cos": "Cosine", 'damlev': "DamerauLevenshtein", 'got': "Gotoh",
+                        'ham': "Hamming", 'jac': "Jaccard", 'jwink': "JaroWinkler",
+                        'lcsseq': "LCSSeq", 'lcsstr': "LCSStr",
+                        'lev': "Levenshtein", 'mlipns': "MLIPNS", 'mon': "MongeElkan", 'nw': "NeedlemanWunsch",
+                        'ov': "Overlap", 'sor': "Sorensen", 'str': "StrCmp95", 'sw': "SmithWaterman",
+                        'tan': "Tanimoto", 'tve': "Tversky", }
+
     main(db_filename=db_filename,
          db_input_filename=db_input_filename,
          regions_store_path=regions_store_path,
          regions_org_files_path=regions_org_files_path,
-         seq_data_path=seq_data_path)
+         seq_data_path=seq_data_path, distance_metrics=distance_metrics)
 
-
-    """
-    sql = '''INSERT INTO region_model (name, extension, file_region, 
-                                       chromosome,  chromosome_index, 
-                                       ref_seq_file, wga_seq_file, no_wga_seq_file, 
-                                       start_idx, end_idx, group_tip_id ) values(?, ?, ?, ?, ?, ?, 
-                                                        ?, ?, ?, ?, ?)'''
-
-    region_name = 'region_6_chr21'
-    file_region = "/home/alex/qi3/hmmtuf/regions/region_6_chr21.txt"
-    chromosome = 'chr21'
-    start_idx = 46000000
-    end_idx = 46709983
-    chromosome_idx = 21
-    tip_id = 13
-    ref_seq_file = "/home/alex/qi3/hmmtuf/data/GCA_000001405.15_GRCh38_no_alt_analysis_set.fna"
-    wga_seq_file = "/home/alex/qi3/hmmtuf/data/m605_verysensitive_trim_sorted.bam"
-    no_wga_seq_file = "/home/alex/qi3/hmmtuf/data/m585_verysensitive_trim_sorted.bam"
-
-    print("{0} Add region {1} for chromosome {2} with file {3}".format(INFO, region_name, chromosome, file_region))
-
-    conn = connect(db_file=db_filename)
-    cur = conn.cursor()
-    cur.execute(sql, (region_name, 'txt', str(file_region),
-                      chromosome, chromosome_idx, str(ref_seq_file),
-                      str(wga_seq_file), str(no_wga_seq_file), start_idx, end_idx, tip_id))
-    conn.commit()
-    """
