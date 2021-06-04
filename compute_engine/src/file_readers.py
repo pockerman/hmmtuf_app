@@ -6,6 +6,7 @@ Utility functions for reading various
 import csv
 import json
 from pathlib import Path
+from typing import List, Tuple
 
 from compute_engine.src.enumeration_types import FileReaderType
 
@@ -62,19 +63,55 @@ class CsvFileReader(object):
                 lines.append(line)
             return lines
 
-class NuclOutFileReader(object):
+class DeaultReader(object):
 
-    def __init__(self, exclude_seqs=["NO_REPEATS"], delimiter: str='\t') -> None:
-        self._delimiter = delimiter
-        self._exclude_seqs = exclude_seqs
+    def __init__(self) -> None:
+        pass
 
-    def __call__(self, filename: Path) -> list:
+    def read_default(self, filename: Path) -> List[str]:
+
         with open(filename, 'r', newline="\n") as fh:
             lines = []
 
             for line in fh:
                 lines.append(line)
             return lines
+
+class NuclOutFileReader(DeaultReader):
+
+    def __init__(self, exclude_seqs: list=["NO_REPEATS"],
+                 delimiter: str='\t', strip: bool=True) -> None:
+        super(NuclOutFileReader, self).__init__()
+
+        self._delimiter = delimiter
+        self._exclude_seqs = exclude_seqs
+        self._strip = strip
+
+    def __call__(self, filename: Path) -> List:
+        """
+        Returns either a list of strings when self._strip = False
+        or a list of lists when self._strip = True
+        """
+
+        if not self._strip:
+            return self.read_default(filename=filename)
+        else:
+            return self.read_strip(filename=filename)
+
+    def read_strip(self, filename: Path) -> List[List]:
+
+        with open(filename, 'r', newline="\n") as fh:
+            lines = []
+
+            for line in fh:
+                line_data = line.split("\t")
+
+                for i in range(len(line_data)):
+                    line_data[i] = line_data[i].strip()
+
+                lines.append(line_data)
+            return lines
+
 
 
 class NuclOutSeqFileReader(object):
@@ -88,20 +125,25 @@ class NuclOutSeqFileReader(object):
                                                 exclude_seqs=self._exclude_seqs,
                                                 delimiter=self._delimiter)
 
-class GQuadsFileReader(object):
+class GQuadsFileReader(DeaultReader):
 
-    def __init__(self) -> None:
-        pass
+    def __init__(self, read_as_dict: bool=False) -> None:
+        super(GQuadsFileReader, self).__init__()
+        self._read_as_dict = read_as_dict
 
-    def __call__(self, filename: Path) -> list:
-        with open(filename, 'r', newline='\n') as fh:
+    def __call__(self, filename: Path):
+        """
+        Returns either a list of strings self._read_as_dict = False
+        or a dictionary with key (chromosome, start, end) when
+        self._read_as_dict = True
+        """
 
-            lines = []
-            for line in fh:
-                lines.append(line)
-            return lines
+        if not self._read_as_dict:
+            return self.read_default(filename=filename)
+        else:
+            return self.read_as_dict(filename=filename)
 
-    def read_as_dict(filename: Path) -> dict:
+    def read_as_dict(self, filename: Path) -> dict:
         with open(filename, 'r', newline='\n') as fh:
 
             data_dir = dict()
@@ -124,13 +166,12 @@ class GQuadsFileReader(object):
                 gc_max = region_data[4]
 
                 if gc_min == 'NA':
-                    gc_min = -999.0
+                    gc_min = gc_avg
                 else:
                     gc_min = float(gc_min)
 
-
                 if gc_max == 'NA':
-                    gc_max = -999.0
+                    gc_max = gc_avg
                 else:
                     gc_max = float(gc_max)
 
@@ -145,19 +186,19 @@ class GQuadsFileReader(object):
 
             return data_dir
 
-class RepeatsInfoFileReader(object):
+class RepeatsInfoFileReader(DeaultReader):
 
-    def __init__(self) -> None:
-        pass
+    def __init__(self, read_as_dict: bool=False) -> None:
+        self._read_as_dict = read_as_dict
 
     def __call__(self, filename: Path) -> list:
-        with open(filename, 'r', newline='\n') as fh:
-            lines = []
-            for line in fh:
-                lines.append(line)
-        return lines
 
-    def get_as_fict(self, filename: Path) -> dict:
+        if not self._read_as_dict:
+            return self.read_default(filename=filename)
+        else:
+            return self.read_as_dict(filename=filename)
+
+    def read_as_dict(self, filename: Path) -> dict:
         with open(filename, 'r', newline='\n') as fh:
 
             data_dir = dict()
