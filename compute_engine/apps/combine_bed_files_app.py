@@ -27,7 +27,7 @@ def tuf_bed_files(dir_list: list, infile_dir: Path, outfile: Path) -> None:
 
                     print("{0} processing directory {1}".format(INFO, new_directory_path))
 
-                    # reade the file
+                    # read the file
                     factory = FileReaderFactory(reader_type=FileReaderType.TUF_BED)
                     lines = factory(filename=new_directory_path / 'tuf.bed')
 
@@ -43,9 +43,8 @@ def tuf_bed_files(dir_list: list, infile_dir: Path, outfile: Path) -> None:
 
 
 def main(infile_dir: Path, input_filename: str,
-         output_file_dir: Path, output_filename: str, file_reader: FileReaderType,
-         filename: str,
-         **options) -> None:
+         output_file_dir: Path, output_filename: str,
+         file_reader: FileReaderType, filename: str, **options) -> None:
 
 
     print("{0} file_reader={1}".format(INFO, file_reader.name))
