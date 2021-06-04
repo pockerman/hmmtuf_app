@@ -56,6 +56,9 @@ def create_repeats_table(database_wrap: SQLiteDBConnector, repeats_file: Path) -
 
     hmm_states = database_wrap.fetch_from_hmm_state_types_all()
 
+    if len(hmm_states) == 0:
+        raise ValueError('Hmm states is empty')
+
     hmm_state_dict = {}
 
     for state in hmm_states:
@@ -65,6 +68,8 @@ def create_repeats_table(database_wrap: SQLiteDBConnector, repeats_file: Path) -
     seqs = file_reader(filename=repeats_file)
 
     for seq in seqs:
+
+        assert len(seq) == 12, f"Invalid seequence data size {len(seq)} not equal to 12"
         chromosome = str(seq[0].strip())
         start_idx = int(seq[1])
         end_idx = int(seq[2])
@@ -74,20 +79,10 @@ def create_repeats_table(database_wrap: SQLiteDBConnector, repeats_file: Path) -
         gc = float(seq[5])
         gc_min = float(seq[6])
         gc_max = float(seq[7])
-        has_repeats = 0
-        if seq[8] == 'True':
-            has_repeats = 1
-
+        has_repeats = int(seq[8])
         n_repeats = int(seq[9])
         align_seq = str(seq[10])
         unit_seq = str(seq[11])
-
-        #sql = '''SELECT * FROM repeats WHERE chromosome='%s' AND start_idx=%s AND
-        #end_idx=%s AND repeat_seq='%s' ''' % (seq[0], seq[1], seq[2], seq[3])
-
-        #rows = database_wrap.fetch_all(sql=sql)
-
-        #if len(rows) == 0:
 
         sql = '''INSERT INTO repeats(chromosome, start_idx, end_idx, repeat_seq, 
             hmm_state_id, gc, gc_min, gc_max, has_repeats, n_repeats, align_seq, unit_seq) values(?,?,?,?,?,?,?,?,?,?,?,?)'''
@@ -96,6 +91,37 @@ def create_repeats_table(database_wrap: SQLiteDBConnector, repeats_file: Path) -
                   gc, gc_min, gc_max, has_repeats, n_repeats, align_seq, unit_seq)
         database_wrap.execute(sql=sql, values=values)
     print("{0} Done...".format(INFO))
+
+
+def create_group_tip_tbl(database_wrap: SQLiteDBConnector, db_input_filename: Path) -> None:
+
+    with open(db_input_filename, 'r', newline='\n') as csvfile:
+        reader = csv.reader(csvfile, delimiter=',')
+
+        group_tips = []
+        chromosomes = []
+        row_counter = 0
+        for line in reader:
+
+            if row_counter == 0:
+                row_counter += 1
+                continue
+
+            group_tip = line[-1]
+            chromosome = line[0]
+
+            if group_tip not in group_tips:
+                group_tips.append(group_tip)
+                chromosomes.append(chromosome)
+
+        #database_wrap = connect(db_file=db_filename)
+        #cursor = conn.cursor()
+        for tip, chromo in zip(group_tips, chromosomes):
+            print("Add tip {0}, chromosome {1} pair in the DB".format(tip, chromo))
+            sql = '''INSERT INTO region_group_tip(tip, chromosome) values(?,?)'''
+            #database_wrap.execute(sql=sql, values=(tip, chromo)
+            #cursor.execute(sql, (tip, chromo))
+            #conn.commit()
 
 
 def insert_distance_metric_result(database_wrap: SQLiteDBConnector,
@@ -226,6 +252,7 @@ def create_repeats_distances_table(database_wrap: SQLiteDBConnector,
 
     database_wrap.create_table(table_name="repeats_distances")
 
+    '''
     for metric in metrics:
         directory_path = data_dir / metric
 
@@ -239,7 +266,7 @@ def create_repeats_distances_table(database_wrap: SQLiteDBConnector,
                 insert_distance_metric_result(database_wrap=database_wrap,
                                               metric_data=metric_data,
                                               directory_path=directory_path)
-
+    '''
     print("{0} Done...".format(INFO))
 
 
@@ -247,6 +274,7 @@ def main(database_wrap: SQLiteDBConnector,
          repeats_file: Path,
          data_dir: Path,
          chromosomes_dir: Path,
+         db_input_filename: Path,
          metrics: dir) -> None:
 
     tbl_names = ['repeats_distances', ]
@@ -256,18 +284,20 @@ def main(database_wrap: SQLiteDBConnector,
     create_distance_types_table(database_wrap=database_wrap)
     create_distance_metrics_table(database_wrap=database_wrap, metrics=metrics)
     create_repeats_table(database_wrap=database_wrap, repeats_file=repeats_file)
+    #create_group_tip_tbl(database_wrap=database_wrap, db_input_filename=db_input_filename)
     create_repeats_distances_table(database_wrap=database_wrap,
                                    data_dir=data_dir, metrics=metrics)
 
 
 if __name__ == '__main__':
 
-    db_file = "/home/alex/qi3/hmmtuf/play_ground.sqlite3"
-    repeats_file = Path("/home/alex/qi3/hmmtuf/computations/viterbi_paths/nucl_out.csv")
+    db_file = "/home/alex/qi3/hmmtuf/release_db_v1.sqlite3"
+    repeats_file = Path("/home/alex/qi3/hmmtuf/computations/viterbi_paths/tmp/out/nucl_out.csv")
     data_dir = Path("/home/alex/qi3/hmmtuf/computations/distances/")
     chromosomes_dir = Path("/home/alex/qi3/hmmtuf/computations/viterbi_paths/")
+    db_input_filename = Path('/home/alex/qi3/hmmtuf/data/regions/regions_descriptions.csv')
 
-
+    """
     metrics = {'ham': "Hamming", 'mlipns': "MLIPNS",
                'lev': "Levenshtein",
                'damlev': "DamerauLevenshtein",
@@ -291,6 +321,7 @@ if __name__ == '__main__':
                'pre': "Prefix", 'pos': "Postfix",
                'len': "Length", 'id': "Identity", 'mat': "Matrix",
               }
+    """
 
     metrics = { "bag": "Bag", "cos": "Cosine", 'damlev': "DamerauLevenshtein", 'got': "Gotoh",
     'ham': "Hamming", 'jac': "Jaccard", 'jwink': "JaroWinkler",
@@ -303,6 +334,6 @@ if __name__ == '__main__':
     database_wrap.connect()
     main(database_wrap=database_wrap, repeats_file=repeats_file,
          chromosomes_dir=chromosomes_dir,
-         data_dir=data_dir, metrics=metrics)
+         data_dir=data_dir, metrics=metrics, db_input_filename=db_input_filename)
 
 
