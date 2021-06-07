@@ -53,5 +53,6 @@ class FileReaderType(Enum):
     QUAD_BED = 10
     REP_BED = 11
     REPEATS_INFO_BED = 12
+    VITERBI_PATH = 13
 
 
