@@ -61,4 +61,16 @@ class NoDataQuery(Exception):
     def __str__(self) -> str:
         return self.message
 
+class IndexExists(Exception):
+    def  __init__(self, index) -> None:
+        self.message = "Index " + str(index) + " already exists"
+
+class InvalidReadingMode(Exception):
+    def __init__(self, mode: str, values: list) -> None:
+        self.message = "Reading mode " + mode + " not in " + str(values)
+
+class InvalidFileFormat(Exception):
+    def __init__(self, filename):
+        self.message = f"File {filename} has incorrect format."
+
 
