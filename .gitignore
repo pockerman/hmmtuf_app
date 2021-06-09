@@ -23,3 +23,4 @@ db/__pycache__/
 compute_engine/apps/.ipynb_checkpoints/
 compute_engine/src/classification/__pycache__/
 bed_comparator/__pycache__/
+bed_comparator/migrations/__pycache__/
