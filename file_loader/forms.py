@@ -5,15 +5,12 @@ from django.template import loader
 from compute_engine import OK
 
 
-class ErrorHandler(object):
+class BasicFileLoadErrorHandler(object):
 
-    def __init__(self, filename, item_name, template_html):
+    def __init__(self, filename):
         self._filename = filename
-        self._item_name = item_name
-        self._template_html = template_html
         self._response = None
         self._file = None
-        self._name = None
 
     @property
     def response(self):
@@ -27,30 +24,51 @@ class ErrorHandler(object):
     def file_loaded(self):
         return self._file
 
+    def check(self, request):
+        """
+        Do a basic check that the file was specified
+        :param request:
+        :return:
+        """
+
+        file_loaded = request.FILES.get(self._filename, None)
+
+        if file_loaded is None:
+            self._response = None
+            return not OK, None
+
+        self._file = file_loaded
+        return OK, file_loaded
+
+
+class ErrorHandler(BasicFileLoadErrorHandler):
+
+    def __init__(self, filename, item_name, template_html):
+        super(ErrorHandler, self).__init__(filename=filename)
+        self._item_name = item_name
+        self._template_html = template_html
+        self._name = None
+
     @property
     def name(self):
         return self._name
 
     def check(self, request):
 
-        file_loaded = request.FILES.get(self._filename, None)
+        basic_response = super(ErrorHandler, self).check(request=request)
 
-        if file_loaded is None:
+        if basic_response is not OK:
             template = loader.get_template(self._template_html)
             self._response = HttpResponse(template.render({"error_found": "File not specified"}, request))
 
-        if self._response is not None:
             return not OK
 
         name = request.POST.get(self._item_name, '')
         if name == '':
             template = loader.get_template(self._template_html)
             self._response = HttpResponse(template.render({"error_found": "Name not specified"}, request))
-
-        if self._response is not None:
             return not OK
 
-        self._file = file_loaded
         self._name = name
         return OK
 

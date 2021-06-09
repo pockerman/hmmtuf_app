@@ -1,8 +1,9 @@
 from django.http import HttpResponse
 from django.template import loader
 from compute_engine.src.constants import OK
-from hmmtuf import INVALID_ITEM
+from hmmtuf.constants import INVALID_ITEM
 from hmmtuf_home.models import HMMModel
+
 
 class HMMFormCreator(object):
 
@@ -37,8 +38,6 @@ class HMMFormCreator(object):
 
     def check(self, request):
 
-        #import pdb
-        #pdb.set_trace()
         self._hmm_name = request.POST.get("hmm-name", "")
 
         print(request.POST)

@@ -13,7 +13,7 @@ from compute_engine import INFO
 from hmmtuf_compute import dash_viewer
 from hmmtuf.helpers import make_bed_path
 from hmmtuf.helpers import get_configuration
-from hmmtuf import INVALID_TASK_ID
+from hmmtuf.constants import INVALID_TASK_ID
 from hmmtuf.config import DATABASES
 from hmmtuf_home.models import DistanceSequenceTypeModel, DistanceMetricTypeModel, RegionGroupTipModel, RegionModel
 

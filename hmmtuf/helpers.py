@@ -1,10 +1,12 @@
 from pathlib import Path
-from .settings import VITERBI_PATHS_FILES_ROOT
-from .settings import HMM_FILES_ROOT
+
 from .constants import VITERBI_PATH_FILENAME
 from .constants import TUF_DEL_TUF_PATH_FILENAME
 from .constants import VITERBI_SEQUENCE_FILENAME
 from .constants import VITERBI_SEQUENCE_COMPARISON_FILENAME
+
+from .config import VITERBI_PATHS_FILES_ROOT
+from .config import HMM_FILES_ROOT
 from .config import files_dict
 from .config import VITERBI_SEQ_FILES_ROOT
 from .config import VITERBI_SEQ_COMPARISON_FILES_ROOT
