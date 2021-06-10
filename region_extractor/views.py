@@ -6,7 +6,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from compute_engine.src.utils import extract_file_names
 
 from hmmtuf.settings import REGIONS_FILES_ROOT
-from hmmtuf.helpers import get_configuration
+from webapp_utils.helpers import get_configuration
 from hmmtuf_home.models import RegionModel
 
 from .forms import ExtractRegionForm

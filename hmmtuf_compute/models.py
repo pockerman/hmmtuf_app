@@ -53,8 +53,7 @@ class GroupViterbiComputationModel(ViterbiComputationModel):
     which tries to fill in as many fields as possible. Upon successful
     completion of the task all fields should have valid values
     """
-    
-    # TODO: Add here the job type
+
     # the type of the computation
     JOB_TYPE = JobType.GROUP_VITERBI.name
 

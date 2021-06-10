@@ -11,10 +11,10 @@ from compute_engine.src.enumeration_types import JobResultEnum
 from compute_engine.src import tufdel
 from compute_engine.src.ray_actors import ViterbiPathCalulation, SpadeCalculation
 
-from hmmtuf.helpers import make_viterbi_path_filename
-from hmmtuf.helpers import make_viterbi_path
-from hmmtuf.helpers import make_tuf_del_tuf_path_filename
-from hmmtuf.helpers import make_viterbi_sequence_path
+from webapp_utils.helpers import make_viterbi_path_filename
+from webapp_utils.helpers import make_viterbi_path
+from webapp_utils.helpers import make_tuf_del_tuf_path_filename
+from webapp_utils.helpers import make_viterbi_sequence_path
 from hmmtuf_home.models import RegionModel, HMMModel,  RegionGroupTipModel
 from hmmtuf_compute.tasks_helpers import build_files_map, update_for_exception
 
@@ -134,6 +134,8 @@ def compute_group_viterbi_path(task_id, hmm_name, group_tip, remove_dirs, use_sp
         if use_spade:
             actor_input["nucleods_path"] = make_viterbi_sequence_path(task_id=task_id,
                                                                       extra_path=chromosome + "/" + region_model.name)
+
+            make_viterbi_path
         try:
 
             viterbi_calculator = ViterbiPathCalulation(input=actor_input)

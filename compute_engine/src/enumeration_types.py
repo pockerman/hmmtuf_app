@@ -21,6 +21,7 @@ class JobType(Enum):
     VITERBI_SEQUENCE_COMPARE = 4
     VITERBI_GROUP_ALL = 5
     KMER = 6
+    BED_COMPARISON = 7
 
 class BackendType(Enum):
     """

@@ -1,6 +1,6 @@
 from django.http import HttpResponse
 from django.template import loader
-from file_loader.forms import BasicFileLoadErrorHandler
+from webapp_utils.forms_utils import BasicFileLoadErrorHandler
 
 from compute_engine import OK
 
@@ -18,6 +18,9 @@ class LoadBedFile(object):
     def get_viterbi_file(self):
         return self._viterbi_checker.file_loaded
 
+    def as_dict(self):
+        return {"viterbi_filename": self.get_bed_file(), "bed_filename": self.get_viterbi_file()}
+
     def check(self, request):
 
         # check
@@ -25,7 +28,11 @@ class LoadBedFile(object):
 
         # if fail return an error message
         if response is not OK:
-            template = loader.get_template(self._template_html)
+
+            if type(self._template_html) == 'str':
+                template = loader.get_template(self._template_html)
+            else:
+                template = self._template_html
             self.response = HttpResponse(template.render({"error_found": "Bed file not specified"}, request))
             return not OK
 

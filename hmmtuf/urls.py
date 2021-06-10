@@ -23,8 +23,6 @@ from .config import REGIONS_FILES_ROOT
 from .config import REGIONS_FILES_URL
 from .config import VITERBI_PATHS_FILES_URL
 from .config import VITERBI_PATHS_FILES_ROOT
-from .config import VITERBI_SEQ_COMPARISON_FILES_ROOT
-from .config import VITERBI_SEQ_COMPARISON_FILES_URL
 
 # urlpatterns for the HMMTuf application
 urlpatterns = [
@@ -42,6 +40,6 @@ urlpatterns = [
 urlpatterns += static(REGIONS_FILES_URL, document_root=REGIONS_FILES_ROOT)
 urlpatterns += static(VITERBI_PATHS_FILES_URL, document_root=VITERBI_PATHS_FILES_ROOT)
 urlpatterns += static(VITERBI_PATHS_FILES_URL, document_root=VITERBI_PATHS_FILES_ROOT)
-urlpatterns += static(VITERBI_SEQ_COMPARISON_FILES_URL, document_root=VITERBI_SEQ_COMPARISON_FILES_ROOT)
+
 
 

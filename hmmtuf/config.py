@@ -112,9 +112,9 @@ if DEBUG:
     VITERBI_SEQ_FILES_ROOT = '%s/computations/viterbi_paths/' % BASE_DIR
     VITERBI_SEQ_FILES_URL = '%s/computations/viterbi_paths/' % BASE_DIR
 
-    # path to where to store the computed comparison of Viterbi paths
-    VITERBI_SEQ_COMPARISON_FILES_ROOT = '%s/computations/viterbi_seqs_comparisons/' % BASE_DIR
-    VITERBI_SEQ_COMPARISON_FILES_URL = '%s/computations/viterbi_seqs_comparisons/' % BASE_DIR
+    # path to store the result of bed comparison computation
+    BED_COMPARE_FILES_ROOT = '%s/computations/bed_comparison/' % BASE_DIR
+    BED_COMPARE_FILES_URL = '%s/computations/bed_comparison/' % BASE_DIR
 
 elif LOCAL_DEPLOY:
 

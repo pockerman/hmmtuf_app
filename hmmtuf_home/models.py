@@ -3,6 +3,7 @@ from django.core.files.storage import FileSystemStorage
 
 from compute_engine.src.enumeration_types import JobResultEnum
 from compute_engine import DEFAULT_ERROR_EXPLANATION
+from webapp_utils.model_utils import ComputationModel
 from hmmtuf.config import REGIONS_FILES_ROOT
 from hmmtuf.config import HMM_FILES_ROOT
 
@@ -15,6 +16,7 @@ def upload_region_file(instance, filename):
     return REGIONS_FILES_ROOT + filename #'/'.join(['content', instance.user.username, filename])
 
 
+'''
 class ComputationModel(models.Model):
     """
     Abstract base class for DB computation
@@ -33,7 +35,7 @@ class ComputationModel(models.Model):
 
     class Meta:
         abstract = True
-
+'''
 
 class FilesModel(models.Model):
     """
