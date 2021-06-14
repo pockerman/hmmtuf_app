@@ -65,12 +65,22 @@ class IndexExists(Exception):
     def  __init__(self, index) -> None:
         self.message = "Index " + str(index) + " already exists"
 
+    def __str__(self):
+        return self.message
+
 class InvalidReadingMode(Exception):
     def __init__(self, mode: str, values: list) -> None:
         self.message = "Reading mode " + mode + " not in " + str(values)
 
+    def __str__(self):
+        return self.message
+
 class InvalidFileFormat(Exception):
     def __init__(self, filename):
         self.message = f"File {filename} has incorrect format."
+
+
+    def __str__(self):
+        return self.message
 
 

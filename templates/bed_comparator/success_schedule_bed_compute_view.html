@@ -20,10 +20,9 @@
 {% elif  error_task_failed %}
 <div class="row">
     <div class="col-lg-8 mb-4">
-        <h4>Viterbi path calculation task FAILED</h4>
-        <h5>Task id: {{ task_id }}</h5>
+        <h4>Bed comparison calculation task FAILED</h4>
         <h5>ERROR: Task {{ task_id }} failed</h5>
-        <h5>MESSAGE: {{ computation.error_explanation }}</h5>
+        <h5>MESSAGE: {{ error_explanation }}</h5>
     </div>
 </div>
 {% else %}

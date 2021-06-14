@@ -80,11 +80,12 @@ def make_bed_compare_path(task_id: str) -> Path:
 
 
 def make_bed_compare_filename_path(task_id: str, bed_name: str) -> Path:
-    return Path(BED_COMPARE_FILES_ROOT +  task_id.replace('-', '_') + "/" + bed_name)
+    return Path(BED_COMPARE_FILES_ROOT + task_id.replace('-', '_') + "/" + bed_name)
 
 
 def make_viterbi_compare_filename_path(task_id: str, viterbi_name: str) -> Path:
-    return Path(BED_COMPARE_FILES_ROOT +  task_id.replace('-', '_') + "/" + viterbi_name)
+    return  make_bed_compare_filename_path(task_id=task_id, bed_name=viterbi_name)
+    
 
 
 

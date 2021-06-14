@@ -23,11 +23,6 @@ def search_with_step_size(viterbi_filename: Path, bed_file: Path, step_size: int
         start = item[1]
         end = item[2]
 
-
-
-        if start == 2124100:
-            print(start, ", ", end)
-
         if start >= end:
             raise ValueError("Invalid start/end indexes {0}/{1}".format(start, end))
 
@@ -52,9 +47,6 @@ def search_with_step_size(viterbi_filename: Path, bed_file: Path, step_size: int
     print(state_counters)
     print(len(not_found))
     print(not_found)
-
-
-
 
 
 def search_default(viterbi_filename: Path, bed_file: Path) -> None:

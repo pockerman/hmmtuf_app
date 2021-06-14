@@ -6,7 +6,7 @@ from django.shortcuts import redirect
 from django.template import loader
 from django.http import HttpResponse
 from compute_engine import OK
-from webapp_utils.helpers import make_bed_compare_path, make_bed_compare_filename_path, make_viterbi_compare_filename_path
+from webapp_utils.helpers import make_bed_compare_path
 from .forms import LoadBedFile
 from .models import BedComparisonModel
 
@@ -42,19 +42,18 @@ def load_bed_file_view(request):
         print(kwargs['bed_filename'].temporary_file_path())
         print(kwargs['bed_filename'].name)
 
+        #import pdb
+        #pdb.set_trace()
+
         # generate a new model and save
         model = BedComparisonModel()
         model.task_id = task_id
 
-        path_bed = make_bed_compare_filename_path(task_id=task_id, bed_name=kwargs['bed_filename'].name)
-        path_viterbi = make_viterbi_compare_filename_path(task_id=task_id, viterbi_name=kwargs['viterbi_filename'].name)
+        # build a DB model to monitor
+        model = model.build_from_form(form=form, save=True)
 
-        model.viterbi_filename = path_bed
-        model.bed_filename = path_viterbi
-
-        model.save()
-        #task_id = BedComparisonModel.compute(data=kwargs)
-
+        # schedule the computation
+        BedComparisonModel.compute(model)
 
         return redirect('success_load_bed_view', task_id=task_id)
 
@@ -69,8 +68,18 @@ def success_load_bed_view(request, task_id: str) -> HttpResponse:
     """
     template = loader.get_template(template_ids[success_load_bed_view.__name__])
 
+    # check if computation finished
+    model = BedComparisonModel.objects.get(task_id=task_id)
 
+    if model.pending():
+        return HttpResponse(template.render({"show_get_results_button": True,
+                                             "task_id": task_id,
+                                             "task_status": model.result}, request))
+    elif model.failed():
+        return HttpResponse(template.render({"error_task_failed": True, "task_id": task_id,
+                                             "error_explanation": model.error_explanation}, request))
 
     return HttpResponse(template.render({"show_get_results_button": True, "task_id": task_id}, request))
+
 
 

@@ -22,3 +22,33 @@ class ComputationModel(models.Model):
 
     class Meta:
         abstract = True
+
+    @staticmethod
+    def response_dict() -> dict:
+        response = dict()
+        response["task_id"] = ""
+        response["result"] = ""
+        response["error_explanation"] = DEFAULT_ERROR_EXPLANATION
+        response["computation_type"] = ""
+
+    def finished(self):
+        return self.result != JobResultEnum.PENDING.name
+
+    def pending(self):
+        return self.result == JobResultEnum.PENDING.name
+
+    def failed(self):
+        return self.result == JobResultEnum.FAILURE.name
+
+    def update_for_exception(self, err_msg: str, save: bool = True, result: dict = None):
+
+        self.error_explanation = err_msg
+        self.result = JobResultEnum.FAILURE.name
+
+        if save:
+            self.save()
+
+        if result is not None:
+            result["result"] = JobResultEnum.FAILURE.name
+            result["error_explanation"] = err_msg
+        return self, result
