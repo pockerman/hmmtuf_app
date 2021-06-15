@@ -1,11 +1,18 @@
 import uuid
 import os
+from pathlib import Path
 
 from django.shortcuts import render
 from django.shortcuts import redirect
 from django.template import loader
 from django.http import HttpResponse
+from wsgiref.util import FileWrapper
+
+# Import mimetypes module
+import mimetypes
+
 from compute_engine import OK
+from compute_engine.src.utils import read_json
 from webapp_utils.helpers import make_bed_compare_path
 from .forms import LoadBedFile
 from .models import BedComparisonModel
@@ -14,6 +21,7 @@ from .models import BedComparisonModel
 template_ids = dict()
 template_ids['load_bed_file_view'] = 'bed_comparator/load_bed_file_view.html'
 template_ids['success_load_bed_view'] = 'bed_comparator/success_schedule_bed_compute_view.html'
+
 
 def load_bed_file_view(request):
 
@@ -67,6 +75,7 @@ def success_load_bed_view(request, task_id: str) -> HttpResponse:
     identified by the task_id
     """
     template = loader.get_template(template_ids[success_load_bed_view.__name__])
+    #task_id = '9227de7c-67cb-447f-bed6-39f99da5a442'
 
     # check if computation finished
     model = BedComparisonModel.objects.get(task_id=task_id)
@@ -79,7 +88,48 @@ def success_load_bed_view(request, task_id: str) -> HttpResponse:
         return HttpResponse(template.render({"error_task_failed": True, "task_id": task_id,
                                              "error_explanation": model.error_explanation}, request))
 
-    return HttpResponse(template.render({"show_get_results_button": True, "task_id": task_id}, request))
+    # the task has finished. load the
+    # summary
+    summary_filename = model.summary_filename
+
+    summary = read_json(filename=Path(summary_filename))
+
+    total = 0
+    for key in summary:
+        total += summary[key]
+
+    if total != 0:
+        for key in summary:
+            summary[key] = (summary[key], float(summary[key]) / float(total))
+
+    return HttpResponse(template.render({"summary": summary,
+                                         "total": total, "task_id": task_id}, request))
+
+
+def download_bed_result_csv(request, task_id):
+    """
+    Manages the download request
+    """
+
+    # check if computation finished
+    model = BedComparisonModel.objects.get(task_id=task_id)
+    result_filename = model.result_filename
+
+    # open file for read
+    path = open(result_filename, 'r')
+
+    # Set the mime type
+    mime_type, _ = mimetypes.guess_type(result_filename)
+
+    # Set the return value of the HttpResponse
+    response = HttpResponse(path, content_type=mime_type)
+
+    # Set the HTTP header for sending to browser
+    response['Content-Disposition'] = "attachment; filename=%s" % 'result.csv'
+
+    print(response)
+    return response
+
 
 
 
