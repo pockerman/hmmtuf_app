@@ -3,7 +3,7 @@ from django.http import HttpResponse
 from django.template import loader
 
 from compute_engine import OK
-from hmmtuf import INVALID_ITEM
+from hmmtuf.constants import INVALID_ITEM
 from hmmtuf_home.models import HMMModel, RegionModel
 
 

@@ -6,7 +6,8 @@ from django.core.exceptions import ObjectDoesNotExist
 from compute_engine.src.windows import WindowType
 from compute_engine import OK
 
-from hmmtuf import INVALID_TASK_ID, INVALID_ITEM, ENABLE_SPADE
+from hmmtuf.constants import INVALID_TASK_ID, INVALID_ITEM
+from hmmtuf.config import ENABLE_SPADE
 from hmmtuf.celery import celery_app
 from hmmtuf_home.models import HMMModel, RegionModel, RegionGroupTipModel
 from hmmtuf_compute import dash_viewer

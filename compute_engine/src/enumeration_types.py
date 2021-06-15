@@ -21,6 +21,7 @@ class JobType(Enum):
     VITERBI_SEQUENCE_COMPARE = 4
     VITERBI_GROUP_ALL = 5
     KMER = 6
+    BED_COMPARISON = 7
 
 class BackendType(Enum):
     """
@@ -53,5 +54,6 @@ class FileReaderType(Enum):
     QUAD_BED = 10
     REP_BED = 11
     REPEATS_INFO_BED = 12
+    VITERBI_PATH = 13
 
 

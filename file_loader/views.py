@@ -4,7 +4,7 @@ from django.template import loader
 from django.core.exceptions import ObjectDoesNotExist
 
 
-from hmmtuf.helpers import get_configuration
+from webapp_utils.helpers import get_configuration
 from hmmtuf_home.models import HMMModel, RegionModel, RegionGroupTipModel
 from compute_engine.src.utils import extract_file_names, extract_path
 from compute_engine import OK

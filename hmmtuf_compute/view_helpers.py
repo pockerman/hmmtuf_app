@@ -11,11 +11,11 @@ from compute_engine.src.dash_helpers import create_figure_plot, get_layout
 
 from compute_engine import INFO
 from hmmtuf_compute import dash_viewer
-from hmmtuf.helpers import make_bed_path
-from hmmtuf.helpers import get_configuration
-from hmmtuf import INVALID_TASK_ID
+from webapp_utils.helpers import make_bed_path
+from webapp_utils.helpers import get_configuration
+from hmmtuf.constants import INVALID_TASK_ID
 from hmmtuf.config import DATABASES
-from hmmtuf_home.models import DistanceSequenceTypeModel, DistanceMetricTypeModel, RegionGroupTipModel, RegionModel
+from hmmtuf_home.models import DistanceSequenceTypeModel, DistanceMetricTypeModel, RegionModel
 
 from .models import ViterbiComputationModel, GroupViterbiComputationModel
 

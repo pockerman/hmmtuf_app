@@ -6,7 +6,7 @@ from django.template import loader
 from compute_engine.src.constants import OK
 from compute_engine.src.hmm_builder import create_hmm_model_from_form
 
-from hmmtuf.helpers import make_hmm_file_path
+from webapp_utils.helpers import make_hmm_file_path
 from hmmtuf_home.models import HMMModel
 from .forms import HMMFormCreator
 

@@ -5,8 +5,8 @@ import shutil
 import random
 from pathlib import Path
 
-from hmmtuf import ENABLE_SPADE, SPADE_PATH
-from compute_engine.src.constants import INFO, WARNING
+#from hmmtuf import ENABLE_SPADE, SPADE_PATH
+from compute_engine.src.constants import INFO, WARNING, ENABLE_SPADE, SPADE_PATH
 from compute_engine.src.cengine_configuration import TREAT_ERRORS_AS_WARNINGS
 from compute_engine.src.exceptions import Error
 from compute_engine.src.tuf_core_helpers import write_from_weblogo

@@ -62,7 +62,7 @@ def partition_range(start, end, npieces):
     return chunks
 
 
-def read_json(filename):
+def read_json(filename: Path) -> dict:
 
     """
     Read the json configuration file and

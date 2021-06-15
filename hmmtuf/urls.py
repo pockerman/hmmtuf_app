@@ -23,8 +23,6 @@ from .config import REGIONS_FILES_ROOT
 from .config import REGIONS_FILES_URL
 from .config import VITERBI_PATHS_FILES_URL
 from .config import VITERBI_PATHS_FILES_ROOT
-from .config import VITERBI_SEQ_COMPARISON_FILES_ROOT
-from .config import VITERBI_SEQ_COMPARISON_FILES_URL
 
 # urlpatterns for the HMMTuf application
 urlpatterns = [
@@ -32,7 +30,7 @@ urlpatterns = [
     path('', include('hmmtuf_home.urls')),
     path('load_file/', include('file_loader.urls')),
     path('compute/', include('hmmtuf_compute.urls')),
-
+    path('load_bed/', include('bed_comparator.urls')),
     #path('region_extractor/', include('region_extractor.urls')),
     path('hmm_creator/', include('hmm_creator.urls')),
     path('django_plotly_dash/', include('django_plotly_dash.urls')),
@@ -42,6 +40,6 @@ urlpatterns = [
 urlpatterns += static(REGIONS_FILES_URL, document_root=REGIONS_FILES_ROOT)
 urlpatterns += static(VITERBI_PATHS_FILES_URL, document_root=VITERBI_PATHS_FILES_ROOT)
 urlpatterns += static(VITERBI_PATHS_FILES_URL, document_root=VITERBI_PATHS_FILES_ROOT)
-urlpatterns += static(VITERBI_SEQ_COMPARISON_FILES_URL, document_root=VITERBI_SEQ_COMPARISON_FILES_ROOT)
+
 
 

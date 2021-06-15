@@ -10,7 +10,6 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.1/ref/settings/
 """
 
-from pathlib import Path
 from .config import BASE_DIR
 from .config import DEBUG
 from .config import USE_CELERY
@@ -23,10 +22,6 @@ from .config import STATIC_ROOT
 from .config import STATICFILES_DIRS
 from .config import MEDIA_URL
 from .config import MEDIA_ROOT
-from .config import REGIONS_FILES_ROOT
-from .config import HMM_FILES_ROOT
-from .config import VITERBI_PATHS_FILES_ROOT
-from .config import VITERBI_SEQ_FILES_ROOT
 from .config import USE_DJANGO_EXTENSIONS
 
 # Quick-start development settings - unsuitable for production
@@ -57,6 +52,7 @@ INSTALLED_APPS.append('hmmtuf_home')
 INSTALLED_APPS.append('file_loader')
 INSTALLED_APPS.append('hmmtuf_compute')
 INSTALLED_APPS.append('hmm_creator')
+INSTALLED_APPS.append('bed_comparator')
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

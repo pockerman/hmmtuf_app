@@ -2,30 +2,17 @@
 from django.http import HttpResponse
 from django.template import loader
 
+from webapp_utils.forms_utils import BasicFileLoadErrorHandler
 from compute_engine import OK
 
 
-class ErrorHandler(object):
+class ErrorHandler(BasicFileLoadErrorHandler):
 
     def __init__(self, filename, item_name, template_html):
-        self._filename = filename
+        super(ErrorHandler, self).__init__(filename=filename)
         self._item_name = item_name
         self._template_html = template_html
-        self._response = None
-        self._file = None
         self._name = None
-
-    @property
-    def response(self):
-        return self._response
-
-    @response.setter
-    def response(self, value):
-        self._response = value
-
-    @property
-    def file_loaded(self):
-        return self._file
 
     @property
     def name(self):
@@ -33,24 +20,20 @@ class ErrorHandler(object):
 
     def check(self, request):
 
-        file_loaded = request.FILES.get(self._filename, None)
+        basic_response = super(ErrorHandler, self).check(request=request)
 
-        if file_loaded is None:
+        if basic_response is not OK:
             template = loader.get_template(self._template_html)
             self._response = HttpResponse(template.render({"error_found": "File not specified"}, request))
 
-        if self._response is not None:
             return not OK
 
         name = request.POST.get(self._item_name, '')
         if name == '':
             template = loader.get_template(self._template_html)
             self._response = HttpResponse(template.render({"error_found": "Name not specified"}, request))
-
-        if self._response is not None:
             return not OK
 
-        self._file = file_loaded
         self._name = name
         return OK
 
