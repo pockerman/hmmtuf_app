@@ -51,9 +51,9 @@ class BedComparisonModel(ComputationModel):
         self.computation_type = BedComparisonModel.JOB_TYPE
         self.result = JobResultEnum.PENDING.name
         self.result_filename = make_bed_compare_filename_path(task_id=self.task_id,
-                                                             bed_name="result.csv")
+                                                              bed_name="result.csv")
         self.summary_filename = make_bed_compare_filename_path(task_id=self.task_id,
-                                                              bed_name="summary.json")
+                                                               bed_name="summary.json")
 
         fs = FileSystemStorage(BED_COMPARE_FILES_ROOT)
 

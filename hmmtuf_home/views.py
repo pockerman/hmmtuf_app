@@ -6,6 +6,8 @@ from django.http import HttpResponse
 from django.template import loader
 from django.shortcuts import redirect
 from django.contrib import messages
+from django.views.defaults import page_not_found
+from django.views.defaults import server_error
 from compute_engine.src.enumeration_types import JobResultEnum
 from hmmtuf.config import VITERBI_PATHS_FILES_ROOT
 from hmmtuf.config import DB_NAME
@@ -14,6 +16,14 @@ from .models import RegionModel
 from .models import HMMModel
 from .models import DistanceSequenceTypeModel
 from .models import DistanceMetricTypeModel
+
+template_ids = dict()
+template_ids['home_view'] = 'hmmtuf_home/index.html'
+template_ids['delete_region_files_view'] = 'hmmtuf_home/delete_region_files_view.html'
+template_ids['delete_hmm_files_view'] = 'hmmtuf_home/delete_hmm_files_view.html'
+template_ids['page_not_found_handler'] = '404.html'
+template_ids['server_error_handler'] = '500.html'
+
 
 
 # Create your views here.
@@ -135,5 +145,15 @@ def delete_task_directories_view(request):
 
     template = loader.get_template(template_html)
     return HttpResponse(template.render(context, request))
+
+
+def page_not_found_handler(request, exception):
+    return page_not_found(request=request,
+                          exception=exception,
+                          template_name=template_ids[page_not_found_handler.__name__])
+
+
+def server_error_handler(request):
+    return server_error(request=request, template_name=template_ids[server_error_handler.__name__])
 
 

@@ -6,7 +6,7 @@ from django.shortcuts import render
 from django.shortcuts import redirect
 from django.template import loader
 from django.http import HttpResponse
-from wsgiref.util import FileWrapper
+from django.http import Http404
 
 # Import mimetypes module
 import mimetypes
@@ -28,8 +28,6 @@ def load_bed_file_view(request):
     template = loader.get_template(template_ids[load_bed_file_view.__name__])
     if request.method == 'POST':
 
-        #import pdb
-        #pdb.set_trace()
         form = LoadBedFile(template_html=template)
         if form.check(request=request) is not OK:
             return form.response
@@ -44,14 +42,11 @@ def load_bed_file_view(request):
         try:
             os.makedirs(name=dir_path)
         except Exception as e:
-            print("Could not create directory")
-            return redirect('/')
+            print(str(e))
+            raise e
 
         print(kwargs['bed_filename'].temporary_file_path())
         print(kwargs['bed_filename'].name)
-
-        #import pdb
-        #pdb.set_trace()
 
         # generate a new model and save
         model = BedComparisonModel()
@@ -75,10 +70,13 @@ def success_load_bed_view(request, task_id: str) -> HttpResponse:
     identified by the task_id
     """
     template = loader.get_template(template_ids[success_load_bed_view.__name__])
-    #task_id = '9227de7c-67cb-447f-bed6-39f99da5a442'
 
-    # check if computation finished
-    model = BedComparisonModel.objects.get(task_id=task_id)
+    try:
+
+        # check if computation finished
+        model = BedComparisonModel.objects.get(task_id=task_id)
+    except BedComparisonModel.DoesNotExist as e:
+        raise Http404(f"Task {task_id} does not exist")
 
     if model.pending():
         return HttpResponse(template.render({"show_get_results_button": True,
@@ -92,7 +90,10 @@ def success_load_bed_view(request, task_id: str) -> HttpResponse:
     # summary
     summary_filename = model.summary_filename
 
-    summary = read_json(filename=Path(summary_filename))
+    try:
+        summary = read_json(filename=Path(summary_filename))
+    except Exception as e:
+        Http404(str(e))
 
     total = 0
     for key in summary:
@@ -111,12 +112,19 @@ def download_bed_result_csv(request, task_id):
     Manages the download request
     """
 
-    # check if computation finished
-    model = BedComparisonModel.objects.get(task_id=task_id)
+    try:
+        # check if computation finished
+        model = BedComparisonModel.objects.get(task_id=task_id)
+    except BedComparisonModel.DoesNotExist as e:
+        raise Http404(f"Task {task_id} does not exist")
+
     result_filename = model.result_filename
 
-    # open file for read
-    path = open(result_filename, 'r')
+    try:
+        # open file for read
+        path = open(result_filename, 'r')
+    except Exception as e:
+        raise Http404(str(e))
 
     # Set the mime type
     mime_type, _ = mimetypes.guess_type(result_filename)
@@ -126,8 +134,6 @@ def download_bed_result_csv(request, task_id):
 
     # Set the HTTP header for sending to browser
     response['Content-Disposition'] = "attachment; filename=%s" % 'result.csv'
-
-    print(response)
     return response
 
 

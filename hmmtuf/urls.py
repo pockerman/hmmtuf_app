@@ -40,6 +40,8 @@ urlpatterns = [
 urlpatterns += static(REGIONS_FILES_URL, document_root=REGIONS_FILES_ROOT)
 urlpatterns += static(VITERBI_PATHS_FILES_URL, document_root=VITERBI_PATHS_FILES_ROOT)
 urlpatterns += static(VITERBI_PATHS_FILES_URL, document_root=VITERBI_PATHS_FILES_ROOT)
+handler404 = 'hmmtuf_home.views.page_not_found_handler'
+handler500 = 'hmmtuf_home.views.server_error_handler'
 
 
 
