@@ -15,7 +15,7 @@ DATA_PATH = "%s/data/" % BASE_DIR
 
 USE_DJANGO_EXTENSIONS = True
 
-DB_TYPE = 'mysql'
+DB_TYPE = 'sqlite'
 
 # db name used. If you connect with MySql make
 # sure the name specified here is the same as the
@@ -54,7 +54,7 @@ if DB_TYPE == 'sqlite':
     DATABASES = {
             'default': {
                 'ENGINE': 'django.db.backends.sqlite3',
-                'NAME': BASE_DIR / DB_NAME + '.sqlite3',
+                'NAME': BASE_DIR / str(DB_NAME + '.sqlite3'),
             }
     }
 elif DB_TYPE == 'mysql':
