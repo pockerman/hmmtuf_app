@@ -1,0 +1,5 @@
+[client]
+database = hmmtuf_db_v1
+user = alex
+password = letmein13
+default-character-set = utf8
