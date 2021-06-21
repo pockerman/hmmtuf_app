@@ -1,4 +1,3 @@
-import ray
 from abc import abstractmethod
 from compute_engine.src.enumeration_types import JobResultEnum
 from compute_engine.src.exceptions import Error
@@ -9,7 +8,7 @@ from compute_engine.src import viterbi_calculation_helpers as viterbi_helpers
 
 
 
-class RayActorBase(object):
+class ActorBase(object):
     """
     Base class for deriving Ray Actors for the various
     computations
@@ -53,10 +52,10 @@ class RayActorBase(object):
     def start(self):
         raise Error(message="RayJob.start must be overriden")
 
-class ViterbiPathCalulation(RayActorBase):
+class ViterbiPathCalulation(ActorBase):
 
     def __init__(self, input: dict) -> None:
-        RayActorBase.__init__(self, input=input)
+        ActorBase.__init__(self, input=input)
 
     def start(self) -> None:
 
@@ -103,13 +102,13 @@ class ViterbiPathCalulation(RayActorBase):
         return self._output
 
 
-class SpadeCalculation(RayActorBase):
+class SpadeCalculation(ActorBase):
     """
     Wrap the Spade calculation
     """
 
     def __init__(self, input: dict) -> None:
-        RayActorBase.__init__(self, input=input)
+        ActorBase.__init__(self, input=input)
 
     def start(self) -> None:
 
@@ -146,8 +145,7 @@ class SpadeCalculation(RayActorBase):
         return self._output
 
 
-@ray.remote
-class ViterbiPathActor(RayActorBase):
+class ViterbiPathActor(ActorBase):
     """
     Actor for computing the Viterbi paths
     """
@@ -156,7 +154,7 @@ class ViterbiPathActor(RayActorBase):
 
         if input is None:
             raise Error(message="ViterbiPathActor with None input")
-        RayActorBase.__init__(self, input=input)
+        ActorBase.__init__(self, input=input)
 
     def start(self):
 
