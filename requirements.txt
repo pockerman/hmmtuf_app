@@ -17,3 +17,4 @@ seaborn
 dash
 django_plotly_dash
 django_extensions
+mysqlclient
