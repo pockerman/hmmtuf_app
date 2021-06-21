@@ -163,6 +163,10 @@ elif LOCAL_DEPLOY:
     VITERBI_PATHS_FILES_ROOT = 'http://localhost/viterbi_paths/'
     VITERBI_PATHS_FILES_URL = 'http://localhost/viterbi_paths/'
 
+    # path to store the result of bed comparison computation
+    BED_COMPARE_FILES_ROOT = '%s/computations/bed_comparison/' % BASE_DIR
+    BED_COMPARE_FILES_URL = '%s/computations/bed_comparison/' % BASE_DIR
+
 else:
 
     # these fields depend on where/how we actually
@@ -201,6 +205,10 @@ else:
     # path to where to store the computed comparison of Viterbi paths
     VITERBI_SEQ_COMPARISON_FILES_ROOT = '%s/computations/viterbi_seqs_comparisons/' % BASE_DIR
     VITERBI_SEQ_COMPARISON_FILES_URL = '%s/computations/viterbi_seqs_comparisons/' % BASE_DIR
+
+    # path to store the result of bed comparison computation
+    BED_COMPARE_FILES_ROOT = '%s/computations/bed_comparison/' % BASE_DIR
+    BED_COMPARE_FILES_URL = '%s/computations/bed_comparison/' % BASE_DIR
 
 if DEBUG is False and LOCAL_DEPLOY is False:
     if STATIC_URL == '' or STATIC_ROOT == '':
