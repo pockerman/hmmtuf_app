@@ -181,7 +181,8 @@ class NuclOutFileReader(DeaultReader):
                 for i in range(len(line_data)):
                     line_data[i] = line_data[i].strip()
 
-                lines.append(line_data)
+                if line_data [3] not in self._exclude_seqs:
+                    lines.append(line_data)
             return lines
 
 
@@ -222,9 +223,9 @@ class GQuadsFileReader(DeaultReader):
             for line in fh:
                 data = line.split(":")
                 region = data[1].split("\t")
-                has_repeats = False
+                has_gcquad = False
                 if 'True' in region[1]:
-                    has_repeats = True
+                    has_gcquad = True
 
                 region_data = region[0].split('_')
                 start_end = region_data[0].split('-')
@@ -254,7 +255,7 @@ class GQuadsFileReader(DeaultReader):
                     else:
                         continue
                 else:
-                    data_dir[(chromosome, start, end)] = [gc_avg, gc_min, gc_max, has_repeats]
+                    data_dir[(chromosome, start, end)] = [gc_avg, gc_min, gc_max, has_gcquad]
 
             return data_dir
 
