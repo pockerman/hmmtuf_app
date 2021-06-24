@@ -24,15 +24,14 @@ def main(input_path_dir: Path, outfile: str = 'nucl_out_missing.bed') -> None:
             # loop over the regions in the director
             regions = os.listdir(directory_path)
 
-            for region in regions:
-                if 'region' in region:
+            with open(directory_path / 'nucl_out_missing.bed', 'a', newline="\n") as fh:
+                writer = csv.writer(fh)
 
-                    region_path = directory_path / region
-                    print(region_path)
+                for region in regions:
+                    if 'region' in region:
 
-
-                    with open(region_path / 'nucl_out_missing.bed', 'w', newline="\n") as fh:
-                        writer = csv.writer(fh)
+                        region_path = directory_path / region
+                        print(region_path)
 
                         # spade output path
                         spade_output = region_path / 'spade_output'
