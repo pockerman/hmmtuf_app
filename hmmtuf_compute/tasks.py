@@ -9,7 +9,7 @@ from pathlib import Path
 from compute_engine import INFO, ERROR, DEFAULT_ERROR_EXPLANATION
 from compute_engine.src.enumeration_types import JobResultEnum
 from compute_engine.src import tufdel
-from compute_engine.src.ray_actors import ViterbiPathCalulation, SpadeCalculation
+from compute_engine.src.actors import ViterbiPathCalulation, SpadeCalculation
 
 from webapp_utils.helpers import make_viterbi_path_filename
 from webapp_utils.helpers import make_viterbi_path

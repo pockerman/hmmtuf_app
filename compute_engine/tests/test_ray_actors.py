@@ -4,7 +4,7 @@ from pathlib import Path
 
 from compute_engine.src.exceptions import Error
 from compute_engine.src.enumeration_types import JobResultEnum
-from compute_engine.src.ray_actors import  ViterbiPathActor
+from compute_engine.src.actors import  ViterbiPathActor
 
 class TestRayActors:
 

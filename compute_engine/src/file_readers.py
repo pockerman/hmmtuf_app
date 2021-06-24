@@ -54,6 +54,10 @@ class CsvFileReader(object):
         self._delimiter = delimiter
 
 
+    @property
+    def delimiter(self)-> str:
+        return self._delimiter
+
     def __call__(self, filename: Path) -> list:
         with open(filename, 'r', newline="\n") as fh:
             reader = csv.reader(fh, delimiter=self._delimiter)
@@ -181,7 +185,8 @@ class NuclOutFileReader(DeaultReader):
                 for i in range(len(line_data)):
                     line_data[i] = line_data[i].strip()
 
-                lines.append(line_data)
+                if line_data [3] not in self._exclude_seqs:
+                    lines.append(line_data)
             return lines
 
 
@@ -196,6 +201,36 @@ class NuclOutSeqFileReader(object):
         return read_sequence_from_nucl_out_file(filename=filename,
                                                 exclude_seqs=self._exclude_seqs,
                                                 delimiter=self._delimiter)
+
+class NuclMissingOutFileReader(CsvFileReader):
+
+    def __init__(self, delimiter: str=',', strip: bool=False) -> None:
+        super(NuclMissingOutFileReader, self).__init__(delimiter)
+        self._strip = strip
+
+    def __call__(self, filename: Path) -> list:
+
+        if not self._strip:
+            return super(NuclMissingOutFileReader, self).__call__(filename=filename)
+        else:
+            lines = super(NuclMissingOutFileReader, self).__call__(filename=filename)
+
+            stripped_lines = []
+
+            for line in lines:
+                line_data = line
+
+                assert len(line_data) == 8, f"Invalid file format length " \
+                                            f"of line is {len(line_data)} should have been 8"
+
+                line_data[1] = int(line_data[1])
+                line_data[2] = int(line_data[2])
+                line_data[5] = float(line_data[5])
+                line_data[6] = float(line_data[6]) if line_data[6] != 'NA' else line_data[5]
+                line_data[7] = float(line_data[7]) if line_data[7] != 'NA' else line_data[5]
+                stripped_lines.append(line_data)
+            return stripped_lines
+
 
 class GQuadsFileReader(DeaultReader):
 
@@ -222,9 +257,9 @@ class GQuadsFileReader(DeaultReader):
             for line in fh:
                 data = line.split(":")
                 region = data[1].split("\t")
-                has_repeats = False
+                has_gcquad = False
                 if 'True' in region[1]:
-                    has_repeats = True
+                    has_gcquad = True
 
                 region_data = region[0].split('_')
                 start_end = region_data[0].split('-')
@@ -254,7 +289,7 @@ class GQuadsFileReader(DeaultReader):
                     else:
                         continue
                 else:
-                    data_dir[(chromosome, start, end)] = [gc_avg, gc_min, gc_max, has_repeats]
+                    data_dir[(chromosome, start, end)] = [gc_avg, gc_min, gc_max, has_gcquad]
 
             return data_dir
 
@@ -365,6 +400,7 @@ class JsonReader(object):
 class FileReaderFactory(object):
     def __init__(self, reader_type: FileReaderType, mode: str) -> None:
         self._reader_type = reader_type
+        self._mode = mode
 
     def __call__(self, filename: Path, **kwargs):
 
@@ -406,6 +442,9 @@ class FileReaderFactory(object):
             return reader(filename=filename)
         elif self._reader_type == FileReaderType.VITERBI_PATH:
             reader = ViterbiPathReader(mode=mode)
+            return reader(filename=filename)
+        elif self._reader_type == FileReaderType.NUCL_OUT_MISSING:
+            reader = NuclMissingOutFileReader()
             return reader(filename=filename)
         else:
             raise ValueError("Unknown FileReaderType={0}".format(self._reader_type))

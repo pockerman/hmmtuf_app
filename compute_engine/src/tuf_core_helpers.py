@@ -4,6 +4,7 @@ Helper functions for tuf-core files manipulation
 import numpy as np
 import os
 import shutil
+from pathlib import Path
 from compute_engine.src.utils import INFO
 from compute_engine.src.utils import get_sequence_chunks
 
@@ -41,9 +42,116 @@ def get_unit_seq_fasta(working_dir):
         #seq = seq.replace("-","")
         return counter, seq
 
-def write_from_weblogo(weblogo_dir, out_repeats, out_nucleods,
-                       out_repeats_info, chrom,
-                       start, stop, region_type, count_check=12):
+def is_contributing_weblogo(weblogo_dir: Path, count_check: int=12) -> bool:
+
+    nucleods = ['A', 'C', 'G', 'T']
+    count = 0
+    seq = ''
+
+
+    line_counter = 0
+    with open(weblogo_dir / 'weblogo.txt', 'r') as f:
+
+        for line in f:
+            count += 1
+
+            # don't process the comment line
+            if line.startswith('#'):
+                continue
+
+            # checkout from the line which has the maximum
+            new_line = line.split('\t')
+
+            if len(new_line) > 5:
+
+                # get the bases counts
+                new_line = new_line[1:5]
+                new_line = [int(item) for item in new_line]
+                max_item = max(new_line)
+                nucleod_idx = new_line.index(max_item)
+
+                if nucleod_idx >= 4:
+                    raise ValueError("Invalid index for nucleod. "
+                                     "Index {0} not in [0,3]".format(nucleod_idx))
+
+                nucleod = nucleods[nucleod_idx]
+                seq += nucleod
+                line_counter += 1
+
+        # TODO: Make this application defined?
+        # write only if it is worth i.e. we have at least
+        # 12 observations?
+        if count > count_check:
+
+            if len(seq) != 0:
+                return True
+
+            return False
+
+        else:
+            return False
+
+
+def get_statistics_from_weblogo(weblogo_dir: Path,
+                                repeat: str, count_check: int=12) -> tuple:
+
+    nucleods = ['A', 'C', 'G', 'T']
+    count = 0
+    seq = ''
+
+    # holds the counters for each base in the repeat
+    stats_dir = {}
+    line_counter = 0
+    with open(weblogo_dir / 'weblogo.txt', 'r') as f:
+
+
+        for line in f:
+            count += 1
+
+            # don't process the comment line
+            if line.startswith('#'):
+                continue
+
+            # checkout from the line which has the maximum
+            new_line = line.split('\t')
+
+            if len(new_line) > 5:
+
+                # get the bases counts
+                new_line = new_line[1:5]
+                new_line = [int(item) for item in new_line]
+                stats_dir [ line_counter ] = new_line
+                max_item = max(new_line)
+                nucleod_idx = new_line.index(max_item)
+
+                if nucleod_idx >= 4:
+                    raise ValueError("Invalid index for nucleod. "
+                                     "Index {0} not in [0,3]".format(nucleod_idx))
+
+                nucleod = nucleods[nucleod_idx]
+                seq += nucleod
+                line_counter += 1
+
+        # TODO: Make this application defined?
+        # write only if it is worth i.e. we have at least
+        # 12 observations?
+        if count > count_check:
+
+            if seq != repeat:
+                return False, {}
+                #raise ValueError("The given repeat does not "
+                #                "match the constructed sequence")
+
+            return True, stats_dir
+
+        else:
+            return False, {}
+            #raise ValueError(f"The computed count {count} does not match the given {count_check}")
+
+
+def write_from_weblogo(weblogo_dir: Path, out_repeats, out_nucleods,
+                       out_repeats_info, chrom: str,
+                       start: int, stop: int, region_type: str, count_check: int=12):
 
     """
     write to the outrep and to the nucl_out files
@@ -96,6 +204,10 @@ def write_from_weblogo(weblogo_dir, out_repeats, out_nucleods,
             out_nucleods.write(chrom + '\t' + str(start) + '\t' + str(stop) + '\t' + seq + '\t' + region_type + '\n')
             out_repeats_info.write(chrom + '\t' + str(start) + '\t' + str(stop) + "\t" +
                                    str(max(align_seq_count, unit_seq_count)) + "\t" + align_seq + "\t" + unit_seq +'\n')
+    else:
+
+        # this is now classified as NO_REPEATS
+        out_nucleods.write(chrom + '\t' + str(start) + '\t' + str(stop) + '\t' + "NO_REPEATS" + '\t' + region_type + '\n')
 
 
 def gcpercent(cseq, chunk_size=100):
