@@ -69,7 +69,7 @@ def create_repeats_table(database_wrap: SQLiteDBConnector, repeats_file: Path) -
 
     for seq in seqs:
 
-        assert len(seq) == 12, f"Invalid seequence data size {len(seq)} not equal to 12"
+        assert len(seq) == 13, f"Invalid seequence data size {len(seq)} not equal to 13"
         chromosome = str(seq[0].strip())
         start_idx = int(seq[1])
         end_idx = int(seq[2])
@@ -79,16 +79,17 @@ def create_repeats_table(database_wrap: SQLiteDBConnector, repeats_file: Path) -
         gc = float(seq[5])
         gc_min = float(seq[6])
         gc_max = float(seq[7])
-        has_repeats = int(seq[8])
-        n_repeats = int(seq[9])
-        align_seq = str(seq[10])
-        unit_seq = str(seq[11])
+        has_gquad = int(seq[8])
+        has_repeats = int(seq[9])
+        n_repeats = int(seq[10])
+        align_seq = str(seq[11])
+        unit_seq = str(seq[12])
 
         sql = '''INSERT INTO repeats(chromosome, start_idx, end_idx, repeat_seq, 
-            hmm_state_id, gc, gc_min, gc_max, has_repeats, n_repeats, align_seq, unit_seq) values(?,?,?,?,?,?,?,?,?,?,?,?)'''
+            hmm_state_id, gc, gc_min, gc_max, has_gquad, has_repeats, n_repeats, align_seq, unit_seq) values(?,?,?,?,?,?,?,?,?,?,?,?,?)'''
 
         values = (chromosome, start_idx, end_idx, repeat, hmm_state_id,
-                  gc, gc_min, gc_max, has_repeats, n_repeats, align_seq, unit_seq)
+                  gc, gc_min, gc_max, has_gquad, has_repeats, n_repeats, align_seq, unit_seq)
         database_wrap.execute(sql=sql, values=values)
     print("{0} Done...".format(INFO))
 
@@ -284,44 +285,18 @@ def main(database_wrap: SQLiteDBConnector,
     create_distance_types_table(database_wrap=database_wrap)
     create_distance_metrics_table(database_wrap=database_wrap, metrics=metrics)
     create_repeats_table(database_wrap=database_wrap, repeats_file=repeats_file)
-    #create_group_tip_tbl(database_wrap=database_wrap, db_input_filename=db_input_filename)
+    create_group_tip_tbl(database_wrap=database_wrap, db_input_filename=db_input_filename)
     create_repeats_distances_table(database_wrap=database_wrap,
                                    data_dir=data_dir, metrics=metrics)
 
 
 if __name__ == '__main__':
 
-    db_file = "/home/alex/qi3/hmmtuf/release_db_v1.sqlite3"
-    repeats_file = Path("/home/alex/qi3/hmmtuf/computations/viterbi_paths/tmp/out/nucl_out.csv")
+    db_file = "/home/alex/qi3/hmmtuf/release_db_v3.sqlite3"
+    repeats_file = Path("/home/alex/qi3/hmmtuf/computations/viterbi_paths/tmp/out/nucl_out_v3.csv")
     data_dir = Path("/home/alex/qi3/hmmtuf/computations/distances/")
     chromosomes_dir = Path("/home/alex/qi3/hmmtuf/computations/viterbi_paths/")
     db_input_filename = Path('/home/alex/qi3/hmmtuf/data/regions/regions_descriptions.csv')
-
-    """
-    metrics = {'ham': "Hamming", 'mlipns': "MLIPNS",
-               'lev': "Levenshtein",
-               'damlev': "DamerauLevenshtein",
-               'jwink': "JaroWinkler",
-               'str': "StrCmp95",
-               'nw': "NeedlemanWunsch",
-               'sw': "SmithWaterman",
-               'got': "Gotoh",
-               'jac': "Jaccard",
-               'sor': "Sorensen",
-               'tve': "Tversky", 'ov': "Overlap",
-               'tan': "Tanimoto", 'cos': "Cosine",
-               'mon': "MongeElkan",
-               'bag': "Bag",
-               'lcsseq': "LCSSeq",
-               'lcsstr': "LCSStr", 'rat': "RatcliffObershelp",
-               'ari': "ArithNCD", 'rle': "RLENCD",
-               'bwt': "BWTRLENCD", 'sqr': "SqrtNCD",
-               'ent': "EntropyNCD", 'bz2': "BZ2NCD", 'lzm': "LZMANCD",
-               'zli': "ZLIBNCD", 'mra': "MRA", 'edi': "Editex",
-               'pre': "Prefix", 'pos': "Postfix",
-               'len': "Length", 'id': "Identity", 'mat': "Matrix",
-              }
-    """
 
     metrics = { "bag": "Bag", "cos": "Cosine", 'damlev': "DamerauLevenshtein", 'got': "Gotoh",
     'ham': "Hamming", 'jac': "Jaccard", 'jwink': "JaroWinkler",
