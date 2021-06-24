@@ -1,8 +1,8 @@
 from pathlib import Path
 import csv
-from compute_engine.src.file_readers import NuclOutFileReader, GQuadsFileReader, RepeatsInfoFileReader
+from compute_engine.src.file_readers import NuclOutFileReader, GQuadsFileReader, RepeatsInfoFileReader, NuclMissingOutFileReader
 
-def main(repeats_out_filename: Path, nucl_out_bed: Path,
+def main(repeats_out_filename: Path, nucl_out_bed: Path, missing_nucl_out_bed: Path,
          gquads_bed: Path, repeats_info_bed: Path) -> None:
 
     with open(repeats_out_filename, 'w', newline='\n') as wfh:
@@ -10,6 +10,11 @@ def main(repeats_out_filename: Path, nucl_out_bed: Path,
 
         nucl_reader = NuclOutFileReader(exclude_seqs=[])
         nucl_data = nucl_reader(filename=nucl_out_bed)
+
+        missing_nucl_reader = NuclMissingOutFileReader(delimiter="\t", strip=True)
+        missing_nucl_data = missing_nucl_reader(filename=missing_nucl_out_bed)
+
+        nucl_data.extend(missing_nucl_data)
 
         gquads = GQuadsFileReader(read_as_dict=True)
         gquads_data = gquads(filename=gquads_bed)
@@ -79,15 +84,16 @@ def main(repeats_out_filename: Path, nucl_out_bed: Path,
 
 
 
-
 if __name__ == '__main__':
 
     DATA_IN_PATH = Path('/home/alex/qi3/hmmtuf/computations/viterbi_paths/tmp/')
     DATA_OUT_PATH = Path('/home/alex/qi3/hmmtuf/computations/viterbi_paths/tmp/out/')
 
-    repeats_out_filename = DATA_OUT_PATH / 'nucl_out_v2.csv'
+    repeats_out_filename = DATA_OUT_PATH / 'nucl_out_v3.csv'
     nucl_out_bed = DATA_IN_PATH / 'nucl_out_out.bed'
+    missing_nucl_out_bed = DATA_IN_PATH / 'nucl_out_missing_out.bed'
     gquads_bed = DATA_IN_PATH / 'gquads_out.txt'
     repeats_info_bed = DATA_IN_PATH / 'repeates_info_file_out.bed'
     main(repeats_out_filename=repeats_out_filename,
-         nucl_out_bed=nucl_out_bed, gquads_bed=gquads_bed, repeats_info_bed=repeats_info_bed)
+         nucl_out_bed=nucl_out_bed,  missing_nucl_out_bed=missing_nucl_out_bed,
+         gquads_bed=gquads_bed, repeats_info_bed=repeats_info_bed)
