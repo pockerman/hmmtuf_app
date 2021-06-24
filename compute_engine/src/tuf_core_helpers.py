@@ -149,9 +149,9 @@ def get_statistics_from_weblogo(weblogo_dir: Path,
             #raise ValueError(f"The computed count {count} does not match the given {count_check}")
 
 
-def write_from_weblogo(weblogo_dir, out_repeats, out_nucleods,
-                       out_repeats_info, chrom,
-                       start, stop, region_type, count_check=12):
+def write_from_weblogo(weblogo_dir: Path, out_repeats, out_nucleods,
+                       out_repeats_info, chrom: str,
+                       start: int, stop: int, region_type: str, count_check: int=12):
 
     """
     write to the outrep and to the nucl_out files
@@ -204,6 +204,10 @@ def write_from_weblogo(weblogo_dir, out_repeats, out_nucleods,
             out_nucleods.write(chrom + '\t' + str(start) + '\t' + str(stop) + '\t' + seq + '\t' + region_type + '\n')
             out_repeats_info.write(chrom + '\t' + str(start) + '\t' + str(stop) + "\t" +
                                    str(max(align_seq_count, unit_seq_count)) + "\t" + align_seq + "\t" + unit_seq +'\n')
+    else:
+
+        # this is now classified as NO_REPEATS
+        out_nucleods.write(chrom + '\t' + str(start) + '\t' + str(stop) + '\t' + "NO_REPEATS" + '\t' + region_type + '\n')
 
 
 def gcpercent(cseq, chunk_size=100):
