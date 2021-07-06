@@ -26,9 +26,11 @@ template_ids['page_not_found_handler'] = '404.html'
 template_ids['server_error_handler'] = '500.html'
 
 
-def home_view(request):
+def home_view(request) -> HttpResponse:
+    """
+    Index page view
+    """
 
-    template_html = 'hmmtuf_home/index.html'
     template = loader.get_template(template_ids['home_view'])
 
     n_regions = 0
