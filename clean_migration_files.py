@@ -9,3 +9,6 @@ if __name__ == '__main__':
 
         if os.path.isdir(Path(app_name) / 'migrations'):
             shutil.rmtree(Path(app_name) / 'migrations')
+            os.mkdir(Path(app_name) / 'migrations')
+            str_cmd = f"touch {Path(app_name) / 'migrations'}/__init__.py"
+            os.system(str_cmd)
