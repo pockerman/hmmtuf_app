@@ -55,10 +55,10 @@ def load_hmm_json_view(request):
                                                     form=error_handler, save=True)
                 return redirect('success_load_view_hmm', hmm_name=hmm_inst.name)
             except Exception as e:
-                print(f"{ERROR} DB_ERROR occured {str(e)}")
-                return HttpResponse(template.render({"error_name_exist": f"DB ERROR {str(e)}"}, request))
+                print(f"{ERROR} DB_ERROR occurred {str(e)}")
+                return HttpResponse(template.render({"error_found": f"DB ERROR {str(e)}"}, request))
 
-        return HttpResponse(template.render({"error_name_exist": "The HMM name exists"}, request))
+        return HttpResponse(template.render({"error_found": f"The HMM name={error_handler.name} exists"}, request))
 
     template = loader.get_template('file_loader/load_hmm_view.html')
     return HttpResponse(template.render({}, request))
