@@ -8,6 +8,7 @@ from webapp_utils.helpers import get_configuration
 from hmmtuf_home.models import HMMModel, RegionModel, RegionGroupTipModel
 from compute_engine.src.utils import extract_file_names, extract_path
 from compute_engine import OK
+from compute_engine import ERROR
 from .forms import ErrorHandler, RegionLoadForm
 
 
@@ -32,6 +33,8 @@ def load_hmm_json_view(request):
     an HMM
     """
 
+    template = loader.get_template('file_loader/load_hmm_view.html')
+
     if request.method == 'POST':
 
         error_handler = ErrorHandler(filename="hmm_filename", item_name="hmm_name",
@@ -46,13 +49,15 @@ def load_hmm_json_view(request):
             model = HMMModel.objects.get(name=error_handler.name)
         except ObjectDoesNotExist:
 
-            hmm_inst = HMMModel()
-            hmm_inst = HMMModel.build_from_form(inst=hmm_inst,
-                                                form=error_handler, save=True)
+            try:
+                hmm_inst = HMMModel()
+                hmm_inst = HMMModel.build_from_form(inst=hmm_inst,
+                                                    form=error_handler, save=True)
+                return redirect('success_load_view_hmm', hmm_name=hmm_inst.name)
+            except Exception as e:
+                print(f"{ERROR} DB_ERROR occured {str(e)}")
+                return HttpResponse(template.render({"error_name_exist": f"DB ERROR {str(e)}"}, request))
 
-            return redirect('success_load_view_hmm', hmm_name=hmm_inst.name)
-
-        template = loader.get_template('file_loader/load_hmm_view.html')
         return HttpResponse(template.render({"error_name_exist": "The HMM name exists"}, request))
 
     template = loader.get_template('file_loader/load_hmm_view.html')
