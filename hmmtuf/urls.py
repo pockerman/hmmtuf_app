@@ -23,6 +23,7 @@ from .config import REGIONS_FILES_ROOT
 from .config import REGIONS_FILES_URL
 from .config import VITERBI_PATHS_FILES_URL
 from .config import VITERBI_PATHS_FILES_ROOT
+from .config import MEDIA_URL, MEDIA_ROOT
 
 # urlpatterns for the HMMTuf application
 urlpatterns = [
@@ -40,6 +41,7 @@ urlpatterns = [
 urlpatterns += static(REGIONS_FILES_URL, document_root=REGIONS_FILES_ROOT)
 urlpatterns += static(VITERBI_PATHS_FILES_URL, document_root=VITERBI_PATHS_FILES_ROOT)
 urlpatterns += static(VITERBI_PATHS_FILES_URL, document_root=VITERBI_PATHS_FILES_ROOT)
+urlpatterns += static(MEDIA_URL, document_root=MEDIA_ROOT)
 handler404 = 'hmmtuf_home.views.page_not_found_handler'
 handler500 = 'hmmtuf_home.views.server_error_handler'
 

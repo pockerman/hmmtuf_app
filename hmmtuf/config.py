@@ -110,8 +110,8 @@ if DEBUG:
 
     # don't specify it for the moment
     # as we use VITERBI_PATHS_FILES_ROOT
-    MEDIA_ROOT = ''
-    MEDIA_URL = ''
+    MEDIA_ROOT = '%s/media/' % BASE_DIR
+    MEDIA_URL = '/media/'
 
     # for some reason we need to have the full
     # path to the static files in Debug. Also
