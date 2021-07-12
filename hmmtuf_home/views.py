@@ -11,7 +11,7 @@ from django.views.defaults import server_error
 from compute_engine.src.enumeration_types import JobResultEnum
 from compute_engine import ERROR
 from hmmtuf.config import VITERBI_PATHS_FILES_ROOT
-from hmmtuf.config import DB_NAME
+from hmmtuf.config import DB_NAME, MEDIA_URL
 from hmmtuf_compute.models import GroupViterbiComputationModel, ViterbiComputationModel
 from .models import RegionModel
 from .models import HMMModel
@@ -63,7 +63,8 @@ def home_view(request) -> HttpResponse:
                "n_total_tasks": n_tasks,
                "n_success_tasks": n_success_tasks,
                "n_failed_tasks": n_failed_tasks,
-               "n_pending_tasks": n_pending_tasks}
+               "n_pending_tasks": n_pending_tasks,
+               "index_page": True, "MEDIA_URL": MEDIA_URL}
     return HttpResponse(template.render(context, request))
 
 
