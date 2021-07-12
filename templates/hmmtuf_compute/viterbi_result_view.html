@@ -28,12 +28,22 @@
 </div>
 {% else %}
 
+{% if use_spade %}
 <div class="row">
+
     <div class="col-lg-12" id="igv-browser">
     </div>
 </div>
+{% endif %}
+
+<div class="row text-center">
+    <a href="{% url 'download_viterbi_result_csv' task_id=task_id  %}" class="btn btn-primary">Download Viterbi path</a>
+</div>
+
 <br/>
 <br/>
+
+{% if use_spade %}
 <script>
 function hideShowDiv(idStr) {
       var x = document.getElementById(idStr);
@@ -52,6 +62,7 @@ function hideShowDiv(idStr) {
       }
 }
 </script>
+
 
 <script src="https://cdn.jsdelivr.net/npm/igv@2.6.2/dist/igv.min.js"></script>
 <script type="text/javascript">
@@ -173,5 +184,6 @@ var options =
 <script>
     var svg = d3.select("#canvas");
 </script>
+{% endif %}
 {% endif %}
 {% endblock inner_body %}

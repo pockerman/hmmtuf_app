@@ -9,8 +9,9 @@ from django.contrib import messages
 from django.views.defaults import page_not_found
 from django.views.defaults import server_error
 from compute_engine.src.enumeration_types import JobResultEnum
+from compute_engine import ERROR
 from hmmtuf.config import VITERBI_PATHS_FILES_ROOT
-from hmmtuf.config import DB_NAME
+from hmmtuf.config import DB_NAME, MEDIA_URL
 from hmmtuf_compute.models import GroupViterbiComputationModel, ViterbiComputationModel
 from .models import RegionModel
 from .models import HMMModel
@@ -25,24 +26,35 @@ template_ids['page_not_found_handler'] = '404.html'
 template_ids['server_error_handler'] = '500.html'
 
 
+def home_view(request) -> HttpResponse:
+    """
+    Index page view
+    """
 
-# Create your views here.
-def home_view(request):
+    template = loader.get_template(template_ids['home_view'])
 
-    template_html = 'hmmtuf_home/index.html'
-    template = loader.get_template(template_html)
+    n_regions = 0
+    n_hmm_models = 0
+    n_tasks = 0
+    n_success_tasks = 0
+    n_failed_tasks = 0
+    n_pending_tasks = 0
+    n_dist_metrics = 0
 
-    n_regions = RegionModel.objects.count()
-    n_hmm_models = HMMModel.objects.count()
-    n_tasks = GroupViterbiComputationModel.objects.count()
-    n_tasks += ViterbiComputationModel.objects.count()
-    n_success_tasks = len(GroupViterbiComputationModel.objects.filter(result=JobResultEnum.SUCCESS.name))
-    n_success_tasks += len(ViterbiComputationModel.objects.filter(result=JobResultEnum.SUCCESS.name))
-    n_failed_tasks = len(GroupViterbiComputationModel.objects.filter(result=JobResultEnum.FAILURE.name))
-    n_failed_tasks += len(ViterbiComputationModel.objects.filter(result=JobResultEnum.FAILURE.name))
-    n_pending_tasks = len(GroupViterbiComputationModel.objects.filter(result=JobResultEnum.PENDING.name))
-    n_pending_tasks += len(ViterbiComputationModel.objects.filter(result=JobResultEnum.PENDING.name))
-    n_dist_metrics = len(DistanceMetricTypeModel.objects.all())
+    try:
+        n_regions = RegionModel.objects.count()
+        n_hmm_models = HMMModel.objects.count()
+        n_tasks = GroupViterbiComputationModel.objects.count()
+        n_tasks += ViterbiComputationModel.objects.count()
+        n_success_tasks = len(GroupViterbiComputationModel.objects.filter(result=JobResultEnum.SUCCESS.name))
+        n_success_tasks += len(ViterbiComputationModel.objects.filter(result=JobResultEnum.SUCCESS.name))
+        n_failed_tasks = len(GroupViterbiComputationModel.objects.filter(result=JobResultEnum.FAILURE.name))
+        n_failed_tasks += len(ViterbiComputationModel.objects.filter(result=JobResultEnum.FAILURE.name))
+        n_pending_tasks = len(GroupViterbiComputationModel.objects.filter(result=JobResultEnum.PENDING.name))
+        n_pending_tasks += len(ViterbiComputationModel.objects.filter(result=JobResultEnum.PENDING.name))
+        n_dist_metrics = len(DistanceMetricTypeModel.objects.all())
+    except Exception as e:
+        print(f"{ERROR} DB error {str(e)}")
 
     context = {"db_name": DB_NAME,
                 "n_regions": n_regions,
@@ -51,7 +63,8 @@ def home_view(request):
                "n_total_tasks": n_tasks,
                "n_success_tasks": n_success_tasks,
                "n_failed_tasks": n_failed_tasks,
-               "n_pending_tasks": n_pending_tasks}
+               "n_pending_tasks": n_pending_tasks,
+               "index_page": True, "MEDIA_URL": MEDIA_URL}
     return HttpResponse(template.render(context, request))
 
 

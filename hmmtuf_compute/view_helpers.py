@@ -14,7 +14,7 @@ from hmmtuf_compute import dash_viewer
 from webapp_utils.helpers import make_bed_path
 from webapp_utils.helpers import get_configuration
 from hmmtuf.constants import INVALID_TASK_ID
-from hmmtuf.config import DATABASES
+from hmmtuf.config import DATABASES, MEDIA_URL
 from hmmtuf_home.models import DistanceSequenceTypeModel, DistanceMetricTypeModel, RegionModel
 
 from .models import ViterbiComputationModel, GroupViterbiComputationModel
@@ -100,13 +100,13 @@ def get_result_view_context(task, task_id):
     if task.result == JobResultEnum.FAILURE.name:
         context = {'error_task_failed': True,
                    "error_message": task.error_explanation,
-                   'task_id': task_id, "computation": task}
+                   'task_id': task_id, "computation": task, "MEDIA_URL": MEDIA_URL}
         return context
     elif task.result == JobResultEnum.PENDING.name:
 
         context = {'show_get_results_button': True,
                    'task_id': task_id,
-                   'task_status': JobResultEnum.PENDING.name}
+                   'task_status': JobResultEnum.PENDING.name, "MEDIA_URL": MEDIA_URL}
 
         return context
 
@@ -133,18 +133,27 @@ def get_result_view_context(task, task_id):
                    "no_wga_tdf_file": no_wga_tdf_file,
                    "locus": chromosome,
                    "start_region_idx": task.start_region_idx,
-                   "end_region_idx": task.end_region_idx}
+                   "end_region_idx": task.end_region_idx, "MEDIA_URL": MEDIA_URL}
 
         if task.computation_type == JobType.VITERBI.name:
 
-            context["normal_bed_url"] = make_bed_path(task_id=task_id, bed_name='normal.bed')
-            context["tuf_bed_url"] = make_bed_path(task_id=task_id, bed_name='tuf.bed')
-            context["deletion_bed_url"] = make_bed_path(task_id=task_id, bed_name="deletion.bed")
-            context["duplication_bed_url"] = make_bed_path(task_id=task_id, bed_name="duplication.bed")
-            context["gap_bed_url"] = make_bed_path(task_id=task_id, bed_name="gap.bed")
-            context["repeats_bed_url"] = make_bed_path(task_id=task_id, bed_name="rep.bed")
-            context["quad_bed_url"] = make_bed_path(task_id=task_id, bed_name="quad.bed")
-            context["tdt_bed_url"] = make_bed_path(task_id=task_id, bed_name="tdt.bed")
+            # if we haven't asked for SPADE then
+            # there is nothing to show on IGV. Just
+            # show the download viterbi path button
+            context["show_download_btn"] = True
+            context['task_id'] = task_id
+
+            if task.use_spade:
+                context["use_spade"] = True
+                context["normal_bed_url"] = make_bed_path(task_id=task_id, bed_name='normal.bed')
+                context["tuf_bed_url"] = make_bed_path(task_id=task_id, bed_name='tuf.bed')
+                context["deletion_bed_url"] = make_bed_path(task_id=task_id, bed_name="deletion.bed")
+                context["duplication_bed_url"] = make_bed_path(task_id=task_id, bed_name="duplication.bed")
+                context["gap_bed_url"] = make_bed_path(task_id=task_id, bed_name="gap.bed")
+                context["repeats_bed_url"] = make_bed_path(task_id=task_id, bed_name="rep.bed")
+                context["quad_bed_url"] = make_bed_path(task_id=task_id, bed_name="quad.bed")
+                context["tdt_bed_url"] = make_bed_path(task_id=task_id, bed_name="tdt.bed")
+
             return context
 
         if task.computation_type == JobType.GROUP_VITERBI.name:
@@ -162,7 +171,7 @@ def get_result_view_context(task, task_id):
 
 def view_viterbi_path_exception_context(task, task_id, model=ViterbiComputationModel.__name__):
 
-    context = {'task_status': task.status}
+    context = {'task_status': task.status, "MEDIA_URL": MEDIA_URL}
 
     if task.status == JobResultEnum.PENDING.name:
 
@@ -212,7 +221,7 @@ def handle_success_view(request, template_html, task_id, **kwargs):
 
     template = loader.get_template(template_html)
 
-    context = {"task_id": task_id}
+    context = {"task_id": task_id, "MEDIA_URL": MEDIA_URL}
     if task_id == INVALID_TASK_ID:
         error_msg = "Task does not exist"
         context.update({"error_msg": error_msg})

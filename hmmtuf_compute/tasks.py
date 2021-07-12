@@ -228,10 +228,10 @@ def compute_viterbi_path(task_id, region_filename,
 
     # create a computation object in the DB
     computation = ViterbiComputationModel.build_from_map(map_data={"task_id": task_id, "result": JobResultEnum.PENDING.name,
-                                                          "error_explanation": DEFAULT_ERROR_EXPLANATION,
-                                                          "group_tip": region_model.group_tip, "hmm": db_hmm_model,
-                                                           "start_region_idx": region_model.start_idx,
-                                                           "end_region_idx": region_model.end_idx}, save=True)
+                                                                   "error_explanation": DEFAULT_ERROR_EXPLANATION,
+                                                                   "group_tip": region_model.group_tip, "hmm": db_hmm_model,
+                                                                   "start_region_idx": region_model.start_idx,
+                                                                   "end_region_idx": region_model.end_idx, "use_spade": use_spade}, save=True)
 
     # access the created computation object
     result = ViterbiComputationModel.get_as_map(model=computation)

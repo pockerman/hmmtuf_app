@@ -84,6 +84,17 @@ class DeaultReader(object):
                 lines.append(line)
             return lines
 
+    def read_with_delimiter_strip(self, filename: Path, delimiter: str) -> list:
+        lines = self.read_default(filename=filename)
+
+        stripped_lines = []
+
+        for line in lines:
+
+            line_data = line.split(delimiter)
+            stripped_lines.append(line_data)
+        return stripped_lines
+
 
 class ViterbiPathReader(DeaultReader):
 
@@ -172,9 +183,9 @@ class NuclOutFileReader(DeaultReader):
         if not self._strip:
             return self.read_default(filename=filename)
         else:
-            return self.read_strip(filename=filename)
+            return self._read_strip(filename=filename)
 
-    def read_strip(self, filename: Path) -> List[List]:
+    def _read_strip(self, filename: Path) -> List[List]:
 
         with open(filename, 'r', newline="\n") as fh:
             lines = []
@@ -331,25 +342,28 @@ class RepeatsInfoFileReader(DeaultReader):
             
 class TufFileReader(DeaultReader):
 
-    def __init__(self, mode: str='default') -> None:
+    def __init__(self, mode: str='default', delimiter: str="\t") -> None:
         super(TufFileReader, self).__init__()
         self._mode = mode
+        self._delimiter = delimiter
 		
     def __call__(self, filename: Path) -> list:
 
         if self._mode == 'default':
             return self.read_default(filename=filename)
+        elif self._mode == 'strip':
+            return self.read_with_delimiter_strip(filename=filename, delimiter=self._delimiter)
         else:
-            raise InvalidReadingMode(mode=self._mode, values=['default'])
+            raise InvalidReadingMode(mode=self._mode, values=['default', 'strip'])
 		
 
 class DeletionFileReader(TufFileReader):
-    def __init__(self, mode: str='default') -> None:
-        super(DeletionFileReader, self).__init__(mode=mode)
+    def __init__(self, mode: str='default', delimiter="\t") -> None:
+        super(DeletionFileReader, self).__init__(mode=mode, delimiter=delimiter)
 
 
 class DuplicationFileReader(TufFileReader):
-    def __init__(self, mode: str='default') -> None:
+    def __init__(self, mode: str='default', delimiter="\t") -> None:
         super(DuplicationFileReader, self).__init__(mode=mode)
 
 
@@ -359,7 +373,7 @@ class GapFileReader(TufFileReader):
 
 
 class NormalFileReader(TufFileReader):
-    def __init__(self, mode: str='default') -> None:
+    def __init__(self, mode: str='default', delimiter="\t") -> None:
         super(NormalFileReader, self).__init__(mode=mode)
 
 
