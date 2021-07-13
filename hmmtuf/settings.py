@@ -53,6 +53,7 @@ INSTALLED_APPS.append('file_loader')
 INSTALLED_APPS.append('hmmtuf_compute')
 INSTALLED_APPS.append('hmm_creator')
 INSTALLED_APPS.append('bed_comparator')
+INSTALLED_APPS.append('login')
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
