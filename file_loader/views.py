@@ -2,6 +2,7 @@ from django.shortcuts import redirect
 from django.http import HttpResponse
 from django.template import loader
 from django.core.exceptions import ObjectDoesNotExist
+from django.contrib.auth.decorators import login_required
 
 
 from webapp_utils.helpers import get_configuration
@@ -28,6 +29,7 @@ def success_load_view_region(request, region_name):
     return HttpResponse(template.render({'name': region_name, 'load_region':True, "MEDIA_URL": MEDIA_URL}, request))
 
 
+@login_required(login_url='/hmmtuf_login/login/')
 def load_hmm_json_view(request):
     """
     The view for loading a JSON file describing
@@ -65,6 +67,7 @@ def load_hmm_json_view(request):
     return HttpResponse(template.render({"MEDIA_URL": MEDIA_URL}, request))
 
 
+@login_required(login_url='/hmmtuf_login/login/')
 def load_region_view(request):
     """
     The view for loading a region file
