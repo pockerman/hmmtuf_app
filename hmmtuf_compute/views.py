@@ -6,6 +6,7 @@ from django.http import Http404
 from django.template import loader
 from django.shortcuts import redirect
 from django.core.exceptions import ObjectDoesNotExist
+from django.contrib.auth.decorators import login_required
 
 from compute_engine.src.windows import WindowType
 from compute_engine import OK
@@ -41,6 +42,7 @@ def success_schedule_viterbi_compute_view(request, task_id):
                                template_html=template_html, task_id=task_id)
 
 
+@login_required(login_url='/hmmtuf_login/login/')
 def schedule_group_viterbi_compute_view(request):
     """
     Serve the view for scheduling viterbi computations
@@ -91,6 +93,7 @@ def schedule_group_viterbi_compute_view(request):
     return HttpResponse(template.render(context, request))
 
 
+@login_required(login_url='/hmmtuf_login/login/')
 def view_group_viterbi_path(request, task_id):
 
     """
@@ -124,6 +127,7 @@ def view_group_viterbi_path(request, task_id):
         return HttpResponse(template.render(context, request))
 
 
+@login_required(login_url='/hmmtuf_login/login/')
 def schedule_hmm_viterbi_compute_view(request):
     """
     Schedule a region Viterbi computation.
@@ -188,6 +192,7 @@ def schedule_hmm_viterbi_compute_view(request):
     return HttpResponse(template.render(context, request))
 
 
+@login_required(login_url='/hmmtuf_login/login/')
 def view_viterbi_path(request, task_id):
     """
     Render the computed Viterbi path
@@ -212,6 +217,7 @@ def view_viterbi_path(request, task_id):
         return HttpResponse(template.render(context, request))
 
 
+@login_required(login_url='/hmmtuf_login/login/')
 def view_repeats_distances_plot(request):
     """
     Serves the view for Dash based view for
@@ -222,7 +228,8 @@ def view_repeats_distances_plot(request):
     return redirect(to="/django_plotly_dash/app/repeats_plot_viewer_app/")
 
 
-def download_viterbi_result_csv(request, task_id: str) -> HttpResponse:
+@login_required(login_url='/hmmtuf_login/login/')
+def download_viterbi_result_csv(request, task_id: str, filename: str = 'viterbi_path.csv') -> HttpResponse:
 
     try:
         # check if computation finished
@@ -245,7 +252,7 @@ def download_viterbi_result_csv(request, task_id: str) -> HttpResponse:
     response = HttpResponse(path, content_type=mime_type)
 
     # Set the HTTP header for sending to browser
-    response['Content-Disposition'] = "attachment; filename=%s" % 'viterbi_path.csv'
+    response['Content-Disposition'] = "attachment; filename=%s" % filename
     return response
 
 

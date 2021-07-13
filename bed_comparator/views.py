@@ -1,15 +1,16 @@
 import uuid
 import os
 from pathlib import Path
+import mimetypes
 
 from django.shortcuts import render
 from django.shortcuts import redirect
 from django.template import loader
 from django.http import HttpResponse
 from django.http import Http404
+from django.contrib.auth.decorators import login_required
 
-# Import mimetypes module
-import mimetypes
+
 
 from compute_engine import OK
 from compute_engine.src.utils import read_json
@@ -23,6 +24,7 @@ template_ids['load_bed_file_view'] = 'bed_comparator/load_bed_file_view.html'
 template_ids['success_load_bed_view'] = 'bed_comparator/success_schedule_bed_compute_view.html'
 
 
+@login_required(login_url='/hmmtuf_login/login/')
 def load_bed_file_view(request):
 
     template = loader.get_template(template_ids[load_bed_file_view.__name__])
@@ -63,10 +65,11 @@ def load_bed_file_view(request):
     return HttpResponse(template.render({"error_name_exist": "The HMM name exists"}, request))
 
 
+@login_required(login_url='/hmmtuf_login/login/')
 def success_load_bed_view(request, task_id: str) -> HttpResponse:
     """
     Serves the success or pending view for
-    a bed comparison computation. The compuation is
+    a bed comparison computation. The computation is
     identified by the task_id
     """
     template = loader.get_template(template_ids[success_load_bed_view.__name__])
@@ -107,6 +110,7 @@ def success_load_bed_view(request, task_id: str) -> HttpResponse:
                                          "total": total, "task_id": task_id}, request))
 
 
+@login_required(login_url='/hmmtuf_login/login/')
 def download_bed_result_csv(request, task_id):
     """
     Manages the download request
