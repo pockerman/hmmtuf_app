@@ -15,7 +15,7 @@ from .tasks import compute_viterbi_path_task
 from .tasks import compute_group_viterbi_path_task as v_group_path_task
 
 
-class ViterbiComputationModel(ComputationModel):
+class ViterbiComputationModelBase(ComputationModel):
     """
     Base class for Viterbi path calculation model
     """
@@ -32,6 +32,9 @@ class ViterbiComputationModel(ComputationModel):
     # end index of the first region in the group
     end_region_idx = models.IntegerField(null=True)
 
+    # flag indicating that the computation uses SPADE
+    use_spade = models.BooleanField(default=False)
+
     class Meta(ComputationModel.Meta):
         abstract = True
 
@@ -44,7 +47,7 @@ class ViterbiComputationModel(ComputationModel):
         return model_dict
 
 
-class GroupViterbiComputationModel(ViterbiComputationModel):
+class GroupViterbiComputationModel(ViterbiComputationModelBase):
     """
     Represents a group Viterbi computation task in the DB
     All fields are NULL by default as the computation may fail
@@ -118,7 +121,7 @@ class GroupViterbiComputationModel(ViterbiComputationModel):
         return data_map
 
 
-class ViterbiComputationModel(ViterbiComputationModel):
+class ViterbiComputationModel(ViterbiComputationModelBase):
     """
     DB model for a Viterbi computation task
     All fields are NULL by default as the computation may fail
@@ -165,7 +168,6 @@ class ViterbiComputationModel(ViterbiComputationModel):
 
         hmm_name = data['hmm_name']
         region_filename = data['region_filename']
-        hmm_filename = data['hmm_filename']
 
         if USE_CELERY:
 

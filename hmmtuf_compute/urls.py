@@ -22,6 +22,9 @@ urlpatterns = [
          views.success_schedule_group_viterbi_compute_view, name='success_schedule_group_viterbi_compute_view'),
 
     path('repeats_distances_plot/',
-         views.view_repeats_distances_plot, name='repeats_distances_plot')
+         views.view_repeats_distances_plot, name='repeats_distances_plot'),
+
+    path('viterbi_result_csv/<str:task_id>/',
+         views.download_viterbi_result_csv, name=views.download_viterbi_result_csv.__name__),
 
 ]

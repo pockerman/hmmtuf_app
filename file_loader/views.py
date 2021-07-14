@@ -2,12 +2,15 @@ from django.shortcuts import redirect
 from django.http import HttpResponse
 from django.template import loader
 from django.core.exceptions import ObjectDoesNotExist
+from django.contrib.auth.decorators import login_required
 
 
 from webapp_utils.helpers import get_configuration
+from hmmtuf.config import MEDIA_URL
 from hmmtuf_home.models import HMMModel, RegionModel, RegionGroupTipModel
 from compute_engine.src.utils import extract_file_names, extract_path
 from compute_engine import OK
+from compute_engine import ERROR
 from .forms import ErrorHandler, RegionLoadForm
 
 
@@ -18,19 +21,22 @@ __all__ = ['load_hmm_json_view', 'load_region_view']
 
 def success_load_view_hmm(request, hmm_name):
     template = loader.get_template('file_loader/load_success.html')
-    return HttpResponse(template.render({'name': hmm_name, 'load_hmm': True}, request))
+    return HttpResponse(template.render({'name': hmm_name, 'load_hmm': True, "MEDIA_URL": MEDIA_URL}, request))
 
 
 def success_load_view_region(request, region_name):
     template = loader.get_template('file_loader/load_success.html')
-    return HttpResponse(template.render({'name': region_name, 'load_region':True}, request))
+    return HttpResponse(template.render({'name': region_name, 'load_region':True, "MEDIA_URL": MEDIA_URL}, request))
 
 
+@login_required(login_url='/hmmtuf_login/login/')
 def load_hmm_json_view(request):
     """
     The view for loading a JSON file describing
     an HMM
     """
+
+    template = loader.get_template('file_loader/load_hmm_view.html')
 
     if request.method == 'POST':
 
@@ -46,19 +52,22 @@ def load_hmm_json_view(request):
             model = HMMModel.objects.get(name=error_handler.name)
         except ObjectDoesNotExist:
 
-            hmm_inst = HMMModel()
-            hmm_inst = HMMModel.build_from_form(inst=hmm_inst,
-                                                form=error_handler, save=True)
+            try:
+                hmm_inst = HMMModel()
+                hmm_inst = HMMModel.build_from_form(inst=hmm_inst,
+                                                    form=error_handler, save=True)
+                return redirect('success_load_view_hmm', hmm_name=hmm_inst.name)
+            except Exception as e:
+                print(f"{ERROR} DB_ERROR occurred {str(e)}")
+                return HttpResponse(template.render({"error_found": f"DB ERROR {str(e)}"}, request))
 
-            return redirect('success_load_view_hmm', hmm_name=hmm_inst.name)
-
-        template = loader.get_template('file_loader/load_hmm_view.html')
-        return HttpResponse(template.render({"error_name_exist": "The HMM name exists"}, request))
+        return HttpResponse(template.render({"error_found": f"The HMM name={error_handler.name} exists"}, request))
 
     template = loader.get_template('file_loader/load_hmm_view.html')
-    return HttpResponse(template.render({}, request))
+    return HttpResponse(template.render({"MEDIA_URL": MEDIA_URL}, request))
 
 
+@login_required(login_url='/hmmtuf_login/login/')
 def load_region_view(request):
     """
     The view for loading a region file
@@ -70,11 +79,10 @@ def load_region_view(request):
 
     context = {"reference_files": reference_files_names,
                "wga_files": wga_files_names,
-               "nwga_files": nwga_files_names}
+               "nwga_files": nwga_files_names,
+               "MEDIA_URL": MEDIA_URL}
 
     if request.method == 'POST':
-
-        print("Posting.....")
 
         error_handler = RegionLoadForm(filename="region_file", item_name="region_name",
                                        context=context, path=path,

@@ -9,7 +9,7 @@ from pathlib import Path
 from compute_engine import INFO, ERROR, DEFAULT_ERROR_EXPLANATION
 from compute_engine.src.enumeration_types import JobResultEnum
 from compute_engine.src import tufdel
-from compute_engine.src.ray_actors import ViterbiPathCalulation, SpadeCalculation
+from compute_engine.src.actors import ViterbiPathCalulation, SpadeCalculation
 
 from webapp_utils.helpers import make_viterbi_path_filename
 from webapp_utils.helpers import make_viterbi_path
@@ -228,10 +228,10 @@ def compute_viterbi_path(task_id, region_filename,
 
     # create a computation object in the DB
     computation = ViterbiComputationModel.build_from_map(map_data={"task_id": task_id, "result": JobResultEnum.PENDING.name,
-                                                          "error_explanation": DEFAULT_ERROR_EXPLANATION,
-                                                          "group_tip": region_model.group_tip, "hmm": db_hmm_model,
-                                                           "start_region_idx": region_model.start_idx,
-                                                           "end_region_idx": region_model.end_idx}, save=True)
+                                                                   "error_explanation": DEFAULT_ERROR_EXPLANATION,
+                                                                   "group_tip": region_model.group_tip, "hmm": db_hmm_model,
+                                                                   "start_region_idx": region_model.start_idx,
+                                                                   "end_region_idx": region_model.end_idx, "use_spade": use_spade}, save=True)
 
     # access the created computation object
     result = ViterbiComputationModel.get_as_map(model=computation)

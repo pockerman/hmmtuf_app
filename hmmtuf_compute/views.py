@@ -1,13 +1,19 @@
+# Import mimetypes module
+import mimetypes
+
 from django.http import HttpResponse
+from django.http import Http404
 from django.template import loader
 from django.shortcuts import redirect
 from django.core.exceptions import ObjectDoesNotExist
+from django.contrib.auth.decorators import login_required
 
 from compute_engine.src.windows import WindowType
 from compute_engine import OK
 
+from webapp_utils.helpers import make_viterbi_path_filename
 from hmmtuf.constants import INVALID_TASK_ID, INVALID_ITEM
-from hmmtuf.config import ENABLE_SPADE
+from hmmtuf.config import ENABLE_SPADE, MEDIA_URL
 from hmmtuf.celery import celery_app
 from hmmtuf_home.models import HMMModel, RegionModel, RegionGroupTipModel
 from hmmtuf_compute import dash_viewer
@@ -36,6 +42,7 @@ def success_schedule_viterbi_compute_view(request, task_id):
                                template_html=template_html, task_id=task_id)
 
 
+@login_required(login_url='/hmmtuf_login/login/')
 def schedule_group_viterbi_compute_view(request):
     """
     Serve the view for scheduling viterbi computations
@@ -64,7 +71,7 @@ def schedule_group_viterbi_compute_view(request):
         hmm_names.append(item.name)
 
     context = {"hmm_names": hmm_names,
-               "group_tips": db_group_tips, }
+               "group_tips": db_group_tips, "MEDIA_URL": MEDIA_URL}
 
     if ENABLE_SPADE:
         context.update({"use_spade": True})
@@ -86,6 +93,7 @@ def schedule_group_viterbi_compute_view(request):
     return HttpResponse(template.render(context, request))
 
 
+@login_required(login_url='/hmmtuf_login/login/')
 def view_group_viterbi_path(request, task_id):
 
     """
@@ -119,6 +127,7 @@ def view_group_viterbi_path(request, task_id):
         return HttpResponse(template.render(context, request))
 
 
+@login_required(login_url='/hmmtuf_login/login/')
 def schedule_hmm_viterbi_compute_view(request):
     """
     Schedule a region Viterbi computation.
@@ -138,7 +147,7 @@ def schedule_hmm_viterbi_compute_view(request):
     hmms = HMMModel.objects.all()
 
     if len(hmms) == 0:
-        context = {"error_empty_hmm_list": "HMM models have not been created."}
+        context = {"error_empty_hmm_list": "HMM models have not been created.", "MEDIA_URL": MEDIA_URL}
         template = loader.get_template(template_html)
         return HttpResponse(template.render(context, request))
 
@@ -161,7 +170,7 @@ def schedule_hmm_viterbi_compute_view(request):
     context = {"region_names": region_names,
                "hmm_names": hmm_names,
                'window_names': WindowType.get_window_types(),
-               "sequence_groups": group_tips}
+               "sequence_groups": group_tips, "MEDIA_URL": MEDIA_URL}
 
     if ENABLE_SPADE:
         context.update({"use_spade": True})
@@ -183,6 +192,7 @@ def schedule_hmm_viterbi_compute_view(request):
     return HttpResponse(template.render(context, request))
 
 
+@login_required(login_url='/hmmtuf_login/login/')
 def view_viterbi_path(request, task_id):
     """
     Render the computed Viterbi path
@@ -207,6 +217,7 @@ def view_viterbi_path(request, task_id):
         return HttpResponse(template.render(context, request))
 
 
+@login_required(login_url='/hmmtuf_login/login/')
 def view_repeats_distances_plot(request):
     """
     Serves the view for Dash based view for
@@ -215,6 +226,34 @@ def view_repeats_distances_plot(request):
 
     dash_viewer.repeats_plot_viewer.layout = get_repeats_distances_plot(request=request)
     return redirect(to="/django_plotly_dash/app/repeats_plot_viewer_app/")
+
+
+@login_required(login_url='/hmmtuf_login/login/')
+def download_viterbi_result_csv(request, task_id: str, filename: str = 'viterbi_path.csv') -> HttpResponse:
+
+    try:
+        # check if computation finished
+        model = models.ViterbiComputationModel.objects.get(task_id=task_id)
+    except models.ViterbiComputationModel.DoesNotExist as e:
+        raise Http404(f"Task {task_id} does not exist")
+
+    result_filename = make_viterbi_path_filename(task_id=task_id)
+
+    try:
+        # open file for read
+        path = open(result_filename, 'r')
+    except Exception as e:
+        raise Http404(str(e))
+
+    # Set the mime type
+    mime_type, _ = mimetypes.guess_type(result_filename)
+
+    # Set the return value of the HttpResponse
+    response = HttpResponse(path, content_type=mime_type)
+
+    # Set the HTTP header for sending to browser
+    response['Content-Disposition'] = "attachment; filename=%s" % filename
+    return response
 
 
 

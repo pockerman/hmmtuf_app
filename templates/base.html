@@ -94,10 +94,25 @@
   <br />
   {% endblock navigation %}
 
-  <div class="container content">
+
+  <div {% if index_page %} class="container" {% else %} class="container" {% endif %}>
     {%block inner_body %}
     {% endblock inner_body %}
   </div>
+
+    <!-- Footer -->
+  <footer class="py-5 bg-white">
+    <hr/>
+    <div class="container">
+
+      <!--<div class="text-center">
+        <img src="{{ MEDIA_URL }}/leicester_logo.png" class="img-fluid" style="max-width:20%">
+      </div>-->
+      <p class="m-0 text-center text-black">University of Leicester 2020</p>
+    </div>
+    <!-- /.container -->
+  </footer>
+
   <!-- Bootstrap core JavaScript -->
   <script src="{% static "vendor/jquery/jquery.min.js" %}"></script>
   <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>

@@ -12,8 +12,21 @@ USE_CELERY = False
 ENABLE_SPADE = True
 SPADE_PATH = "%s/compute_engine/SPADE/" % BASE_DIR
 DATA_PATH = "%s/data/" % BASE_DIR
-DB_NAME = 'hmmtuf_db_ray.sqlite3'
+
 USE_DJANGO_EXTENSIONS = True
+
+DB_TYPE = 'sqlite'
+
+# db name used. If you connect with MySql make
+# sure the name specified here is the same as the
+# name given in mysql_db.cnf file. When using
+# DB_TYPE == sqlite this name is appended with '.sqlite3'
+# suffix
+DB_NAME = 'hmmtuf_db_v1'
+
+# Path to the MySql options file. Used
+# when DB_TYPE == 'mysql'
+DB_CNF_PATH_FILE = '%s/mysql_db.cnf' % BASE_DIR
 
 files_dict = {
   "sequence_files": {
@@ -36,15 +49,25 @@ files_dict = {
     "igv_tracks":"igv_tracks"
 }
 
+if DB_TYPE == 'sqlite':
 
-# Specify the databases used by the project
-# https://docs.djangoproject.com/en/3.1/ref/settings/#databases
-DATABASES = {
+    DATABASES = {
+            'default': {
+                'ENGINE': 'django.db.backends.sqlite3',
+                'NAME': BASE_DIR / str(DB_NAME + '.sqlite3'),
+            }
+    }
+elif DB_TYPE == 'mysql':
+    DATABASES = {
         'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / DB_NAME,
+            'ENGINE': 'django.db.backends.mysql',
+            'OPTIONS': {
+                'read_default_file': DB_CNF_PATH_FILE,
+            },
         }
-}
+    }
+else:
+    raise ValueError("Invalid DB type {0} should be in [{1}]".format(DB_TYPE, ['sqlite', 'mysql']))
 
 # ALLOWED_HOSTs
 # This defines a list of the server’s addresses or
@@ -87,8 +110,8 @@ if DEBUG:
 
     # don't specify it for the moment
     # as we use VITERBI_PATHS_FILES_ROOT
-    MEDIA_ROOT = ''
-    MEDIA_URL = ''
+    MEDIA_ROOT = '%s/media/' % BASE_DIR
+    MEDIA_URL = '/media/'
 
     # for some reason we need to have the full
     # path to the static files in Debug. Also
@@ -140,6 +163,10 @@ elif LOCAL_DEPLOY:
     VITERBI_PATHS_FILES_ROOT = 'http://localhost/viterbi_paths/'
     VITERBI_PATHS_FILES_URL = 'http://localhost/viterbi_paths/'
 
+    # path to store the result of bed comparison computation
+    BED_COMPARE_FILES_ROOT = '%s/computations/bed_comparison/' % BASE_DIR
+    BED_COMPARE_FILES_URL = '%s/computations/bed_comparison/' % BASE_DIR
+
 else:
 
     # these fields depend on where/how we actually
@@ -178,6 +205,10 @@ else:
     # path to where to store the computed comparison of Viterbi paths
     VITERBI_SEQ_COMPARISON_FILES_ROOT = '%s/computations/viterbi_seqs_comparisons/' % BASE_DIR
     VITERBI_SEQ_COMPARISON_FILES_URL = '%s/computations/viterbi_seqs_comparisons/' % BASE_DIR
+
+    # path to store the result of bed comparison computation
+    BED_COMPARE_FILES_ROOT = '%s/computations/bed_comparison/' % BASE_DIR
+    BED_COMPARE_FILES_URL = '%s/computations/bed_comparison/' % BASE_DIR
 
 if DEBUG is False and LOCAL_DEPLOY is False:
     if STATIC_URL == '' or STATIC_ROOT == '':

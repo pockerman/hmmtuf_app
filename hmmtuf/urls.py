@@ -17,12 +17,12 @@ from django.contrib import admin
 from django.urls import path
 from django.urls import include
 from django.conf.urls.static import static
-from django.conf import settings
 
 from .config import REGIONS_FILES_ROOT
 from .config import REGIONS_FILES_URL
 from .config import VITERBI_PATHS_FILES_URL
 from .config import VITERBI_PATHS_FILES_ROOT
+from .config import MEDIA_URL, MEDIA_ROOT
 
 # urlpatterns for the HMMTuf application
 urlpatterns = [
@@ -31,6 +31,7 @@ urlpatterns = [
     path('load_file/', include('file_loader.urls')),
     path('compute/', include('hmmtuf_compute.urls')),
     path('load_bed/', include('bed_comparator.urls')),
+    path('hmmtuf_login/', include('login.urls')),
     #path('region_extractor/', include('region_extractor.urls')),
     path('hmm_creator/', include('hmm_creator.urls')),
     path('django_plotly_dash/', include('django_plotly_dash.urls')),
@@ -40,6 +41,7 @@ urlpatterns = [
 urlpatterns += static(REGIONS_FILES_URL, document_root=REGIONS_FILES_ROOT)
 urlpatterns += static(VITERBI_PATHS_FILES_URL, document_root=VITERBI_PATHS_FILES_ROOT)
 urlpatterns += static(VITERBI_PATHS_FILES_URL, document_root=VITERBI_PATHS_FILES_ROOT)
+urlpatterns += static(MEDIA_URL, document_root=MEDIA_ROOT)
 handler404 = 'hmmtuf_home.views.page_not_found_handler'
 handler500 = 'hmmtuf_home.views.server_error_handler'
 

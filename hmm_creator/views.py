@@ -2,6 +2,7 @@ import json
 from django.shortcuts import redirect
 from django.http import HttpResponse
 from django.template import loader
+from django.contrib.auth.decorators import login_required
 
 from compute_engine.src.constants import OK
 from compute_engine.src.hmm_builder import create_hmm_model_from_form
@@ -17,6 +18,7 @@ def success_create_hmm_view(request, hmm_name):
     return HttpResponse(template.render(context, request))
 
 
+@login_required(login_url='/hmmtuf_login/login/')
 def create_hmm_view(request):
 
     context = {}
@@ -29,12 +31,10 @@ def create_hmm_view(request):
         if result is not OK:
             return form.response
 
-        #import pdb
-        #pdb.set_trace()
         hmm_model = create_hmm_model_from_form(form=form)
         json_str = hmm_model.to_json()
         filename = make_hmm_file_path(hmm_name=form.hmm_name + ".json")
-        print("Saving at: ", filename)
+
         with open(filename, 'w') as jsonfile:
             json.dump(json_str, jsonfile)
 
