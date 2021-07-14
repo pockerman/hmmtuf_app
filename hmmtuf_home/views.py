@@ -1,13 +1,15 @@
 import os
 import shutil
 
-from django.shortcuts import render
+
 from django.http import HttpResponse
 from django.template import loader
 from django.shortcuts import redirect
 from django.contrib import messages
 from django.views.defaults import page_not_found
 from django.views.defaults import server_error
+from django.contrib.auth.decorators import login_required
+
 from compute_engine.src.enumeration_types import JobResultEnum
 from compute_engine import ERROR
 from hmmtuf.config import VITERBI_PATHS_FILES_ROOT
@@ -15,7 +17,6 @@ from hmmtuf.config import DB_NAME, MEDIA_URL
 from hmmtuf_compute.models import GroupViterbiComputationModel, ViterbiComputationModel
 from .models import RegionModel
 from .models import HMMModel
-from .models import DistanceSequenceTypeModel
 from .models import DistanceMetricTypeModel
 
 template_ids = dict()
@@ -68,6 +69,7 @@ def home_view(request) -> HttpResponse:
     return HttpResponse(template.render(context, request))
 
 
+@login_required(login_url='/hmmtuf_login/login/')
 def delete_region_files_view(request):
     template_html = 'hmmtuf_home/delete_region_files_view.html'
     context = {}
@@ -98,6 +100,7 @@ def delete_region_files_view(request):
     return HttpResponse(template.render(context, request))
 
 
+@login_required(login_url='/hmmtuf_login/login/')
 def delete_hmm_files_view(request):
     template_html = 'hmmtuf_home/delete_hmm_files_view.html'
     context = {}
@@ -128,6 +131,7 @@ def delete_hmm_files_view(request):
     return HttpResponse(template.render(context, request))
 
 
+@login_required(login_url='/hmmtuf_login/login/')
 def delete_task_directories_view(request):
 
     template_html = 'hmmtuf_home/delete_task_directories_view.html'
