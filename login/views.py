@@ -13,6 +13,8 @@ def login_view(request):
     template = loader.get_template('login/login_view.html')
     context = {}
 
+    print("INFO: login_view...")
+
     if request.method == 'POST':
 
         username = request.POST.get('username')
@@ -39,6 +41,7 @@ def login_view(request):
             context = {"error_msg": "Invalid user or password", 'next': post_next}
             return HttpResponse(template.render(context, request))
 
+    print("INFO: {0}".format(request.GET))
     # set the next field so that we redirect
     context['next'] = request.GET.get('next')
     return HttpResponse(template.render(context, request))
