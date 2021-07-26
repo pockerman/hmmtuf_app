@@ -30,7 +30,7 @@ The application currently supports the following computations
 - <a href="https://www.djangoproject.com/">django</a>
 - <a href="https://docs.celeryproject.org/en/stable/getting-started/introduction.html">celery</a>
 - <a href="https://pomegranate.readthedocs.io/en/latest/">pomegranate</a>
-- <a href="https://www.sqlite.org/index.html">SQLite</a>
+- <a href="https://www.sqlite.org/index.html">SQLite</a> or <a href="#">MySQL</a>
 - <a href="https://pysam.readthedocs.io/en/latest/api.html">pysam</a>
 - <a href="https://biopython.org/">biopython</a>
 - <a href="https://pypi.org/project/textdistance/">textdistance</a>
@@ -102,7 +102,11 @@ development
 
 You can use <a href="https://flower.readthedocs.io/en/latest/">flower</a> in order to monitor Celery
 
-## Deploy
+## Deploy with Apache with ```mod_wsgi```
+
+Some instructions on how to deploy with Apache and ```mod_wsgi``` can be found <a href="https://pockerman.github.io/qubit_opus/programming/django/python/apache/web-development/2021/07/15/django-apache.html">here</a>.
+
+## Deploy with Gunicorn
 
 There are several tools that can be used for deployment. A common scenario is using 
 <a href="https://gunicorn.org/">Gunicorn</a> a Python WSGI HTTP Server for UNIX and 
