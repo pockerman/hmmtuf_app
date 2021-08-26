@@ -27,7 +27,7 @@ def fillin_distance_types_table(db) -> None:
 
     for choice in CHOICES:
         sql = '''INSERT INTO distance_sequence_type(type) values(?)'''
-        mycursor.execute(sql, (choice[0],))
+        mycursor.execute(sql, (choice[0]))
         db.commit()
     print("{0} Done...".format(INFO))
 
@@ -39,6 +39,8 @@ def fillin_distance_metrics_table(db, distance_metrics: dir) -> None:
 
     for met in distance_metrics:
         sql = '''INSERT INTO distance_metric_type(type, short_cut) values(?,?)'''
+        dummy_sql = "INSERT INTO distance_metric_type(type, short_cut) values({0},{1})".format(distance_metrics[met], met)
+        print(dummy_sql)
         mycursor.execute(sql, (distance_metrics[met], met))
         db.commit()
 
@@ -54,13 +56,13 @@ def create_hmm_types_table(db) -> None:
 
     for choice in choices:
         sql = '''INSERT INTO hmm_state_types(type) values(?)'''
-        mycursor.execute(sql=sql, values=(choice,))
+        mycursor.execute(sql=sql, values=(choice))
         db.commit()
     print("{0} Done...".format(INFO))
 
 
 def populate_mysql(db):
-    fillin_distance_types_table(db=db)
+    #fillin_distance_types_table(db=db)
     fillin_distance_metrics_table(db=db, distance_metrics=distance_metrics)
     create_hmm_types_table(db=db)
 
