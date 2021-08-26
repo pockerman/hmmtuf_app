@@ -55,15 +55,17 @@ def create_hmm_types_table(db) -> None:
     mycursor = db.cursor()
 
     for choice in choices:
-        sql = '''INSERT INTO hmm_state_types(type) values(?)'''
-        mycursor.execute(sql=sql, values=(choice))
+        sql = '''INSERT INTO hmm_state_types(type) values(%s)'''
+        dummy_sql = "INSERT INTO hmm_state_types(type) values({0})".format(sql)
+        print(dummy_sql)
+        mycursor.execute(sql, choice)
         db.commit()
     print("{0} Done...".format(INFO))
 
 
 def populate_mysql(db):
     #fillin_distance_types_table(db=db)
-    fillin_distance_metrics_table(db=db, distance_metrics=distance_metrics)
+    #fillin_distance_metrics_table(db=db, distance_metrics=distance_metrics)
     create_hmm_types_table(db=db)
 
 
