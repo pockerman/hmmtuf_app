@@ -54,7 +54,7 @@ class SQLiteDBConnector(DBConnectorBase):
                       "chromosome TEXT NOT NULL," \
                       " start_idx INT NOT NULL, end_idx INT NOT NULL," \
                       "repeat_seq TEXT NOT NULL, hmm_state_id INTEGER NOT NULL, " \
-                      "gc FLOAT, gc_min FLOAT, gc_max FLOAT, has_repeats INT," \
+                      "gc FLOAT, gc_min FLOAT, gc_max FLOAT, has_gquad INT, has_repeats INT," \
                   "n_repeats INT, align_seq TEXT, unit_seq TEXT)"
         elif table_name == 'repeats_distances':
             sql = "CREATE TABLE IF NOT EXISTS repeats_distances (id INTEGER PRIMARY KEY AUTOINCREMENT, " \

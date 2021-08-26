@@ -2,18 +2,16 @@ from pathlib import Path
 import csv
 import json
 from compute_engine.src.file_readers import ViterbiPathReader, CoordsBedFile
+from compute_engine.src.enumeration_types import JobResultEnum
 
 
-def compute_bed_comparison(task_id: str, step_size: int =-1) -> dict:
+def compute_bed_comparison(task_id: str, step_size: int = -1) -> dict:
 
     # avoid circular imports
     from .models import BedComparisonModel
 
-    import pdb
-    pdb.set_trace()
-
     # attempt to get the model
-    response_dict = BedComparisonModel.response_dict()
+    #response_dict = BedComparisonModel.response_dict()
 
     try:
         model = BedComparisonModel.objects.get(task_id=task_id)
@@ -27,16 +25,17 @@ def compute_bed_comparison(task_id: str, step_size: int =-1) -> dict:
             writer = csv.writer(fh, delimiter=',')
 
             for item in coords:
-                row = [item[0], item[1], coords[item]]
+                row = [item[0], item[1], item[2], coords[item]]
                 writer.writerow(row)
 
         # save the summary
         with open(model.summary_filename, 'w') as fp:
-            json.dumps(state_counters, fp)
+            json.dump(state_counters, fp)
 
+        model.result = JobResultEnum.SUCCESS.name
+        model.save()
     except Exception as e:
         model.update_for_exception(err_msg=str(e), save=True)
-
 
     return dict() #response_dict
 
@@ -44,10 +43,10 @@ def compute_bed_comparison(task_id: str, step_size: int =-1) -> dict:
 def __search(viterbi_filename: Path, bed_filename: Path, step_size: int) -> tuple:
 
     if step_size <=0:
-        __search_default(viterbi_filename=viterbi_filename, bed_filename=bed_filename)
+        return __search_default(viterbi_filename=viterbi_filename, bed_filename=bed_filename)
     else:
-        __search_with_step_size(viterbi_filename=viterbi_filename,
-                              bed_filename=bed_filename, step_size=step_size)
+        return __search_with_step_size(viterbi_filename=viterbi_filename,
+                                       bed_filename=bed_filename, step_size=step_size)
 
 
 def __search_with_step_size(viterbi_filename: Path,
@@ -58,7 +57,7 @@ def __search_with_step_size(viterbi_filename: Path,
 
     viterbi_reader = ViterbiPathReader(mode='dict_coords_state')
     values = viterbi_reader(filename=viterbi_filename)
-    bed_coords_reader = CoordsBedFile(mode='tuple_list')
+    bed_coords_reader = CoordsBedFile(mode='tuple_list', delimiter=",")
     bed_coords = bed_coords_reader(filename=bed_filename)
 
     state_counters = dict()
@@ -99,9 +98,12 @@ def __search_with_step_size(viterbi_filename: Path,
 
 def __search_default(viterbi_filename: Path, bed_filename: Path) -> tuple:
 
+    #import pdb
+    #pdb.set_trace()
+
     viterbi_reader = ViterbiPathReader(mode='dict_coords_state')
     values = viterbi_reader(filename=viterbi_filename)
-    bed_coords_reader = CoordsBedFile(mode='tuple_list')
+    bed_coords_reader = CoordsBedFile(mode='tuple_list', delimiter=",")
     bed_coords = bed_coords_reader(filename=bed_filename)
 
     state_counters = dict()

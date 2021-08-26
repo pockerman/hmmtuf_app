@@ -156,7 +156,7 @@ class CoordsBedFile(DeaultReader):
 
             for line in reader:
                 if len(line) != 3:
-                    raise InvalidFileFormat(filename=str(filename))
+                    raise InvalidFileFormat(filename=str(filename) + "offending line={}".format(line))
 
                 result.append([line[0], int(line[1].strip()), int(line[2].strip())])
 

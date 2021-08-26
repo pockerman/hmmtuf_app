@@ -104,7 +104,7 @@ def success_load_bed_view(request, task_id: str) -> HttpResponse:
 
     if total != 0:
         for key in summary:
-            summary[key] = (summary[key], float(summary[key]) / float(total))
+            summary[key] = (summary[key], (float(summary[key]) / float(total))*100.0)
 
     return HttpResponse(template.render({"summary": summary,
                                          "total": total, "task_id": task_id}, request))

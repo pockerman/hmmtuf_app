@@ -48,8 +48,10 @@
              {% endfor %}
             </tbody>
         </table>
+    </div>
 
-    <a href="{% url /load_bed/result_csv/{{ task_id }}/result'  filename='result.csv' %}" class="btn btn-primary">Download Results</a>
+    <div class="row text-center">
+        <a href="{% url 'download_bed_result_csv' task_id=task_id  %}" class="btn btn-primary">Download Results</a>
     </div>
 
 </div>
