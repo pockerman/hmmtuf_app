@@ -71,7 +71,7 @@ def main(input_path_dir: Path, fas_file_name: Path, db_conn) -> None:
             data_dict["TUF"] = tuf_data
 
             dupl_reader = DuplicationFileReader(mode='strip', delimiter='\t')
-            dupl_data = dupl_reader(filename=directory_path / tuf_name)
+            dupl_data = dupl_reader(filename=directory_path / duplication_name)
             total += len(dupl_data)
 
             data_dict["DUPLICATION"] = dupl_data
@@ -107,7 +107,7 @@ if __name__ == '__main__':
 
     INPUT_PATH_DIR = Path('/home/alex/qi3/hmmtuf/computations/viterbi_paths')
     OUTPUT_PATH_DIR = Path('/home/alex/qi3/hmmtuf/computations/viterbi_paths/tmp/out')
-    DB_PATH = '/home/alex/qi3/hmmtuf/release_db_v4.sqlite3'
+    DB_PATH = '/home/alex/qi3/hmmtuf/release_db_v5.sqlite3'
     fas_file_name = Path('/home/alex/qi3/hmmtuf/data/GCA_000001405.15_GRCh38_no_alt_analysis_set.fna')
     conn = sqlite3.connect(DB_PATH)
     main(input_path_dir=INPUT_PATH_DIR, fas_file_name=fas_file_name, db_conn=conn)
