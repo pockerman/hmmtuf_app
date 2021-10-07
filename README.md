@@ -21,9 +21,14 @@ The application currently supports the following computations
 - Compute distances between repeats
 - Visualize distances distributions
 
+The following image displays the marked windows accoding to the computed Viterbi path in the IGV browser.
 
 <img src="imgs/img_group.png" style="width:60%" />
 
+
+The following schematic displays approximately the role of the various component.
+
+<img src="imgs/architecture_diagram.png" style="width:60%" />
 
 ## Dependencies
 
@@ -34,6 +39,8 @@ The application currently supports the following computations
 - <a href="https://pysam.readthedocs.io/en/latest/api.html">pysam</a>
 - <a href="https://biopython.org/">biopython</a>
 - <a href="https://pypi.org/project/textdistance/">textdistance</a>
+
+
 
 #### Note
 
