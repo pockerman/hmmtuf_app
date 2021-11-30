@@ -47,7 +47,7 @@ The following schematic displays approximately the role of the various component
 You also need to install one of the backends supported by Celery. For more
 information see <a href="https://docs.celeryproject.org/en/stable/getting-started/introduction.html#installation">here</a>.
 
-A Dockerize version of the project can be found <a herf="https://github.com/pockerman/hmmtuf_docker">in this repository</a>.
+A Dockerize version of the project can be found <a href="https://github.com/pockerman/hmmtuf_docker">in this repository</a>.
 
 ## Configuration 
 
